@@ -1,0 +1,56 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "nam-a2/ws-telemetry.schema.json",
+  "title": "Contract 3+6 — WS telemetry channel (spectra + beat)",
+  "description": "Telemetry channel messages. Spectral frames normally travel as the Contract-6 BINARY format (see spectral-frame.descriptor.json); this JSON form is the fallback/debug shape and the beat message. FREEZE-NOW.",
+  "type": "object",
+  "required": ["v", "ch", "type"],
+  "properties": {
+    "v": { "const": 1 },
+    "ch": { "const": "telemetry" },
+    "type": { "enum": ["spectra", "beat"] }
+  },
+  "oneOf": [
+    {
+      "properties": {
+        "type": { "const": "spectra" },
+        "frame": { "$ref": "#/definitions/SpectralFrame" }
+      },
+      "required": ["frame"]
+    },
+    {
+      "properties": {
+        "type": { "const": "beat" },
+        "beat": { "$ref": "#/definitions/BeatTelemetry" }
+      },
+      "required": ["beat"]
+    }
+  ],
+  "definitions": {
+    "SpectralFrame": {
+      "type": "object",
+      "required": ["chainTag", "seq", "tMs", "magnitudes"],
+      "properties": {
+        "chainTag": { "type": "string" },
+        "seq": { "type": "integer", "minimum": 0 },
+        "tMs": { "type": "number" },
+        "magnitudes": {
+          "type": "array",
+          "minItems": 256,
+          "maxItems": 256,
+          "items": { "type": "number", "minimum": 0, "maximum": 1 },
+          "description": "256 linear magnitudes normalised 0..1 (0–16 kHz)."
+        }
+      }
+    },
+    "BeatTelemetry": {
+      "type": "object",
+      "required": ["beat", "tMs"],
+      "properties": {
+        "beat": { "type": "number", "description": "current song beat position" },
+        "tMs": { "type": "number" },
+        "tempo": { "type": "number" }
+      }
+    }
+  }
+}

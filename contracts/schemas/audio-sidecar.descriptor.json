@@ -1,0 +1,29 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "nam-a2/audio-sidecar.descriptor.json",
+  "title": "Contract 5 — Audio sidecar → hub PCM record (byte layout)",
+  "description": "Byte-layout DESCRIPTOR for the sidecar→hub PCM stream so the native C++ sidecar and the Node hub agree. Little-endian. Each record = 40-byte header + interleaved int16 payload. audio-sidecar.ts is source of truth for the Node side. Mirrors the Ableton Link Audio Info block (LinkAudioSource::BufferHandle). FREEZE-NOW.",
+  "x-endianness": "little",
+  "x-transport": { "proto": "tcp", "host": "127.0.0.1", "port": 47615 },
+  "x-sample-format": "int16le, interleaved (L,R,L,R,...)",
+  "x-payload-bytes-formula": "numChannels * numFrames * 2",
+  "x-header-bytes": 40,
+  "x-fields": [
+    { "offset": 0,  "size": 4, "type": "uint32",  "name": "magic",           "value": 1095520049, "note": "0x41504331 == 'APC1'" },
+    { "offset": 4,  "size": 2, "type": "uint16",  "name": "version",         "value": 1 },
+    { "offset": 6,  "size": 2, "type": "uint16",  "name": "numChannels",     "note": "Link Info.numChannels (target 2)" },
+    { "offset": 8,  "size": 4, "type": "uint32",  "name": "sampleRate",      "note": "Link Info.sampleRate (target 48000)" },
+    { "offset": 12, "size": 4, "type": "uint32",  "name": "numFrames",       "note": "samples PER CHANNEL in this packet" },
+    { "offset": 16, "size": 4, "type": "uint32",  "name": "sequence",        "note": "monotonic packet counter for drop detection" },
+    { "offset": 20, "size": 8, "type": "float64", "name": "sessionBeatTime", "note": "Link Info.sessionBeatTime" },
+    { "offset": 28, "size": 8, "type": "float64", "name": "tempo",           "note": "Link Info.tempo (BPM)" },
+    { "offset": 36, "size": 2, "type": "uint16",  "name": "flags",           "note": "bit0 = discontinuity/xrun before this packet" },
+    { "offset": 38, "size": 2, "type": "uint16",  "name": "reserved",        "value": 0 },
+    { "offset": 40, "size": "numChannels * numFrames * 2", "type": "int16[]", "name": "payload", "note": "interleaved signed-16 LE samples" }
+  ],
+  "x-hub-reslice": {
+    "note": "Hub reslices the stream into exact 10 ms frames before @roamhq/wrtc RTCAudioSource.onData.",
+    "framesPerChannel10msAt48k": 480,
+    "bitsPerSample": 16
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "name": "nam-a2-harnesses",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Rig-gated test harnesses for the NAM A2 Rig — write now, run when you have the Mac + Ableton.",
+  "scripts": {
+    "latency": "node --experimental-strip-types src/01-osc-latency.ts",
+    "load-item": "node --experimental-strip-types src/02-load-item-verify.ts",
+    "automation": "node --experimental-strip-types src/03-insert-step-automation.ts",
+    "looper": "node --experimental-strip-types src/04-looper-state-roundtrip.ts",
+    "pinger": "node --experimental-strip-types src/05-confirmed-echo-pinger.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

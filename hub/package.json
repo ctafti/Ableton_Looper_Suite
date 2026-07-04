@@ -1,0 +1,30 @@
+{
+  "name": "nam-a2-hub-lib",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "NAM A2 hub: contract-frozen core modules (codecs, resolver, lifecycle, mirror, math) + the fake-Live simulator that serves the tablet walking skeleton.",
+  "scripts": {
+    "test": "node --experimental-strip-types --test test/*.test.ts",
+    "typecheck": "tsc --noEmit",
+    "sim": "node --experimental-strip-types src/sim/server.ts"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "ws": "^8.21.0"
+  },
+  "main": "index.js",
+  "directories": {
+    "test": "test"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/node": "^26.1.0",
+    "@types/ws": "^8.18.1",
+    "typescript": "^6.0.3"
+  }
+}

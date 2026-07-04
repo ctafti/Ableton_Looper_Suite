@@ -1,0 +1,116 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "nam-a2/ws-state.schema.json",
+  "title": "Contract 3 — Hub↔Tablet WS: state channel (wire mirror of ws.ts)",
+  "description": "Cross-language descriptor for the state channel. ws.ts is source of truth for the Node side; this exists so the tablet (and any non-TS client) validate the same shape. FREEZE-NOW.",
+  "type": "object",
+  "required": ["v", "ch", "type"],
+  "properties": {
+    "v": { "const": 1, "description": "WS_PROTOCOL_VERSION" },
+    "ch": { "const": "state" },
+    "type": { "enum": ["snapshot", "delta", "command_status"] },
+    "rev": { "type": "integer", "minimum": 0, "description": "monotonic revision counter" }
+  },
+  "oneOf": [
+    {
+      "properties": {
+        "type": { "const": "snapshot" },
+        "snapshot": { "$ref": "#/definitions/MirrorSnapshot" }
+      },
+      "required": ["snapshot"]
+    },
+    {
+      "properties": {
+        "type": { "const": "delta" },
+        "delta": { "$ref": "#/definitions/MirrorDelta" }
+      },
+      "required": ["delta"]
+    },
+    {
+      "properties": {
+        "type": { "const": "command_status" },
+        "status": { "$ref": "#/definitions/CommandStatus" }
+      },
+      "required": ["status"]
+    }
+  ],
+  "definitions": {
+    "CellMirror": {
+      "type": "object",
+      "required": ["slot", "hasClip"],
+      "properties": {
+        "slot": { "type": "integer", "minimum": 0 },
+        "hasClip": { "type": "boolean" },
+        "isPlaying": { "type": "boolean" },
+        "isRecording": { "type": "boolean" },
+        "name": { "type": "string" }
+      }
+    },
+    "LooperMirror": {
+      "type": "object",
+      "description": "PROVISIONAL fields — see PROVISIONAL-SEAMS (looper echo, spike 04).",
+      "properties": {
+        "state": { "type": "integer", "enum": [0, 1, 2, 3], "description": "0 Stop 1 Play 2 Record 3 Overdub" }
+      }
+    },
+    "DeviceMirror": {
+      "type": "object",
+      "required": ["role"],
+      "properties": {
+        "role": { "type": "string" },
+        "present": { "type": "boolean" }
+      }
+    },
+    "ChainMirror": {
+      "type": "object",
+      "required": ["chain", "cells"],
+      "properties": {
+        "chain": { "type": "string", "description": "ChainID" },
+        "tag": { "type": "string" },
+        "muted": { "type": "boolean" },
+        "sendA": { "type": "number" },
+        "sendB": { "type": "number" },
+        "looper": { "$ref": "#/definitions/LooperMirror" },
+        "devices": { "type": "array", "items": { "$ref": "#/definitions/DeviceMirror" } },
+        "cells": { "type": "array", "items": { "$ref": "#/definitions/CellMirror" } }
+      }
+    },
+    "SceneMirror": {
+      "type": "object",
+      "required": ["scene"],
+      "properties": {
+        "scene": { "type": "string" },
+        "name": { "type": "string" }
+      }
+    },
+    "MirrorSnapshot": {
+      "type": "object",
+      "required": ["rev", "chains"],
+      "properties": {
+        "rev": { "type": "integer", "minimum": 0 },
+        "tempo": { "type": "number" },
+        "metronome": { "type": "boolean" },
+        "chains": { "type": "array", "items": { "$ref": "#/definitions/ChainMirror" } },
+        "scenes": { "type": "array", "items": { "$ref": "#/definitions/SceneMirror" } }
+      }
+    },
+    "MirrorDelta": {
+      "type": "object",
+      "required": ["rev"],
+      "properties": {
+        "rev": { "type": "integer", "minimum": 0 },
+        "chainPatches": { "type": "array", "items": { "type": "object" } },
+        "transportPatch": { "type": "object" }
+      }
+    },
+    "CommandStatus": {
+      "type": "object",
+      "required": ["commandId", "phase"],
+      "properties": {
+        "commandId": { "type": "string" },
+        "phase": { "enum": ["intent", "sent", "queued", "confirmed", "failed"] },
+        "error": { "type": "string" }
+      }
+    }
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "name": "nam-a2-foundation",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Off-machine foundation for the NAM A2 Rig: frozen inter-component contracts, API-reality + provisional-seams reports, a TONE3000 OAuth spike, and rig-gated OSC test harnesses.",
+  "scripts": {
+    "typecheck:contracts": "tsc --noEmit -p tsconfig.json",
+    "typecheck:spike": "tsc --noEmit -p spikes/tone3000/tsconfig.json",
+    "typecheck:harnesses": "tsc --noEmit -p harnesses/tsconfig.json"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.0",
+    "@types/node": "^22.0.0"
+  },
+  "license": "GPL-2.0-or-later",
+  "type": "module"
+}

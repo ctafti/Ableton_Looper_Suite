@@ -1,0 +1,7 @@
+cmake_minimum_required(VERSION 3.10)
+project(nam_a2_probe CXX)
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+include(${CMAKE_CURRENT_SOURCE_DIR}/../link/AbletonLinkConfig.cmake)
+add_executable(nam_a2_probe nam_a2_probe.cpp)
+target_link_libraries(nam_a2_probe Ableton::Link)

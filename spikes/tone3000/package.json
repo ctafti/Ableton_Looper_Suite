@@ -1,0 +1,20 @@
+{
+  "name": "nam-a2-tone3000-spike",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Off-rig TONE3000 OAuth (PKCE) + fetch-one-A2-model spike for the NAM A2 Rig.",
+  "scripts": {
+    "pkce": "tsx src/pkce.ts",
+    "authorize-url": "tsx src/headless-lan-flow.ts",
+    "fetch-a2": "tsx src/fetch-a2-model.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "tsx": "^4.19.0",
+    "typescript": "^5.6.0"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

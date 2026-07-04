@@ -1,0 +1,56 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "nam-a2/ai-tool-call.schema.json",
+  "title": "Contract 4 — AI tool-call + receipt envelope",
+  "description": "Wire shape for a tool call the brain emits and the receipt it gets back. ai-tools.ts is source of truth for the Node side. Tool VERBS are FREEZE-NOW; receipts for looper_state / write_movement / add_device are PROVISIONAL (see PROVISIONAL-SEAMS). Addresses use CellRef/ChainID/DeviceRole/SceneID only — never raw Live indices.",
+  "type": "object",
+  "oneOf": [
+    { "$ref": "#/definitions/ToolCall" },
+    { "$ref": "#/definitions/ToolReceipt" }
+  ],
+  "definitions": {
+    "CellRef": {
+      "type": "object",
+      "required": ["chain", "slot"],
+      "properties": {
+        "chain": { "type": "string" },
+        "slot": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "ToolCall": {
+      "type": "object",
+      "required": ["kind", "toolCallId", "tool", "args"],
+      "properties": {
+        "kind": { "const": "tool_call" },
+        "toolCallId": { "type": "string" },
+        "tool": {
+          "enum": [
+            "fire_clip", "stop_clip", "launch_scene", "duplicate_clip_to",
+            "set_param", "set_send", "set_mute", "set_tempo", "set_metronome",
+            "looper_state", "write_movement", "add_device", "load_tone"
+          ]
+        },
+        "args": { "type": "object", "description": "shape depends on tool; see ai-tools.ts AI_TOOLS[tool].params" }
+      }
+    },
+    "ToolReceipt": {
+      "type": "object",
+      "required": ["kind", "toolCallId", "tool", "confirmed"],
+      "properties": {
+        "kind": { "const": "tool_receipt" },
+        "toolCallId": { "type": "string" },
+        "tool": { "type": "string" },
+        "confirmed": { "type": "boolean", "description": "true only when the engine echoed the resulting state (Contract 12)" },
+        "error": { "type": "string", "description": "set when confirmed=false, e.g. timeout | rejected | not_supported" },
+        "receiptKind": {
+          "enum": [
+            "clip_state", "scene_state", "param_state", "mixer_state",
+            "transport_state", "looper_receipt", "movement_receipt",
+            "device_add_receipt", "tone_load_receipt"
+          ]
+        },
+        "observed": { "type": "object", "description": "observed-state fields; PROVISIONAL receipts carry a __provisional marker" }
+      }
+    }
+  }
+}

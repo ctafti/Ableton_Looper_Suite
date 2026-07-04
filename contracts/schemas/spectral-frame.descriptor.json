@@ -1,0 +1,27 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "nam-a2/spectral-frame.descriptor.json",
+  "title": "Contract 6 — Spectral frame BINARY wire format (M4L → hub UDP)",
+  "description": "This is NOT a JSON payload; it is a byte-layout DESCRIPTOR so the Max/M4L side and the Node hub agree on the exact binary datagram. Little-endian. spectral.ts (SPECTRAL_BINARY) is the source of truth for the Node side. FREEZE-NOW.",
+  "x-endianness": "little",
+  "x-total-bytes-formula": "22 + chainTagLen + 2 * binCount",
+  "x-fields": [
+    { "offset": 0,  "size": 4, "type": "uint32",  "name": "magic",       "value": 1397769521, "note": "0x53504331 == 'SPC1'" },
+    { "offset": 4,  "size": 1, "type": "uint8",   "name": "version",     "value": 1 },
+    { "offset": 5,  "size": 1, "type": "uint8",   "name": "flags",       "value": 0, "note": "reserved" },
+    { "offset": 6,  "size": 2, "type": "uint16",  "name": "binCount",    "value": 256 },
+    { "offset": 8,  "size": 4, "type": "uint32",  "name": "seq",         "note": "monotonic per-chain; drop stale" },
+    { "offset": 12, "size": 8, "type": "float64", "name": "tMs",         "note": "sender timestamp ms" },
+    { "offset": 20, "size": 2, "type": "uint16",  "name": "chainTagLen", "note": "UTF-8 byte length of chainTag" },
+    { "offset": 22, "size": "chainTagLen", "type": "utf8", "name": "chainTag", "note": "no null terminator" },
+    { "offset": "22 + chainTagLen", "size": "2 * binCount", "type": "uint16[]", "name": "magnitudes", "note": "each v maps to normalized magnitude v / 65535" }
+  ],
+  "x-consts": {
+    "binCount": 256,
+    "freqLowHz": 0,
+    "freqHighHz": 16000,
+    "fps": 30,
+    "fftSize": 4096,
+    "magScaleMax": 65535
+  }
+}

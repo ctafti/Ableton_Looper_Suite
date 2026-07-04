@@ -1,0 +1,132 @@
+<!doctype html>
+<!-- =========================================================================
+NAM A2 RIG — TABLET WALKING SKELETON (BUILD-PLAN Phase 2)
+The real Phase-2 tablet shell, built against the FROZEN Contract-3 protocol —
+no build step, plain JS (app.js), so it is fully vibe-code-iterable. Today it
+talks to the simulator (npm run sim in hub/); later it talks to the real hub
+by changing nothing but the URL it's served from.
+
+What it proves end-to-end through real seams:
+  snapshot render · deltas · rev-gap resync · fire with optimistic intent ->
+  queued countdown -> confirmed (or failed -> revert) · go_live glow ·
+  volume/mute · looper state · 48-band spectra with peak-hold · beat pulse.
+========================================================================== -->
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+<title>NAM A2 — Rig</title>
+<style>
+  :root {
+    --bg: #17130e; --panel: #221c14; --panel2: #2a2318;
+    --amber: #e8a33d; --amber-dim: #8a6323; --silk: #d8cdb8; --mono: #b9e0c4;
+    --fail: #c4574a;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body {
+    margin: 0; background: var(--bg); color: var(--silk);
+    font-family: "Saira Condensed", "Arial Narrow", sans-serif;
+    user-select: none; overflow-x: hidden;
+  }
+  /* top bar */
+  #top {
+    display: flex; align-items: center; gap: 14px; padding: 8px 14px;
+    background: linear-gradient(#2b241a, #1d1810); border-bottom: 2px solid #0b0906;
+  }
+  #top .lamp {
+    width: 10px; height: 10px; border-radius: 50%;
+    background: radial-gradient(circle at 35% 35%, #ffd98a, var(--amber) 60%, #6b4a12);
+    box-shadow: 0 0 8px 2px rgba(232,163,61,.5);
+  }
+  #top .lamp.off { background: #3a3226; box-shadow: none; }
+  .readout {
+    font-family: "DM Mono", ui-monospace, monospace; color: var(--mono);
+    background: #10150f; border: 1px solid #000; border-radius: 3px;
+    padding: 2px 8px; font-size: 14px; letter-spacing: 1px;
+    box-shadow: inset 0 2px 6px rgba(0,0,0,.7);
+  }
+  #conn { margin-left: auto; font-size: 12px; letter-spacing: 2px; text-transform: uppercase; color: var(--amber-dim); }
+  #conn.ok { color: var(--amber); }
+  button.silk {
+    background: var(--panel2); color: var(--silk); border: 1px solid #0b0906;
+    border-radius: 4px; padding: 4px 10px; font: inherit; font-size: 13px;
+    letter-spacing: 1px; text-transform: uppercase; cursor: pointer;
+  }
+  button.silk.on { color: var(--amber); border-color: var(--amber-dim); }
+
+  /* chain rows */
+  .chain {
+    display: grid; grid-template-columns: 150px 1fr 190px; gap: 10px;
+    align-items: stretch; padding: 8px 12px; border-bottom: 1px solid #0b0906;
+    background: var(--panel);
+  }
+  .chain.live { box-shadow: inset 4px 0 0 var(--chaincolor), inset 0 0 24px rgba(232,163,61,.08); }
+  .head { display: flex; flex-direction: column; gap: 4px; justify-content: center; cursor: pointer; }
+  .head .name { font-size: 18px; letter-spacing: 1px; color: var(--chaincolor); text-transform: uppercase; }
+  .head .input { font-size: 11px; letter-spacing: 2px; color: var(--amber-dim); text-transform: uppercase; }
+  .head .livebadge { font-size: 10px; letter-spacing: 2px; color: var(--amber); display: none; }
+  .chain.live .livebadge { display: block; }
+
+  .cells { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; }
+  .cell {
+    position: relative; border-radius: 5px; border: 1px solid #0b0906; min-height: 64px;
+    background: #1a1510; cursor: pointer; overflow: hidden;
+    display: flex; align-items: flex-end; padding: 4px 6px;
+    font-size: 12px; color: #7d735f;
+  }
+  .cell.hasclip { background: linear-gradient(180deg, #241d13, #1a1510); color: var(--silk); }
+  .cell.playing { border-color: var(--chaincolor); box-shadow: inset 0 0 14px rgba(255,255,255,.06), 0 0 8px var(--chaincolor); }
+  .cell.recording { border-color: var(--fail); box-shadow: 0 0 8px var(--fail); }
+  .cell.intent { opacity: .55; }
+  .cell.queued::after {
+    content: attr(data-count); position: absolute; inset: 0; display: flex;
+    align-items: center; justify-content: center; font-family: "DM Mono", monospace;
+    color: var(--amber); background: rgba(20,15,8,.55); font-size: 15px;
+  }
+  .cell.failed { animation: shake .3s; border-color: var(--fail); }
+  @keyframes shake { 25% { transform: translateX(-3px);} 75% { transform: translateX(3px);} }
+  .cell .loopbtn {
+    position: absolute; top: 3px; right: 5px; color: #6b5f4b; font-size: 14px; line-height: 1;
+  }
+  .cell.looping .loopbtn { color: var(--amber); text-shadow: 0 0 6px var(--amber); }
+
+  /* right strip: spectrum + mixer */
+  .strip { display: flex; flex-direction: column; gap: 6px; }
+  canvas.spec {
+    width: 100%; height: 44px; background: #10150f; border: 1px solid #000;
+    border-radius: 3px; box-shadow: inset 0 2px 8px rgba(0,0,0,.8);
+  }
+  .mixer { display: flex; align-items: center; gap: 8px; }
+  .mixer input[type=range] { flex: 1; accent-color: var(--amber); height: 18px; }
+  .mixer .mute { width: 34px; }
+
+  #scenes {
+    position: sticky; bottom: 0; display: grid; grid-template-columns: 150px repeat(6, 1fr) 190px;
+    gap: 8px; padding: 8px 12px; background: linear-gradient(#1d1810, #120e09);
+    border-top: 2px solid #0b0906;
+  }
+  #scenes .label { font-size: 11px; letter-spacing: 2px; color: var(--amber-dim); align-self: center; text-transform: uppercase; }
+  #scenes button { min-height: 30px; }
+  #toast {
+    position: fixed; left: 50%; bottom: 70px; transform: translateX(-50%);
+    background: #2a1613; color: var(--silk); border: 1px solid var(--fail);
+    padding: 6px 14px; border-radius: 4px; font-size: 13px; opacity: 0; transition: opacity .25s;
+    pointer-events: none;
+  }
+  #toast.show { opacity: 1; }
+</style>
+</head>
+<body>
+  <div id="top">
+    <div class="lamp" id="beatlamp"></div>
+    <span class="readout" id="tempo">—</span>
+    <button class="silk" id="metro">Metro</button>
+    <span class="readout" id="rev">rev —</span>
+    <span id="conn">connecting…</span>
+  </div>
+  <div id="chains"></div>
+  <div id="scenes"></div>
+  <div id="toast"></div>
+  <script src="app.js"></script>
+</body>
+</html>
