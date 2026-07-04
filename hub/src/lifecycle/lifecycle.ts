@@ -147,10 +147,11 @@ export function quantWindowMs(positionBeats: number, beatsPerBoundary: number, t
 
 /**
  * clip_trigger_quantization index -> beats per boundary.
- * ⚠ ASSUMED — verify on rig: this is Live's documented enum ordering
- * (0=None, 1=8 Bars ... 13=1/32), a ONE-LINE check via
- * /live/song/get/clip_trigger_quantization once at the bench. The MATH above
- * is frozen; only this lookup table is provisional data.
+ * ✅ VERIFIED ON RIG 2026-07-04 (Live 12.4.2): three fixed points read back via
+ * /live/song/get/clip_trigger_quantization matched this table exactly —
+ * None->0, "1 Bar"->4, "1/4"->7. Live's enum is monotonic, so those points pin
+ * the whole ordering (0=None, 1=8 Bars ... 13=1/32). The MATH above was already
+ * frozen; this lookup table is now confirmed data, no longer provisional.
  */
 export const QUANT_BEATS: readonly number[] = [
   0, // 0 None

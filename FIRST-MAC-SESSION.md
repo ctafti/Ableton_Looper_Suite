@@ -1,186 +1,316 @@
-# FIRST MAC SESSION — v2 (2026-07-02)
+# FIRST MAC SESSION — v4 (2026-07-04, evening)
 
-> Supersedes the earlier FIRST-MAC-SESSION.md. Rewritten because the ground
-> shifted under it in a good way: the engine extension now ships with a
-> one-command installer, the hub's core modules + a fake-Live simulator + the
-> tablet shell are prebuilt and tested, and the audio sidecar has already
-> passed its full seam test on Linux. Your first session is now mostly
-> **install, verify, and measure** — very little "write code and hope."
+> Supersedes v3 (earlier today). The build itself still hasn't advanced past
+> "about to run the simulator" — but the **repo + tooling infrastructure around
+> it is now solid**: the project is published to GitHub, the codebase analyzer
+> has completed a real run, and a first-run crash bug in the analyzer is fixed.
+> This revision records that, and corrects the GitHub naming (which turned out
+> different from what we assumed).
 
-**You need:** the Mac (with Ableton Live 12.4+ Suite installed and opened at
-least once), the tablet, the MOTU M4, a guitar, and `nam-a2-foundation.zip`.
-Have your AI coding assistant open throughout — every step below is
-copy-pasteable, and when something fails, paste the exact error to the AI.
-
-**Golden rule for the whole session:** when a step's output disagrees with
-what this guide predicts, that's not a problem — that's DATA. Record it in
+**Golden rule (unchanged):** when a step's output disagrees with what this
+guide predicts, that's not a problem — that's DATA. Record it in
 `reports/API-REALITY.md` and keep going.
 
 ---
 
-## Part 1 — Mac command-line setup (~20 min, one time)
+## Progress at a glance
 
-Open **Terminal** (⌘-space, type "terminal").
+| Part | What | Status |
+|---|---|---|
+| 1 | Mac command-line setup | ✅ **DONE** |
+| 2 | Unpack foundation + prove it works | ✅ **DONE** (baseline committed) |
+| — | *Side work:* hub duplicate-generation cleanup | ✅ **DONE** (35→20 tests, committed) |
+| — | *Side work:* codebase-analyzer setup + first real run | ✅ **DONE** |
+| — | *Side work:* publish repo to GitHub | ✅ **DONE** (verify push landed) |
+| 3 | Run the simulator | ▶ **YOU ARE HERE / NEXT** |
+| 4 | Install engine extension into Live | ☐ not started |
+| 5 | The harness gauntlet | ☐ not started |
+| 6 | Bench experiments (guitar in hand) | ☐ not started |
+| 7 | TONE3000 | ☐ not started |
+| 8 | End-of-session ritual | ☐ not started |
+
+**Nothing in Live has been touched yet.** All recent activity was repo hygiene
+and tooling; the actual rig build resumes at Part 3.
+
+**Loose ends to close before Part 3:**
+1. **Verify the GitHub push actually landed:** `git log --oneline origin/main`
+   (or open the repo in a browser). If `origin/main` shows your commits, you're
+   pushed.
+2. **Fix the analyzer's GitHub username:** set `GITHUB_USERNAME=ctafti` in
+   `~/Aibleton/.env` (your GitHub handle is `ctafti`, *not* your Mac username
+   `cyrustafti`). Otherwise the analyzer's auto-push / API calls will fail.
+3. **Swap in the `save_state`-fixed analyzer** (see §A below) so future fresh
+   repos don't hit the first-run crash.
+
+---
+
+## Project layout & environment (as actually set up)
+
+- **Project root (the repo):** `~/Aibleton/Aibleton` *(nested — inner `Aibleton`
+  is the git repo; outer is a container).* Everywhere older notes said
+  `~/nam-a2/nam-a2-foundation`, read `~/Aibleton/Aibleton`.
+- **Outer folder `~/Aibleton/`** holds the build docs, the original zip, and the
+  codebase analyzer + its `.env` (kept out of the repo on purpose).
+- **Two different "usernames" — don't mix them up:**
+  - **Mac / filesystem username:** `cyrustafti` → all local paths are
+    `/Users/cyrustafti/...` (e.g. `ANALYZER_ROOT=/Users/cyrustafti/Aibleton/Aibleton`).
+  - **GitHub username:** `ctafti` → the remote URL and `GITHUB_USERNAME` use this.
+- **GitHub repo:** `Ableton_Looper_Suite` (**underscores**, not hyphens) at
+  **https://github.com/ctafti/Ableton_Looper_Suite** — private.
+- **Node:** nvm, pinned via `.nvmrc` = `22` (v22.23.1). Global default is still
+  node 20 and Homebrew's node 26 is shadowed — ignore both; run `nvm use` in a
+  fresh shell so `node --version` shows v22.x before any harness.
+- **Python venv:** `.venv` is active (`(.venv)` prompt). Harmless to the Node
+  work; `python3 engine/test_offline.py` runs fine inside it.
+
+Sanity check on opening a new terminal for this project:
 
 ```bash
-# 1. Apple's developer tools (compiler, git). A dialog pops up — click Install.
-xcode-select --install
-
-# 2. Homebrew (the Mac package manager). It prints follow-up commands at the
-#    end — RUN THOSE TOO (they add brew to your PATH).
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-
-# 3. Node 22+ and cmake (cmake is for the sidecar later)
-brew install node cmake
-node --version    # expect v22 or newer
+cd ~/Aibleton/Aibleton
+nvm use              # -> Now using node v22.x (from .nvmrc)
+pwd                  # must end in /Aibleton/Aibleton
+ls                   # must show package.json, hub, harnesses, contracts, engine ...
 ```
 
-## Part 2 — Unpack the foundation and prove it works HERE (~10 min)
+If `ls` shows `BUILD-PLAN.md` and the zip, you've drifted **up** to the outer
+folder — `cd Aibleton` once more.
+
+---
+
+## Part 1 — Mac command-line setup ✅ DONE
+
+Homebrew, cmake (4.3.4), and node installed. Homebrew's node was shadowed by
+nvm, so node 22 was installed through nvm (`nvm install 22` → v22.23.1) and
+pinned with `.nvmrc`. Nothing to redo.
+
+---
+
+## Part 2 — Unpack the foundation and prove it works ✅ DONE
+
+The foundation was **already unpacked** at `~/Aibleton/Aibleton` (no `unzip`).
+What passed:
 
 ```bash
-mkdir -p ~/nam-a2 && cd ~/nam-a2
-unzip ~/Downloads/nam-a2-foundation.zip
-cd nam-a2-foundation
-
-# install dependencies for every package that has them
-npm install                      # root (contracts typecheck)
+cd ~/Aibleton/Aibleton
+nvm use
+npm install
 (cd harnesses && npm install)
 (cd spikes/tone3000 && npm install)
 (cd hub && npm install)
-
-# the whole off-rig proof suite should pass on the Mac exactly as it did off it:
-npm run typecheck:contracts     # contracts: clean
-(cd hub && npm test)             # expect: 35 pass, 0 fail
-python3 engine/test_offline.py   # expect: ALL CHECKS PASS (19 checks)
+npm run typecheck:contracts      # ✅ clean
+(cd hub && npm test)             # ✅ 20 pass / 0 fail  (see baseline note)
+python3 engine/test_offline.py   # ✅ ALL CHECKS PASS
 ```
 
-If all three pass, freeze this moment:
+**Corrected test baseline:** older notes predicted "35 pass." That counted a
+duplicated set of hub modules. After the cleanup below, the real de-duplicated
+suite is **20 pass, 0 fail** — 20 is your baseline; fewer is a regression.
+
+Committed as `foundation baseline: all off-rig tests green on the Mac`.
+
+---
+
+## Side work done (not in the original guide, but part of your repo/tooling now)
+
+### A. Codebase-analyzer workflow ✅ (first real run complete)
+
+Lives in the **outer** folder at `~/Aibleton/codebase_analyzer.py` (outside the
+repo, so it + secrets are never committed). Its `.env` sits at `~/Aibleton/.env`
+with the API keys, `ANALYZER_ROOT=/Users/cyrustafti/Aibleton/Aibleton`, and
+`GITHUB_USERNAME=ctafti` (fix this if it still says cyrustafti).
+
+Run it:
 
 ```bash
-git init && git add -A && git commit -m "foundation baseline: all off-rig tests green on the Mac"
+python3 ~/Aibleton/codebase_analyzer.py --dry-run --no-commit   # target + file list + cost
+python3 ~/Aibleton/codebase_analyzer.py --no-commit             # real analysis, no git
+python3 ~/Aibleton/codebase_analyzer.py                         # commit per-file + PUSH
 ```
 
-From now on, commit after every working step. `git commit -am "message"` is
-your save button; `git log --oneline` is your trail of working states.
+Status: a real `--no-commit` run completed and wrote
+`documentation/CODEBASE_ANALYSIS.xml` (~62k chars, committed to the repo by hand).
 
-## Part 3 — Touch the tool on day one: run the simulator (~5 min)
+Things already handled / to know:
+- **`.gitignore` excludes the vendored Ableton Link + Asio tree** via
+  `sidecar-experiment/link/*` (a plain trailing-slash dir path does **not**
+  match this tool's gitignore parser — use the `/*` glob form). Dropped the
+  analyzer from 1411 files (~$1.19) to ~53 (~$0.05).
+- **`save_state` first-run crash — FIXED.** On a fresh repo the `data/` dir
+  didn't exist and `save_state` crashed with `FileNotFoundError` at the very end
+  (after writing the XML, before committing). The fixed build creates the dir
+  first (`state_path.parent.mkdir(parents=True, exist_ok=True)`). Swap in the
+  updated file so new repos don't need a manual `mkdir -p data`.
+- **AUTO-PUSH IS ON.** This build has `ENABLE_GIT_PUSH = True`; now that a GitHub
+  remote exists, any run *without* `--no-commit` will commit per-file **and push
+  to `Ableton_Looper_Suite`**. For the first few real runs, prefer `--no-commit`
+  (or `--no-push`) and eyeball `git status` before letting it push unattended.
+  To disable permanently: set `ENABLE_GIT_PUSH = False` near the top of the file.
 
-Before Live is involved at all, feel the instrument:
+### B. Hub duplicate-generation cleanup ✅ (committed)
+
+`hub/src` shipped **two generations** of four modules — an older flat layout
+(`src/resolver.ts`, `src/lifecycle.ts`, `src/mirror.ts`, `src/codecs/`) and the
+current nested one (`src/resolver/resolver.ts`, `src/lifecycle/lifecycle.ts`,
+`src/mirror/mirror.ts`, `src/codec/`). Nested is canonical: the simulator
+imports it, it's newer, and it's what Part 6.4 points at for `QUANT_BEATS`. Only
+`test/hub.test.ts` referenced the flat set. Removed it + the flat files; `npm
+test` → 20/0, `tsc --noEmit` clean. Committed.
+
+### C. GitHub publish ✅ (verify the push)
+
+- Repo: **https://github.com/ctafti/Ableton_Looper_Suite** (private, underscores).
+- Vendored Link tree **untracked**: `git rm -r --cached sidecar-experiment/link`
+  done; `git ls-files sidecar-experiment/link` → 0.
+- No secrets tracked (only `spikes/tone3000/.env.example`, a template — safe).
+- Remote wired: `git remote add origin https://github.com/ctafti/Ableton_Looper_Suite.git`.
+- **Auth:** push over HTTPS uses your **personal access token** (the `ghp_...`
+  from `.env`) as the *password*, not your GitHub password. It needs `repo`
+  scope. To avoid re-typing: `git config --global credential.helper osxkeychain`.
+- **Verify it landed:** `git log --oneline origin/main`.
+
+Commit history so far: `foundation baseline` → `hub dedup` → `stop tracking
+vendored Ableton Link tree` → `add codebase analysis doc + finalize gitignore`.
+
+---
+
+## Part 3 — Touch the tool on day one: run the simulator (~5 min) ▶ NEXT
+
+Before Live is involved at all, feel the instrument. (The dedup didn't touch
+this — the sim runs on the nested modules, still green.)
 
 ```bash
-cd hub && npm run sim
+cd ~/Aibleton/Aibleton/hub
+nvm use
+npm run sim
 ```
 
 Open `http://localhost:8420` on the Mac, then find the Mac's IP (System
-Settings → Wi-Fi → Details) and open `http://<that-ip>:8420` **on the
-tablet**. Fire clips, watch the queued countdown snap to the bar, tap a row
-header to move the LIVE glow, pull faders. Then restart it as
-`FAIL_RATE=0.3 npm run sim` and watch commands fail and revert calmly —
-that's arch §12 working. Everything you see is the real Phase-2 tablet shell
-speaking the real frozen protocol; the only fake thing is Live.
+Settings → Wi-Fi → Details) and open `http://<that-ip>:8420` **on the tablet**.
+Fire clips, watch the queued countdown snap to the bar, tap a row header to move
+the LIVE glow, pull faders. Then restart as `FAIL_RATE=0.3 npm run sim` and
+watch commands fail and revert calmly — that's arch §12 working. Everything is
+the real Phase-2 tablet shell speaking the real frozen protocol; only Live is
+fake.
 
-## Part 4 — Install the engine extension into Live (~10 min)
+---
+
+## Part 4 — Install the engine extension into Live (~10 min) ☐
 
 ```bash
-cd ~/nam-a2/nam-a2-foundation
+cd ~/Aibleton/Aibleton
 bash engine/install.sh
 ```
 
-The script clones AbletonOSC into Live's Remote Scripts folder if missing,
-copies `extension.py` in, patches it into the handler list, and syntax-checks
-everything. Then, in Live:
+Clones AbletonOSC into Live's Remote Scripts folder if missing, copies
+`extension.py` in, patches the handler list, syntax-checks. Then in Live:
 
 1. Settings → Link/Tempo/MIDI → **Control Surface: AbletonOSC**.
-2. Settings → Record/Warp/Launch → **Exclusive Arm: OFF** (arch §17 needs
-   hub-controlled multi-arm).
-3. Watch Live's status bar for "AbletonOSC: Listening for OSC on port 11000".
+2. Settings → Record/Warp/Launch → **Exclusive Arm: OFF** (arch §17).
+3. Watch the status bar for "AbletonOSC: Listening for OSC on port 11000".
 
-## Part 5 — The harness gauntlet (~45 min, the heart of the session)
+> Heads-up: this makes **global** changes to your Live install (a Remote Script
+> + a preference). Reversible, but not sandboxed — fine if this is your everyday
+> Live, just know it persists across all your sets.
 
-Run from `harnesses/`, in this order, **with Live open**. After each one,
-paste its output into `reports/API-REALITY.md` under a "RIG RESULTS" heading
-— confirmations and surprises alike.
+---
+
+## Part 5 — The harness gauntlet (~45 min, the heart of the session) ☐
+
+Run from `harnesses/`, **with Live open**. After each, paste output into
+`reports/API-REALITY.md` under a "RIG RESULTS" heading.
+
+> Filenames below are the **actual** files in `harnesses/src/` (older notes had
+> stale names).
 
 ```bash
-cd harnesses
+cd ~/Aibleton/Aibleton/harnesses
+nvm use
 
 # 1. Baseline: does OSC round-trip at all, and how fast?
-node --experimental-strip-types src/01-latency.ts
+node --experimental-strip-types src/01-osc-latency.ts
 
 # 2. Is OUR extension alive inside Live?
-node --experimental-strip-types src/05-extension-pinger.ts
+node --experimental-strip-types src/05-confirmed-echo-pinger.ts
 #    expect /live/ext/hello to answer with the extension version
 
-# 3. Looper param control (drop a stock Looper on track 1, device slot 2 first;
-#    DEVICE env overrides if yours sits elsewhere)
-node --experimental-strip-types src/04-looper-state.ts
+# 3. Looper param control (stock Looper on track 1, device slot 2; DEVICE env overrides)
+node --experimental-strip-types src/04-looper-state-roundtrip.ts
 
-# 4. Browser load: first ask the boot index for a real URI, then load it
-#    (the harness prints how to get ITEM_URI via /live/browser/query)
+# 4. Browser load: ask the boot index for a real URI, then load it
 node --experimental-strip-types src/02-load-item-verify.ts
-#    then: ITEM_URI="<uri from the query>" node --experimental-strip-types src/02-load-item-verify.ts
+#    then: ITEM_URI="<uri>" node --experimental-strip-types src/02-load-item-verify.ts
 
 # 5. The big one: clip-envelope automation writes + readback
-node --experimental-strip-types src/03-automation-envelope.ts
+node --experimental-strip-types src/03-insert-step-automation.ts
 ```
 
-Harness 03 passing = §10 movement design is REAL. Any [EXT] failure is an
-`engine/extension.py` bug — paste the error + `Log.txt` (Live's log, findable
-via Live's Preferences folder) to your AI.
+(Shared OSC plumbing: `harnesses/src/osc-helper.ts`.)
 
-## Part 6 — Bench experiments from arch §6 (~1 hr, guitar in hand)
+Harness 03 passing = §10 movement design is REAL. Any `[EXT]` failure is an
+`engine/extension.py` bug — paste the error + Live's `Log.txt` to your AI.
 
-You now have everything needed for the §6 list. Priority order for session 1:
+---
 
-1. **§6.1 amp-host bring-up (rev 2026-07-03)** — clone + build the `neural~`
-   Max external (repo ships a Mac build script), wrap it in a minimal
-   `NAM_A2_Amp.amxd` with the Contract-7 param names, load a TONE3000 A2 model
-   via the `Model` param, and run the model-swap click test mid-sustain.
-   Gateway (the official plugin) is your stopgap + A/B reference meanwhile —
-   nothing blocks on the M4L build.
-2. **§6.9 THE FEEL TEST (new)** — build 2 chains in a throwaway set, record a
-   clip on chain A, play it back while noodling live on chain B for ten
-   minutes. Then try to noodle on chain A *while its own clip plays* — you
-   can't (monitoring vs playback is mutually exclusive per track, arch §17).
-   The question that decides the summing-pair contingency: **did that limit
-   annoy you in real playing, or did the looper cover it?** Write the answer
+## Part 6 — Bench experiments from arch §6 (~1 hr, guitar in hand) ☐
+
+1. **§6.1 amp-host bring-up (rev 2026-07-03)** — clone + build the `neural~` Max
+   external (repo ships a Mac build script), wrap it in a minimal `NAM_A2_Amp.amxd`
+   with the Contract-7 param names, load a TONE3000 A2 model via the `Model`
+   param, run the model-swap click test mid-sustain. Gateway plugin is your
+   stopgap + A/B reference.
+2. **§6.9 THE FEEL TEST** — 2 chains in a throwaway set, record a clip on chain
+   A, play it back while noodling live on chain B for ten minutes. Then try to
+   noodle on chain A *while its own clip plays* — you can't (monitoring vs
+   playback is mutually exclusive per track, arch §17). Decide the summing-pair
+   contingency: **did that limit annoy you, or did the looper cover it?** Answer
    in `reports/PROVISIONAL-SEAMS.md`.
 3. **§6.5 Link Audio on the rig** — Live: enable Link + Link Audio, publish
    Main. Build & run the sidecar (already proven on Linux, see
    `sidecar-experiment/FINDINGS.md`):
    ```bash
-   cd sidecar && cmake -B build -DLINK_DIR=../sidecar-experiment/link && cmake --build build
+   cd ~/Aibleton/Aibleton/sidecar
+   cmake -B build -DLINK_DIR=../sidecar-experiment/link && cmake --build build
    node --experimental-strip-types ../sidecar-experiment/verify-apc1.ts 47615 &
    ./build/nam_a2_sidecar        # NAM_CHANNEL=<name> if Live's channel isn't "main"-ish
    ```
-   The one unknown left is what Live names its published channel — the
-   sidecar prints every channel it sees, so the answer appears on screen.
+   The sidecar prints every channel it sees, so Live's published-channel name
+   appears on screen. *(`sidecar-experiment/link` is the vendored Ableton Link
+   tree — excluded from the analyzer and untracked in git, but the build still
+   needs it on disk. That's expected.)*
 4. **§6.2 quantization feel** + verify `QUANT_BEATS` (one OSC read:
-   `/live/song/get/clip_trigger_quantization` at a few settings — see the
-   flagged table in `hub/src/lifecycle/lifecycle.ts`).
+   `/live/song/get/clip_trigger_quantization` — see the flagged table in
+   `hub/src/lifecycle/lifecycle.ts`).
 
-## Part 7 — TONE3000 while you're at it (~10 min)
+---
+
+## Part 7 — TONE3000 while you're at it (~10 min) ☐
 
 ```bash
-cd spikes/tone3000 && npm start   # PKCE login in the browser, fetches one A2 model
+cd ~/Aibleton/Aibleton/spikes/tone3000
+nvm use
+npm start   # PKCE login in the browser, fetches one A2 model
 ```
 
-Confirms your account + the API from the Mac, and leaves a real `.nam` file
-for the first template.
+Confirms your account + the API from the Mac, and leaves a real `.nam` file for
+the first template.
 
-## Part 8 — End-of-session ritual
+---
+
+## Part 8 — End-of-session ritual ☐
 
 ```bash
+cd ~/Aibleton/Aibleton
 git add -A && git commit -m "first rig session: harness results + bench notes"
+git push        # or let the analyzer's auto-push handle it
 ```
 
-Also copy the whole `~/nam-a2` folder somewhere off the Mac (external drive
-or cloud). The reports you filled in today are the most valuable artifact —
-they're the difference between contracts and guesses.
+Also copy the whole `~/Aibleton` folder somewhere off the Mac. The reports you
+filled in are the most valuable artifact — the difference between contracts and
+guesses.
 
 ### What next session looks like
 
-With today's results recorded, Phase 1 (template + boot scan) starts with the
-resolver already written and tested (`hub/src/resolver/`) — the session is:
-build the template .als per Contract 7, point a thin boot-scan script at it,
-and watch the same tablet from Part 3 light up with REAL Live behind it.
+Phase 1 (template + boot scan) starts with the resolver already written and
+tested (`hub/src/resolver/`): build the template `.als` per Contract 7, point a
+thin boot-scan script at it, and watch the same tablet from Part 3 light up with
+REAL Live behind it.

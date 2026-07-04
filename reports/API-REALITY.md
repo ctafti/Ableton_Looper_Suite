@@ -235,3 +235,119 @@ contradicting it, once the right API surface is checked.)*
   pinned in §6.1: `prewarm` + a short output crossfade we own in the patch.
 - **Ops:** run Live at 48 kHz so model rate matches capture rate and
   `neural~`'s resampler (and its reported latency) never engages.
+
+---
+
+## RIG RESULTS 2026-07-04 — first on-rig session (Live 12.4.2, M-series Mac)
+
+*First time the contracts met a real Ableton rig. Everything below is measured
+or read from `Log.txt`, not inferred. Golden rule: where the rig disagreed with
+the guide, the disagreement is recorded as data.*
+
+### What the rig confirmed
+
+- **OSC round-trip (spike 01):** 30/30 replies, min 74.5 / **median 78.9** /
+  mean 80.0 / p95 88.4 / max 92.8 ms, on `/live/song/get/tempo` over
+  127.0.0.1:11000→11001. Transport + reply model work. **Caveat:** median ~79 ms
+  is ABOVE the ~30–50 ms "feels instant" rule of thumb for confirmed UI — flag
+  for UI-feel tuning (this is loopback on the Mac; a LAN tablet will be higher).
+  Also note spike 01 exercises a STOCK AbletonOSC address, so it proves stock
+  AbletonOSC is alive, not the custom engine (see next).
+
+- **Custom engine extension IS loaded (proven via `Log.txt`, not via a hello
+  ping):** `extension.py`'s own handlers ran and logged with the `engine:`
+  prefix — e.g. `INFO:abletonosc: engine: browser index built (15739 loadable
+  items)` and the `engine … failed:` warnings. That log signature only exists in
+  our extension, so the custom layer is confirmed running, not just stock
+  AbletonOSC. **Correction to the install note:** `/live/engine/hello` is an
+  *unsolicited announce at init only* — it is NOT a registered request handler,
+  so pinging it returns stock AbletonOSC's `Unknown OSC address: /live/engine/
+  hello`. Do not use a `/live/engine/hello` request as a liveness probe; use the
+  `engine:`-prefixed log lines (or catch the unsolicited announce right after a
+  Live restart) instead.
+
+- **Confirmed-echo primitive / Contract 8 (spike 05):** CONFIRMED in 76.7 ms
+  (arm `playing_slot_index` → fire `clip_slot` → matching echo). **Precondition:**
+  only confirms when a REAL clip exists in the fired slot; an empty slot produces
+  no echo and a false 1500 ms timeout. Read an empty-slot timeout as "nothing to
+  confirm," not "engine dead."
+
+- **Automation write/read (spike 03) — Seam 1 CLOSED:** `insert_steps` +
+  `clear_envelope` + `get/envelope` behave on this Live 12.4.2 / Python-3.11
+  runtime. Wrote a 4-point ramp, read back
+  `0,0,0,1,0.5,0,1.5,0,2.5,1,3.5,1` (4 points as time/value pairs, ramp correct),
+  and **one Cmd-Z reverted the whole write** (atomic-undo wrapping works). The
+  Live-12 signature question from item #2 is resolved: signature holds. **No
+  fallback to clip-based movement needed.** → Contract 2 `insertStep` /
+  Contract 4 `write_movement` move to FREEZE.
+  - **Failure mode recorded:** the same call FAILED with `Index out of range`
+    (all three of clear/insert/get) on a cold run (`Log.txt` 16:14), returning 0
+    points. Cause is an unresolved target (empty clip slot / no device at the
+    addressed index / non-continuous param), not a flaky primitive — the engine
+    honestly reports the bad target. Exact device state at 16:14 could not be
+    reconstructed, so we record the failure MODE, not a precise root cause.
+    **Rule for callers:** resolve a real continuous param before writing; treat
+    `Index out of range` as "bad target."
+
+- **Browser index + load (spike 02) — Seam 2 CLOSED:** `/live/browser/rescan`
+  built a **15,739-item** index (logged); `/live/browser/query "Reverb"`
+  returned a flat `[name, uri, name, uri, …]` reply (bare device =
+  `query:AudioFx#Reverb`, `.adg` entries = Audio-Effect-Rack presets);
+  `load_item query:AudioFx#Reverb` onto track 0 gave device count **1 → 2
+  (delta === 1)**. Failure detectable (literal `<uri>` placeholder → delta 0).
+  → Contract 2 `browserLoadItem` + `browserRescan` move to FREEZE. This also
+  proves the Phase-1 boot-index mechanism end to end.
+
+### Guide-vs-reality discrepancies (FIRST-MAC-SESSION.md Part 5)
+
+- **spike 05 does NOT use `/live/ext/hello`.** The guide's Part-5 comment says
+  harness 05 should "expect `/live/ext/hello` to answer with the extension
+  version." The actual `05-confirmed-echo-pinger.ts` does a clip-fire
+  confirmed-echo instead, and no `/live/ext/hello` (nor `/live/engine/hello`)
+  request handler exists. Correct the guide comment.
+- **Looper handlers throw, not no-op (spike 04):** with no M4L looper present,
+  `find_state_param` / `looper_set_state` / `looper_get_state` (extension.py
+  :343/:352/:362) RAISE rather than returning an honest `(ok=0, reason)`.
+  Harness conclusion ("add a state outlet") is right; the crash-vs-tuple bug is
+  logged in PROVISIONAL-SEAMS Seam 3 for fix when the device is built.
+
+- **QUANT_BEATS verified (§6.2):** `/live/song/get/clip_trigger_quantization`
+  read back three fixed points that all matched the assumed table — None→0,
+  "1 Bar"→4, "1/4"→7. Live's enum is monotonic so those pin the full ordering
+  (0=None … 13=1/32). The "⚠ ASSUMED" flag in `hub/src/lifecycle/lifecycle.ts`
+  is removed; QUANT_BEATS is now confirmed data.
+
+- **Link Audio → sidecar → hub PROVEN end-to-end (§6.5):** `sidecar/main.cpp`
+  compiled clean on Mac (AppleClang 21, zero warnings — first cross-platform
+  build from the Linux original), and streamed real guitar audio
+  **Live → Link Audio → C++ → APC1 bytes → Node decoder**: **7,152 packets,
+  `headerBad=0`, `seqSkips=0`**, 48 kHz stereo, via
+  `NAM_CHANNEL=Main NAM_HUB_PORT=9701 ./build/nam_a2_sidecar` +
+  `verify-apc1.ts`. `--selftest` golden APC1 header matched the hub's expected
+  bytes exactly. Contract 5 receive path confirmed on the rig. **Link Audio
+  enable is a clean Settings toggle** (Settings → Link → Audio: On), not a
+  hidden wizard step (resolves arch §14 / Seam 4 enable question favorably);
+  Settings Latency field = 100 ms.
+
+- **⚠ SAMPLE-RATE FINDING (rig must be 48 kHz):** Live defaulted to **44.1 kHz**
+  and every APC1 packet failed the verifier's `sampleRate === 48000` check
+  (`headerBad=7393`), despite audio flowing perfectly (`seqSkips=0`). The sidecar
+  forwarded the true rate honestly; the verifier rejected honestly. Setting Live
+  → Audio → Sample Rate → **48000** produced an immediate clean PASS. The whole
+  rig assumes 48 kHz (Contract 5 header check, `--selftest` golden header, and
+  the §6.1 `neural~` resampler note all bake in 48k). **→ Boot/wizard should
+  assert `sampleRate === 48000` and warn otherwise.**
+
+- **§6.5 guide corrections:** channel is `Main` (capital M); sidecar needs
+  `NAM_HUB_PORT=9701` to reach the verifier (defaults 47615 vs 9701 don't meet);
+  the header-checking test is `main.cpp → verify-apc1.ts`, NOT the separate
+  synthetic-ramp self-test `probe/nam_a2_probe.cpp` (`send`/`recv` pair).
+
+### Still open after this session
+
+- **Seam 3** (looper state echo) — device not built. **Seam 4** (Link Audio) —
+  ◐ enable mechanism + audio path now proven; only the end-to-end latency NUMBER
+  remains (Settings shows 100 ms; direct capture→decode measurement still wanted).
+  Part 6 remaining: **§6.9 feel test** (guitar, no code) and **§6.1 amp host**
+  (the `neural~` external + `.amxd` build) not yet done. **§6.2 quant** and
+  **§6.5 Link Audio** ✅ done this session.
