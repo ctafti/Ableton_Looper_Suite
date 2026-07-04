@@ -1,0 +1,421 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<codebase generated="2026-07-04T15:21:28" files="53" provider="DeepSeek">
+  <architecture>
+    <overview>The NAM A2 system is a multi-component architecture for AI-driven control of Ableton Live. It defines several frozen contracts (wire formats) that decouple a TypeScript hub, a Python engine (via OSC), a web tablet (via WebSocket), an AI brain (via tool calls), and a C++ audio sidecar (via TCP). Central to the hub are a resolver translating stable IDs to Live indices, a mirror store for state replication, and a lifecycle manager for idempotent command handling. The system emphasizes absolute addressing, confirmed-echo patterns, and strict layering to ensure reliability for live performance.</overview>
+    <tech_stack languages="TypeScript, Python, C++, JavaScript, HTML" frameworks="Node.js, AbletonOSC (Python framework)" libraries="WebSocket (standard), OSC protocol, Ableton Link (C++ sidecar)"/>
+    <entry_points>
+      <file>hub/src/sim/server.ts</file>
+      <file>tablet/index.html (with tablet/app.js)</file>
+      <file>sidecar/main.cpp</file>
+      <file>engine/extension.py</file>
+      <file>spikes/tone3000/src/fetch-a2-model.ts</file>
+      <file>sidecar-experiment/verify-apc1.ts</file>
+    </entry_points>
+    <layer name="presentation">
+      <file>tablet/index.html</file>
+      <file>tablet/app.js</file>
+    </layer>
+    <layer name="business_logic">
+      <file>hub/src/lifecycle/lifecycle.ts</file>
+      <file>hub/src/mirror/mirror.ts</file>
+      <file>hub/src/resolver/resolver.ts</file>
+      <file>engine/extension.py</file>
+    </layer>
+    <layer name="data_access">
+      <file>sidecar/main.cpp</file>
+      <file>hub/src/codec/audio-codec.ts</file>
+      <file>hub/src/codec/spectral-codec.ts</file>
+      <file>hub/src/sim/fake-live.ts</file>
+    </layer>
+    <layer name="utilities">
+      <file>hub/src/dsp.ts</file>
+      <file>hub/src/math/bands.ts</file>
+      <file>hub/src/math/movement.ts</file>
+      <file>harnesses/src/osc-helper.ts</file>
+      <file>spikes/tone3000/src/pkce.ts</file>
+      <file>spikes/tone3000/src/oauth.ts</file>
+    </layer>
+    <layer name="configuration">
+      <file>package.json</file>
+      <file>tsconfig.json</file>
+      <file>hub/package.json</file>
+      <file>hub/tsconfig.json</file>
+      <file>harnesses/package.json</file>
+      <file>harnesses/tsconfig.json</file>
+      <file>spikes/tone3000/package.json</file>
+      <file>spikes/tone3000/tsconfig.json</file>
+    </layer>
+    <layer name="contracts">
+      <file>contracts/types/ws.ts</file>
+      <file>contracts/types/osc.ts</file>
+      <file>contracts/types/ai-tools.ts</file>
+      <file>contracts/types/ids.ts</file>
+      <file>contracts/types/spectral.ts</file>
+      <file>contracts/types/template.ts</file>
+      <file>contracts/types/audio-sidecar.ts</file>
+      <file>contracts/types/command-rule.ts</file>
+      <file>contracts/schemas/*.json</file>
+    </layer>
+    <dependency_chains>
+      <chain description="Tablet frontend to Live engine: tablet HTML/JS communicates via WebSocket to the hub, which uses the mirror store, resolver, and lifecycle, then sends OSC commands to the Python engine extension.">
+        <file>tablet/index.html</file>
+        <file>tablet/app.js</file>
+        <file>hub/src/mirror/mirror.ts</file>
+        <file>hub/src/resolver/resolver.ts</file>
+        <file>hub/src/lifecycle/lifecycle.ts</file>
+        <file>contracts/types/osc.ts</file>
+        <file>engine/extension.py</file>
+      </chain>
+      <chain description="AI brain to Live: the AI assistant tool call is received by the hub, processed through lifecycle and resolver, and also sent as OSC to the engine, with mirror updates relayed back.">
+        <file>contracts/types/ai-tools.ts</file>
+        <file>hub/src/lifecycle/lifecycle.ts</file>
+        <file>hub/src/resolver/resolver.ts</file>
+        <file>contracts/types/osc.ts</file>
+        <file>engine/extension.py</file>
+      </chain>
+      <chain description="Audio sidecar to hub: C++ sidecar captures audio from Ableton Link and sends over TCP using the APC1 binary protocol, decoded by the hub's audio codec.">
+        <file>sidecar/main.cpp</file>
+        <file>sidecar-experiment/probe/nam_a2_probe.cpp</file>
+        <file>hub/src/codec/audio-codec.ts</file>
+        <file>hub/src/dsp.ts</file>
+      </chain>
+    </dependency_chains>
+  </architecture>
+  <files>
+    <file path="contracts/schemas/ai-tool-call.schema.json" category="schema" lines="57">
+      <purpose>This schema is the source of truth for the wire shape of AI tool calls and receipts. It uses a oneOf to distinguish between ToolCall and ToolReceipt. The tool enum lists all allowed tool verbs; any addition/removal must be coordinated with ai-tools.ts. The CellRef definition requires chain (string) and slot (integer &gt;=0). The receipt includes a receiptKind enum that indicates what kind of state observation follows. The schema notes that some receipt shapes are PROVISIONAL (e.g., looper_state, write_movement, add_device). It enforces that addresses use stable IDs only, never raw Live indices. A footgun: the args object is fluid; the actual param shape is documented in ai-tools.ts, not fully constrained here.</purpose>
+    </file>
+    <file path="contracts/schemas/audio-sidecar.descriptor.json" category="schema" lines="30">
+      <purpose>This descriptor is frozen (FREEZE-NOW) and defines the exact binary format for the sidecar→hub TCP stream. All fields are little-endian. The magic is 0x41504331 ('APC1'). The header is 40 bytes fixed before the payload. Payload size is numChannels * numFrames * 2 bytes. The descriptor includes x-hub-reslice notes that the hub must reslice the stream into 10ms frames (480 samples per channel at 48kHz) for WebRTC. The transport is TCP on localhost:47615. The sample format is int16 little-endian interleaved (L,R,L,R...). This is a descriptor, not executable code; the source of truth for Node is audio-sidecar.ts. A key invariant: the sidecar writes one packet per buffer callback; the hub must handle variable packet sizes and reassemble/reslice accordingly.</purpose>
+    </file>
+    <file path="contracts/schemas/spectral-frame.descriptor.json" category="contract" lines="28">
+      <purpose>This descriptor is the frozen contract for binary datagram layout. It specifies little-endian encoding, total size formula (22 + chainTagLen + 2*binCount), field offsets, types (uint32, uint8, uint16, float64, utf8, uint16 array), and constants (binCount=256, freq range 0-16kHz, fps=30, FFT size 4096, max magnitude 65535). The Node source of truth is spectral.ts (SPECTRAL_BINARY). Modifying this file requires synchronized changes to the Max/M4L binary encoder/decoder and the Node implementation. The magic number 'SPC1' (0x53504331) must be updated on version change. The 'flags' field is reserved and should remain 0. Any field offset or size change breaks binary compatibility.</purpose>
+    </file>
+    <file path="contracts/schemas/ws-state.schema.json" category="contract" lines="117">
+      <purpose>This schema enforces the structure of state channel messages. Root requires v=1, ch='state', and type in ['snapshot','delta','command_status']. The 'rev' field is a monotonic counter. Definitions include CellMirror, LooperMirror (provisional), DeviceMirror, ChainMirror, SceneMirror, MirrorSnapshot, MirrorDelta, and CommandStatus. The source of truth for the Node side is ws.ts; this file is a frozen snapshot. Changes must be mirrored in ws.ts and the tablet client. LooperMirror fields are marked as provisional and should not be relied upon until finalized. The 'oneOf' discriminator requires exactly one of snapshot, delta, or status to be present based on type.</purpose>
+    </file>
+    <file path="contracts/schemas/ws-telemetry.schema.json" category="contract" lines="57">
+      <purpose>Messages require v=1, ch='telemetry', and type in ['spectra','beat']. For type 'spectra', a 'frame' object must be present following SpectralFrame definition (chainTag, seq, tMs, magnitudes array of 256 floats 0..1). For type 'beat', a 'beat' object must be present with beat position, tMs, and optional tempo. The magnitudes array length must be exactly 256, values normalized 0..1. This schema is a frozen cross-language reference; changes must be coordinated with the Node spectral telemetry emitter and any tablet receiver. The binary wire format is the primary path; JSON is secondary.</purpose>
+    </file>
+    <file path="contracts/types/ai-tools.ts" category="contract" lines="514">
+      <purpose>This file is the single source of truth for the AI tool vocabulary. It exports the AI_TOOLS map, all receipt interfaces, and helper types. Three hard rules: spatial language only (CellRef, ChainID, etc.), absolute/idempotent targets, and confirmed receipts (observed state). PROVISIONAL receipt shapes are marked with __provisional flags and resolvedBy pointers to spikes. The helpers cellParam, chainParam, deviceRoleParam are internal (not exported) but shown in the AST. Imports from './ids.ts' and './osc.ts' and './command-rule.ts'—any changes there must be reflected here. A type anchor _AiToolTypeAnchors is exported to force type-checking on referenced types.</purpose>
+      <exports>
+        <fn signature="cellParam()" export="false">Creates a ToolParam with type 'object' for a cell reference (chain+slot).</fn>
+        <fn signature="chainParam()" export="false">Creates a ToolParam with type 'string' for a ChainID.</fn>
+        <fn signature="deviceRoleParam()" export="false">Creates a ToolParam with type 'string' for a known device role.</fn>
+      </exports>
+    </file>
+    <file path="contracts/types/audio-sidecar.ts" category="contract" lines="170">
+      <purpose>The wire format is a fixed 40-byte little-endian header followed by interleaved int16 samples. All numeric constants (magic, offsets, etc.) are frozen and mirrored in audio-sidecar.descriptor.json. The helper functions payloadBytes() and framesPerChannel10ms() are used by the hub to know how many bytes to read per packet and how to reslice into 10ms WebRTC frames. The sidecar is not required to send exactly 10ms frames; the hub handles reslicing. Modifying this file requires coordinated changes in both the sidecar and hub implementations. The file also exports WEBRTC_FRAME constants for the hub's reslice target.</purpose>
+      <exports>
+        <fn signature="payloadBytes()" export="true">Returns number of bytes in payload: numChannels * numFrames * bytesPerSample.</fn>
+        <fn signature="framesPerChannel10ms()" export="true">Returns Math.round(rate / 100) for 10ms WebRTC frame size.</fn>
+      </exports>
+    </file>
+    <file path="contracts/types/command-rule.ts" category="contract" lines="86">
+      <purpose>This file enforces the absolute/idempotent rule by providing a CommandSemantics interface with absolute:true and a mutation tag. Two constructors (IDEMPOTENT, STATEFUL) ensure the absolute invariant is never forgotten. The retryPolicyFor() function maps mutation to either blind retry (max 3) or reconcile-then-decide. The assertAbsolute() function throws if a non-absolute command is passed. There is structurally no way to express a relative command. Key invariant: all command types in Contracts 2,3,4 must carry a mutation tag from this file. The file is used by command lifecycle engine to decide retry behavior.</purpose>
+      <exports>
+        <fn signature="retryPolicyFor()" export="true">Returns retry kind based on mutation: idempotent -&gt; retry (3), stateful -&gt; reconcile_then_decide.</fn>
+        <fn signature="assertAbsolute()" export="true">Throws if s.absolute is not true (defensive check for Contract 8).</fn>
+      </exports>
+    </file>
+    <file path="contracts/types/ids.ts" category="contract" lines="192">
+      <purpose>Branded types (ChainID, Slot, etc.) are runtime strings/numbers but compile-time incompatible with plain values. The constructor functions (ChainID, Slot, SceneID, ToneID) are the only sanctioned way to create branded values, ensuring a grep-able audit trail. Live indices (LiveTrackIndex, etc.) are marked @internal and should only be used inside the resolver/OSC layer. The IdResolver interface is the single bridge between stable IDs and Live indices; all lookups return undefined to force explicit handling of missing entities. The file also defines DeviceRole as a union with known roles and an open string suffix for AI-added devices. Never parse branded strings or derive Live indices from them. Modifications require coordinated changes across all resolver implementations.</purpose>
+    </file>
+    <file path="contracts/types/index.ts" category="utility" lines="33">
+      <purpose>One import point for every inter-component contract. The file re-exports all named exports from ids.ts, command-rule.ts, osc.ts, ws.ts, ai-tools.ts, audio-sidecar.ts, spectral.ts, and template.ts. Adding a new contract module requires adding a re-export line. This is the source of truth for TypeScript types on the Node/TS side. The JSON schemas under contracts/schemas mirror the wire formats for other languages. This file defines no new symbols.</purpose>
+    </file>
+    <file path="contracts/types/osc.ts" category="contract" lines="628">
+      <purpose>This file contains all OSC message definitions for the hub→engine (DOWN) and engine→hub (UP) communication. DOWN commands are defined as objects with address, build function, origin/tag tags, and CommandSemantics. LISTEN helpers arm property listeners. OscUpEvent is a discriminated union of all upstream events. Shared enums (LooperState, WarpMode, MonitoringState) are const objects with associated types. Some items are marked PROVISIONAL (automation, looper, browser load) pending verification. All commands expect already-resolved Live indices. The file imports from ids.ts and command-rule.ts. Key invariants: all command semantics match Contract 8; build functions return proper OscMessage structures. The file does not contain any top-level functions.</purpose>
+    </file>
+    <file path="contracts/types/spectral.ts" category="contract" lines="118">
+      <purpose>This file owns the seam between M4L and the hub for spectral data (Contract 6). The wire format is frozen; any change here must be coordinated with the M4L device and tablet renderer. Key invariants: binCount is exactly 256, magnitudes are normalized 0..1 in the logical view but stored as uint16 on the binary wire, the binary header is fixed at 22 bytes before the variable-length chainTag, and the magic number is 0x53504331. The conversion functions magFromU16/magToU16 are the only place where scaling between float and uint16 occurs; magToU16 clamps input to [0,1] before rounding, which is the correct behavior but a caller passing out-of-range values will not get an error. The binary layout uses little-endian byte order. The file also exports SPECTRAL constants that should be treated as immutable (as const).</purpose>
+      <exports>
+        <fn signature="magFromU16()" export="true">Decodes a normalized magnitude (0..1) from its uint16 wire value.</fn>
+        <fn signature="magToU16()" export="true">Encodes a normalized magnitude (0..1) to its uint16 wire value (clamped).</fn>
+      </exports>
+    </file>
+    <file path="contracts/types/template.ts" category="contract" lines="317">
+      <purpose>This file is the backbone of template identity (Contract 7). It owns the boot sentinel (a named cue point) used to recognize the template and parse its version. It defines the naming convention for chain tracks: a track is a chain track iff its name contains [[tag]], extracted via chainTagFromTrackName. The CHAIN_DEVICE_ORDER array is frozen and must reflect the actual device order on every chain track; any reordering would break resolver mappings. The CHAIN_DEVICE_PRESENCE specifies which devices are required vs optional (inline_fx is optional). The ARM_POLICY constant documents hub behavior (one live chain per input, arm-follows-record, looper record stops chain clips). The templateScanIsValid function must return true for the hub to proceed; it requires the exact sentinel version and both return tracks present. The AMP_PARAMS and ToneManifest define the amp device interface and append-only tone manifest. A key footgun: the tone manifest is append-only; entries never change index, and deletions are tombstoned via file:null. The parseSentinelVersion function only checks prefix and a trailing v#; the version must match exactly.</purpose>
+      <exports>
+        <fn signature="parseSentinelVersion()" export="true">Parses a cue-point name into a version number or null if not our sentinel.</fn>
+        <fn signature="chainTagFromTrackName()" export="true">Extracts the chain tag from a track name or returns null if not a chain track.</fn>
+        <fn signature="templateScanIsValid()" export="true">Checks if a TemplateScan satisfies the contract to run (correct sentinel version, at least one chain tag, both returns present).</fn>
+      </exports>
+    </file>
+    <file path="contracts/types/ws.ts" category="contract" lines="251">
+      <purpose>This file is the sole source of truth for the hub-tablet WebSocket protocol. It defines two channels: state (reliable, versioned with monotonic rev) and telemetry (ephemeral, lossy-OK). The MirrorSnapshot interface must include all state the tablet needs to render, with stable IDs (ChainID, SceneID, Slot) rather than indices. MirrorDelta paths are keyed by stable IDs, not array positions; an unknown key triggers resync. Tablet commands are discriminated union types (TabletCommand) each carrying a 'kind' and a semantics field (a convenience mirror; the hub derives retry behavior from kind via TABLET_COMMAND_SEMANTICS table, ignoring the client-sent field). The TABLET_COMMAND_SEMANTICS table is authoritative and maps each kind to IDEMPOTENT or STATEFUL. The protocol version is frozen at WS_PROTOCOL_VERSION = 1; any breaking change must bump this. A footgun: the tablet must not hold authoritative state; it is a rendering client. The duplicate_clip_to command is STATEFUL because the hub must delete an occupied target first (Contract 2 caveat). WebRTC signaling messages (rtc_offer, rtc_answer, rtc_ice) are defined now for Phase 8 but should not be used until then.</purpose>
+    </file>
+    <file path="engine/extension.py" category="service" lines="383">
+      <purpose>This file is a drop-in handler for AbletonOSC. It must be placed in the AbletonOSC/abletonosc/ directory and registered. Key invariants: All handlers return honest failure tuples (ok=0 + reason) so the hub never mistakes silence for success. The browser index is built lazily on first query/rescan, not at init, to avoid slow startup. Undo wrapping uses begin_undo_step/end_undo_step with tolerance for older/newer Live signatures. The warp marker add handler tries two calling conventions (positional and dict) to handle Live version variations. The looper state is found by parameter name ('State'), not index. The load_item handler diffes device list before and after to verify the load. The handler sends an unsolicited /live/engine/hello on init so the hub discovers it immediately. Logging goes to the 'abletonosc' logger. All handlers are small and log warnings on failure.</purpose>
+      <exports>
+        <fn signature="ExtensionHandler.__init__(manager)" export="false"></fn>
+        <fn signature="ExtensionHandler.init_api()" export="false"></fn>
+      </exports>
+    </file>
+    <file path="engine/test_offline.py" category="test" lines="213">
+      <purpose>This test file creates mock classes for Live objects (Param, Envelope, Clip, ClipSlot, Device, Track, View, Song, Browser) and for the OSC server (FakeOSCServer). It loads extension.py as a module via exec, instantiates ExtensionHandler with a mock manager, and then invokes each handler through server.handlers. It checks that reply tuples match expected shapes and that internal state (e.g., envelope steps, warp markers, device counts) is correctly updated. It also verifies failure paths (malformed args, missing params, unknown URIs) return honest error codes. The test prints PASS/FAIL for each check and exits 1 on failure. It covers automation, warp markers, browser, looper, and Link enable. The mock browser simulates load_item by appending a device to the selected track.</purpose>
+      <exports>
+        <fn signature="MockParam.__init__(name, value)" export="false">Initialize mock parameter with name and value.</fn>
+        <fn signature="MockEnvelope.__init__()" export="false">Initialize empty steps list.</fn>
+        <fn signature="MockEnvelope.insert_step(time, duration, value)" export="false">Append (time, duration, value) to steps.</fn>
+        <fn signature="MockEnvelope.value_at_time(t)" export="false">Return value of last step covering time t, else 0.0.</fn>
+        <fn signature="MockClip.__init__()" export="false">Initialize empty envelope dict and warp markers list.</fn>
+        <fn signature="MockClip.automation_envelope(param)" export="false">Return envelope for param name from dict, or None.</fn>
+        <fn signature="MockClip.create_automation_envelope(param)" export="false">Create and store a new MockEnvelope for param name.</fn>
+        <fn signature="MockClip.clear_envelope(param)" export="false">Remove envelope for param name from dict.</fn>
+        <fn signature="MockClip.add_warp_marker(beat_time, sample_time)" export="false">Append (beat_time, sample_time) to warp_markers_added.</fn>
+        <fn signature="MockClip.move_warp_marker(beat_time, distance)" export="false">No-op.</fn>
+        <fn signature="MockClip.remove_warp_marker(beat_time)" export="false">No-op.</fn>
+        <fn signature="MockClipSlot.__init__()" export="false">Initialize with a new MockClip.</fn>
+        <fn signature="MockDevice.__init__(name, params)" export="false">Initialize device with name and parameters list.</fn>
+        <fn signature="MockTrack.__init__()" export="false">Create 4 clip slots and two devices (NAM Rack, NAM_A2_Looper).</fn>
+        <fn signature="MockSong.__init__()" export="false">Create two tracks, view, set link enabled false, undo_depth 0.</fn>
+        <fn signature="MockSong.begin_undo_step()" export="false">Increment undo_depth.</fn>
+        <fn signature="MockSong.end_undo_step()" export="false">Decrement undo_depth.</fn>
+        <fn signature="MockBrowserItem.__init__(name, uri, children, loadable)" export="false">Initialize with name, uri, children, and loadable flag.</fn>
+        <fn signature="MockBrowser.__init__()" export="false">Create a mock browser tree with Audio Effects folder containing Reverb and Echo.</fn>
+        <fn signature="MockBrowser.load_item(item)" export="false">Simulate loading by appending a MockDevice to the selected track.</fn>
+        <fn signature="FakeOSCServer.__init__()" export="false">Initialize empty handlers dict and sent list.</fn>
+        <fn signature="FakeOSCServer.add_handler(addr, fn)" export="false">Store handler function by address.</fn>
+        <fn signature="FakeOSCServer.send(addr, params, remote_addr)" export="false">Append (addr, params) tuple to sent list.</fn>
+        <fn signature="AbletonOSCHandler.__init__(manager)" export="false">Store manager, extract osc_server and song, call self.init_api.</fn>
+        <fn signature="check(label, cond)" export="false">Print PASS/FAIL label and record failures; exit 1 if any failure at end.</fn>
+      </exports>
+    </file>
+    <file path="harnesses/package.json" category="config" lines="19">
+      <purpose>This package is private and uses ES modules. It declares five test harness scripts (latency, load-item, automation, looper, pinger) that run via node --experimental-strip-types. Each script corresponds to a TypeScript source file in src/. There is also a typecheck script using tsc. The package name is 'nam-a2-harnesses'. The node engine requirement is &gt;=20. Modifying this file: adding a new script requires an entry in the scripts object and a corresponding src/ file. The experimental flag may change with Node versions; update accordingly.</purpose>
+    </file>
+    <file path="harnesses/src/01-osc-latency.ts" category="test" lines="84">
+      <purpose>Owns the latency measurement for the whole system (arch §6.2). Uses `OscClient` from `osc-helper.ts` and a fixed query (`/live/song/get/tempo`) which is always available in AbletonOSC and has no side effects. Key invariants: the ping is sent `N` times with a `PER_PING_TIMEOUT_MS` window; replies that time out are counted but not included in latency statistics. A 20 ms sleep between pings prevents UDP drops due to burst (arch §12). If no replies are received, it calls `rigHint()` to guide the user. The `percentile` function is a local helper, not exported. The script terminates via `process.exit(0)` or `process.exit(1)` on error, which will kill the Node process. Footgun: running without a rig will time out every ping and print a message but exit cleanly; the script does not hang indefinitely.</purpose>
+      <exports>
+        <fn signature="percentile()" export="false">Computes the p-th percentile of a sorted numeric array; returns NaN for empty input.</fn>
+        <fn signature="main()" export="false">Binds an OSC client, sends N ping messages, collects round-trip times, sorts them, and prints latency summary statistics.</fn>
+        <fn signature="sleep()" export="false">Returns a promise that resolves after the given number of milliseconds (simple setTimeout wrapper).</fn>
+      </exports>
+    </file>
+    <file path="harnesses/src/02-load-item-verify.ts" category="test" lines="104">
+      <purpose>Owns the load-and-verify probe for the provisional seam #2 (arch §6.7, §11). Requires an `ITEM_URI` environment variable; if missing it explains usage and exits gracefully. Key invariant: it selects the target track, snapshots device count before, sends the load command (address imported from `contracts/types/osc.ts` to avoid drift), waits 300 ms for Live to instantiate, then reads device count again. Success is delta === 1. Detects failure (delta 0) and anomalies (delta != 0, 1) like expanded racks. Uses a 50 ms sleep after track selection for stability. If any OSC command times out, catches the error and calls `rigHint()`. The script terminates via `process.exit(0)` or returns normally on failure. Footgun: depends on a real Live rig with the engine extension installed and a valid browser URI from a boot index; without it, all commands time out.</purpose>
+      <exports>
+        <fn signature="getNumDevices()" export="false">Sends `/live/track/get/num_devices` for a given track and waits for the reply, returning the device count as a number.</fn>
+        <fn signature="main()" export="false">Orchestrates the load-and-verify sequence: selects track, snapshots devices before, sends load item command, snapshots after, and report the delta.</fn>
+        <fn signature="sleep()" export="false">Returns a promise that resolves after the given number of milliseconds (simple setTimeout wrapper).</fn>
+      </exports>
+    </file>
+    <file path="harnesses/src/03-insert-step-automation.ts" category="test" lines="129">
+      <purpose>Owns the most critical probe (arch §10). It clears the existing envelope on a continuous device parameter, writes a known stepped ramp (0→1 over 4 beats) using the batched `insertSteps` contract (one atomic undo), then reads the envelope back and compares the number of points. The shape is defined as triples (time, duration, value). Key invariants: parameter must be continuous; uses a 100 ms sleep after clear and 200 ms after write for processing. Imports addresses from `contracts/types/osc.ts` to ensure no drift. Success criteria: read-back points &gt;= written points (structural check). If less, it suggests a Live-12 signature difference and fallback. If any OSC interaction times out, it prints a message about the engine extension. The script terminates via process.exit(1) on unhandled errors. Footgun: this test actually modifies Live state (writes automation); though it writes a ramp that can be undone with one Cmd-Z, the test does not undo it. Running multiple times may accumulate automation unless undone manually.</purpose>
+      <exports>
+        <fn signature="main()" export="false">Executes the automation write probe: clear envelope, write ramp, read back, compare point counts, and report pass/fail.</fn>
+        <fn signature="sleep()" export="false">Returns a promise that resolves after the given number of milliseconds (simple setTimeout wrapper).</fn>
+      </exports>
+    </file>
+    <file path="harnesses/src/04-looper-state-roundtrip.ts" category="test" lines="115">
+      <purpose>Owns the looper-state round-trip probe for provisional seam #3 (arch §6.3, §15). Iterates over all LooperState values (Stop=0, Play=1, Record=2, Overdub=3) imported from `contracts/types/osc.ts` to avoid drift. For each, calls `probeState` which sends a set, waits 60 ms, then sends a get and waits for a reply matching either address. It expects the echoed state to equal the commanded state. Also performs an idempotency spot-check by sending Play twice and checking the second echo. Key invariants: device index defaults to 1 (looper slot in chain), track set via env. If no echoes at all, prints message about adding a state outlet to the M4L patch. The script does not exit except on unhandled errors; it always calls `client.close()` in the `finally` block. Footgun: this probe actually sends state changes to Live; it may affect the looper's current state (though it sets to each state in turn, ending possibly on Overdub). The test does not restore the original state.</purpose>
+      <exports>
+        <fn signature="probeState()" export="false">Sets the looper to a given state via `looperSetState`, waits, then requests the state via `looperGetState` and returns the echoed value.</fn>
+        <fn signature="main()" export="false">Iterates over all looper states, probes each, checks idempotency, and prints pass/fail for each step.</fn>
+        <fn signature="sleep()" export="false">Returns a promise that resolves after the given number of milliseconds (simple setTimeout wrapper).</fn>
+      </exports>
+    </file>
+    <file path="harnesses/src/05-confirmed-echo-pinger.ts" category="test" lines="90">
+      <purpose>Owns the reusable confirmed-echo pinger tool. Default scenario arms a playing_slot_index listener, fires a clip via `/live/clip_slot/fire`, and expects the echo to report the fired slot. All addresses and arguments can be overridden via environment variables (CMD_ADDR, CMD_ARGS, EXPECT_ADDR, TRACK, SLOT, WINDOW_MS). Key invariants: expectation is registered BEFORE sending the command to avoid a race (ensures `waitFor` is listening before the echo could arrive). Uses a 80 ms sleep after arming the listener. If the echo is not received within WINDOW_MS, it prints a retry/reconcile message per Contract 8. The script always calls `rigHint()` on timeout/failure. Footgun: arms a listener (side effect on Live) but does not disarm it; repeated runs may accumulate listeners but AbletonOSC handles duplicates gracefully. The script does not exit on success; it returns normally.</purpose>
+      <exports>
+        <fn signature="parseArgs()" export="false">Parses a comma-separated string of numbers from an environment variable, falling back to a provided default array.</fn>
+        <fn signature="main()" export="false">Arms a listener, registers an expectation, sends the command, awaits confirmation, and prints the round-trip time or failure message.</fn>
+        <fn signature="sleep()" export="false">Returns a promise that resolves after the given number of milliseconds (simple setTimeout wrapper).</fn>
+      </exports>
+    </file>
+    <file path="harnesses/src/osc-helper.ts" category="utility" lines="222">
+      <purpose>This file owns the OSC wire protocol adaptation: it must encode messages exactly per OSC 1.0 (4-byte-aligned, null-padded strings, typetag string starting with ',') and decode replies including types i, f, s, T, F, d. The `OscClient` class wraps a UDP socket and exposes `send()`, `onMessage()`, `waitFor()` (with timeout) for request-reply patterns. The socket is lazily bound; `bind()` must be awaited before messages can be received. `waitFor()` removes its listener on match or timeout, preventing leaks. The file assumes the engine is reachable at `127.0.0.1:11000` and listens on `11001`, overridable via `OscClientOptions` or `hostFromEnv()`. It logs no information except via `rigHint()`. A key footgun: the `waitFor` predicate is evaluated for every decoded message; a slow or CPU-intensive predicate can delay other listener callbacks. Also, `off()` (private) filters by reference – anonymous arrow functions passed to `onMessage` will never be removable, but `waitFor()` stores the handler and removes it correctly.</purpose>
+      <exports>
+        <fn signature="pad4()" export="false">Returns the number of padding bytes needed to align a length to the next 4-byte boundary.</fn>
+        <fn signature="encodeString()" export="false">Encodes a UTF-8 string as a null-terminated, 4-byte-aligned Buffer.</fn>
+        <fn signature="isInt()" export="false">Checks if a number is an integer (to decide OSC type tag 'i' vs 'f').</fn>
+        <fn signature="encodeOsc()" export="true">Encodes an OSC address and arguments into a Buffer with typetag string.</fn>
+        <fn signature="readString()" export="false">Reads a null-terminated, 4-byte-aligned OSC string from a Buffer at a given offset, returning the string and new offset.</fn>
+        <fn signature="decodeOsc()" export="true">Decodes a single OSC message Buffer, handling types i, f, s, T, F, d, and returning an OscMessage.</fn>
+        <fn signature="rigHint()" export="true">Logs a multi-line hint to the console about rig setup instructions.</fn>
+        <fn signature="hostFromEnv()" export="true">Returns the value of the OSC_HOST environment variable or '127.0.0.1'.</fn>
+      </exports>
+    </file>
+    <file path="harnesses/tsconfig.json" category="config" lines="16">
+      <purpose>This config compiles only for type-checking (noEmit: true). It includes all .ts files under src/. The moduleResolution is set to 'Bundler', which works with the --experimental-strip-types runtime flag. The types array is limited to 'node'. The lib is ES2022. Modifying this file: changes to target, module, or moduleResolution may break compatibility with the strip-types runner. The allowImportingTsExtensions flag is necessary for direct .ts imports. Keep strict: true to catch type errors.</purpose>
+    </file>
+    <file path="hub/package.json" category="configuration" lines="30">
+      <purpose>Defines the project as private, ES module type, with a main entry point 'index.js' (likely placeholder). Scripts include test (runs node --test with .test.ts files), typecheck (tsc), and sim (runs the simulator server). Dependencies: ws (WebSocket library). Dev dependencies: TypeScript and type definitions. Engines require Node &gt;=20. This is a standard Node package configuration.</purpose>
+    </file>
+    <file path="hub/src/codec/audio-codec.ts" category="utility" lines="140">
+      <purpose>Encode/decode functions validate sample count and header length; header magic/version are checked on decode. StreamFramer buffers arbitrary chunks and yields complete packets by parsing header length. TenMsReslicer accumulates samples and outputs fixed 10ms frames; it drops its buffer on format change or DISCONTINUITY flag (bit 0) to avoid gluing unrelated audio. All byte layouts are frozen and backed by golden vectors.</purpose>
+      <exports>
+        <fn signature="encodeAudioPacket()" export="true">Encodes an AudioPacket into a Buffer with validated sample count.</fn>
+        <fn signature="decodeAudioHeader()" export="true">Decodes and validates the APC1 header, checking magic and version.</fn>
+        <fn signature="decodeAudioPacket()" export="true">Decodes a full APC1 packet header and samples.</fn>
+      </exports>
+    </file>
+    <file path="hub/src/codec/spectral-codec.ts" category="utility" lines="74">
+      <purpose>Implements a fixed binary layout (little-endian) defined in contracts/types/spectral.ts. Both encode and decode perform size and magic validation, and convert magnitudes via magToU16/magFromU16. The decoder is strict: checks magic, version, binCount, and total length. chainTag is UTF-8 without null terminator. No side effects; pure functions. Footgun: any layout constant change requires updating both functions; byte order must match real usage on target platform.</purpose>
+      <exports>
+        <fn signature="encodeSpectralFrame()" export="true">Writes frame fields (magic, version, flags, binCount, seq, tMs, chainTag, magnitudes) into a Buffer</fn>
+        <fn signature="decodeSpectralFrame()" export="true">Reads and validates a Buffer, returning a SpectralFrame</fn>
+      </exports>
+    </file>
+    <file path="hub/src/dsp.ts" category="utility" lines="111">
+      <purpose>Provides absolute-valued movement steps (Contract 8), log-spaced band edges that guarantee monotonicity and at least one bin per band (first bin ≈62 Hz at 4096 FFT/48 kHz), max-in-band collapse for masking visibility, and a falling peak-hold with configurable decay rate. All functions are pure except PeakHold which maintains internal caps.</purpose>
+      <exports>
+        <fn signature="movementSteps()" export="true">Generates Step array from a MovementPattern using grid subdivision.</fn>
+        <fn signature="logBandEdges()" export="true">Returns log-spaced bin indices for spectral bands.</fn>
+        <fn signature="collapseToBands()" export="true">Collapses magnitude bins into display bands via max.</fn>
+      </exports>
+    </file>
+    <file path="hub/src/lifecycle/lifecycle.ts" category="service" lines="171">
+      <purpose>CommandLifecycle class maintains maps for pending commands and target-key supersession. Expects injected LifecycleEvents callbacks and a now() function. On register, it supersedes previous command on same targetKey. onEcho iterates pending and confirms matching expectation. tick checks deadlines: idempotent commands can blind-retry up to MAX_ATTEMPTS=3; stateful commands emit reconcile event (never blind-retry). reset clears all. The module also exposes pure math functions (msToNextBoundary, quantWindowMs) and a QUANT_BEATS lookup table (provisional data, must be verified on rig). IMMEDIATE_WINDOW_MS=300 for non-quantized ops. No global side effects; state changes only via injected events.</purpose>
+      <exports>
+        <fn signature="msToNextBoundary()" export="true">Compute ms until next quantization boundary given positionBeats, beatsPerBoundary, tempoBpm</fn>
+        <fn signature="quantWindowMs()" export="true">Compute confirmation window = msToNextBoundary + marginMs</fn>
+      </exports>
+    </file>
+    <file path="hub/src/math/bands.ts" category="utility" lines="76">
+      <purpose>makeBandMap builds contiguous log-spaced bin-to-band ranges using floor/ceil, ensuring each band gets at least one bin and the last band absorbs remainder. collapse computes mean magnitude per band. PeakHold class holds per-band caps that jump to new maximum and decay at a fixed rate per second on update(). additiveSum sums multiple arrays elementwise, clamping to 1. All functions pure except PeakHold which mutates internal caps array. Footgun: decay rate is per second, dt must be in seconds; band map uses fLowHz=40 as minimum frequency floor.</purpose>
+      <exports>
+        <fn signature="makeBandMap()" export="true">Create a band map with contiguous log-spaced ranges</fn>
+        <fn signature="collapse()" export="true">Compute mean magnitude per band from a full spectral frame</fn>
+        <fn signature="additiveSum()" export="true">Elementwise sum of multiple band arrays, clamped to 1</fn>
+      </exports>
+    </file>
+    <file path="hub/src/math/movement.ts" category="utility" lines="76">
+      <purpose>All functions are pure. gatePattern produces alternating on/off steps over a loop. rampPattern approximates a linear ramp as held micro-steps; with segments=1 it yields a single step at toValue (f=0). sinePattern produces sinusoidal steps over a loop with configurable cycles. depthToValue maps a 0..1 depth to a native parameter range. stepsToArgs flattens Step[] into number[] triples [time, duration, value]. Assumes all steps are within loop bounds. No side effects.</purpose>
+      <exports>
+        <fn signature="gatePattern()" export="true">Alternates on/off steps every intervalBeats across loop</fn>
+        <fn signature="rampPattern()" export="true">Linear ramp approximated as held steps across loop</fn>
+        <fn signature="sinePattern()" export="true">Sine LFO as held steps across loop</fn>
+        <fn signature="depthToValue()" export="true">Clamp depth01 and map to [min, max]</fn>
+        <fn signature="stepsToArgs()" export="true">Flatten each step into time, duration, value</fn>
+      </exports>
+    </file>
+    <file path="hub/src/mirror/mirror.ts" category="utility" lines="150">
+      <purpose>Owns MirrorStore, MirrorClient, and applyPath. The store's apply method increments rev by exactly 1 per message (even with multiple changes per call), per Contract 3. The path grammar is frozen in ws.ts: chains/&lt;ChainID&gt;/&lt;field&gt;, chains/&lt;ChainID&gt;/cells/&lt;Slot&gt;/&lt;field&gt;, chains/&lt;ChainID&gt;/looper/&lt;field&gt;, chains/&lt;ChainID&gt;/devices/&lt;DeviceRole&gt;/params/&lt;paramName&gt;/value, scenes/&lt;SceneID&gt;/&lt;field&gt;, &lt;topLevelField&gt;. The client returns 'resync' on rev gaps or path errors. The typed setters (setCell, setChainField, etc.) are the only intended mutation points; raw applyPath usage requires caution. Both sides use structuredClone to avoid mutation of previous snapshots. MirrorClient's applyMessage also returns 'ok' for non-state messages (e.g., command_status).</purpose>
+      <exports>
+        <fn signature="applyPath()" export="true">Mutates a MirrorSnapshot object according to a path string and value.</fn>
+      </exports>
+    </file>
+    <file path="hub/src/resolver/resolver.ts" category="utility" lines="196">
+      <purpose>Owns the Resolver class and the assignRoles helper. Key invariant: ChainIDs are stable across rebuilds (same tag yields same ChainID). The rebuildFromSnapshot method processes a LiveSnapshot (tracks with devices) and builds internal maps. Device-to-role mapping follows Contract 7: ROLE_MATCHERS identify fixed roles (amp, looper, eq, spectral) by name hints; inline_fx is the first unclaimed device between looper and eq; remaining devices get their own name as an open role. The path grammar for mirror deltas is not used here; this module only resolves indices. The concrete ROLE_MATCHERS regexps are data (contract fixtures) and should be verified against a real .als file on first boot. The resolver assumes slot numbers are 1:1 with clip slots; future non-1:1 layout would change resolveCell.</purpose>
+      <exports>
+        <fn signature="assignRoles()" export="false">Assigns device roles for a chain entry by matching name hints and filling inline_fx and open roles.</fn>
+      </exports>
+    </file>
+    <file path="hub/src/sim/fake-live.ts" category="simulation" lines="318">
+      <purpose>FakeLive uses MirrorStore to hold state. It creates real setInterval timers for beatTick (50ms) and spectraTick (1/SPECTRAL.fps) when start() is called. handleCommand processes all TabletCommand kinds with delayed confirmation (quantization for fire_clip/launch_scene) and optional failure injection (failRate). Implements ARM_POLICY (one live chain per physical input), looper guard (stops playing clips on Record/Overdub), and duplicate_clip_to empty-target policy. Uses setTimeout for delayed actions. Must call stop() to clear timers/timeouts. Synthetic spectra are generated as Gaussian peaks with noise when chain is audible. Footgun: Uses real timers; tests must clean up. QUANT_BEATS lookup is provisional.</purpose>
+      <exports>
+        <fn signature="makeCell()" export="false">Create a CellMirror with given slot, hasClip, and name</fn>
+        <fn signature="initialSnapshot()" export="false">Build initial MirrorSnapshot with chains, cells, devices, scenes</fn>
+      </exports>
+    </file>
+    <file path="hub/src/sim/server.ts" category="service" lines="91">
+      <purpose>Owns HTTP file serving for the tablet (static files from ../../../tablet/) and a WebSocket server that creates a FakeLive instance per connection. Key invariants: only one process, no persistent state. The environment variables FAIL_RATE, TEMPO, and QUANT control simulation behavior. On 'hello' or 'resync_request' messages it sends a fresh snapshot (per Contract 3 reconnect). 'command' messages are forwarded to FakeLive.handleCommand. Protocol version mismatches are logged but not fatal. The rtc_* signalling is a no-op placeholder for Phase 8. The server listens on PORT (default 8420).</purpose>
+    </file>
+    <file path="hub/test/codec.test.ts" category="test" lines="108">
+      <purpose>Owns golden vector comparison against frozen binary files in hub/golden/. If these tests ever fail, the codec byte layout has changed and must be a deliberate versioned contract bump. StreamFramer and TenMsReslicer tests cover arbitrary TCP chunk boundaries and discontinuity flag handling (never glue across xruns).</purpose>
+    </file>
+    <file path="hub/test/core.test.ts" category="test" lines="209">
+      <purpose>Covers the resolver's chain ID survival across track reorder (Contract 1), lifecycle's idempotent/stateful retry behavior (Contract 8), same-target supersede, quant math exactness, and mirror client's resync on rev gaps or unknown ids. Also tests movement pattern generation and spectral band collapse with peak-hold decay.</purpose>
+      <exports>
+        <fn signature="devices()" export="false">Maps an array of device names to device descriptor objects with paramNames.</fn>
+        <fn signature="harness()" export="false">Creates a test harness with a fake clock, lifecycle events logger, and advance function.</fn>
+        <fn signature="tinySnapshot()" export="false">Builds a minimal MirrorSnapshot for testing mirror deltas.</fn>
+      </exports>
+    </file>
+    <file path="hub/test/sim.test.ts" category="test" lines="132">
+      <purpose>Tests the simulator's quantIndex interpretation (1/4 notes for fast queues), one-live-chain-per-input rule, duplicate onto occupied slots, and automatic resync via MirrorClient on rev gaps. The test uses real HTTP/WebSocket and waits for specific delta paths to confirm state propagation.</purpose>
+      <exports>
+        <fn signature="bootSim()" export="false">Boots a real HTTP+WebSocket server with FakeLive simulator, returns URL and close function.</fn>
+      </exports>
+    </file>
+    <file path="hub/tsconfig.json" category="configuration" lines="17">
+      <purpose>Targets ES2022, uses ESNext modules with bundler resolution, allows importing .ts extensions, enforces strict mode and noUnusedLocals, skips lib check, outputs no emit (noEmit), includes source and test files. Includes types for node and ws.</purpose>
+    </file>
+    <file path="package.json" category="config" lines="17">
+      <purpose>Private project with 'module' set to 'ESM' and GPL license. The three scripts (typecheck:contracts, typecheck:spike, typecheck:harnesses) compile respective subprojects with separate tsconfigs. Dev dependencies are minimal: TypeScript ~5.6 and @types/node ~22. No runtime dependencies; the project is a collection of contracts, spikes, and test harnesses only.</purpose>
+    </file>
+    <file path="sidecar-experiment/probe/nam_a2_probe.cpp" category="utility" lines="292">
+      <purpose>The file owns the entire sidecar probe. It links against Ableton Link's C++ API and must be compiled with the Link library. Key invariants: patternSample uses a cheap order-sensitive deterministic formula that allows verifying buffer boundaries even when Link reslices. The recv mode uses thread_local static state (prev, havePrev) to track the stream across callbacks — a footgun if the callback migrates threads (Link does not guarantee same thread). It also tracks dropped receive buffers via info.count gaps. APC1 forwarding bypasses the Link channel for a separate Node verification path; the socket send loop can exit early on failure (fd becomes -1). The send mode paces at ~10ms per buffer, not real-time. Uses C-style socket APIs (arpa/inet, sys/socket). The pattern expects 2 channels, 480 frames per buffer. Changing kNumChannels or kFramesPerBuffer requires corresponding changes in recv verification logic (boundary detection uses kNumChannels*kFramesPerBuffer - 1).</purpose>
+    </file>
+    <file path="sidecar-experiment/verify-apc1.ts" category="utility" lines="55">
+      <purpose>This script acts as a lightweight verifier of the APC1 contract: it creates a TCP server that accepts connections from the C++ sidecar (or any probe), feeds incoming data through the hub's StreamFramer (which handles length-prefixed framing), and checks each packet for expected sample rate (48000), channel count (1 or 2), and sequence continuity. It accumulates statistics (total packets, samples, header errors, sequence skips, unique tempos) and prints a summary every 200 packets. After 30 seconds of no connection or upon connection close, it reports a pass/fail and exits. It is designed to be run manually to confirm that frozen bytes flow correctly from C++ to Node without corruption. Key invariants: (1) The decoder is the same as the hub's production codec; (2) Assumes packets arrive in order (TCP ensures ordering); (3) Sequence gaps indicate buffer drops, which are expected in real usage; (4) The script does not export anything; (5) Uses experimental-strip-types flag for brevity.</purpose>
+      <exports>
+        <fn signature="report()" export="false">Prints the final statistics and exits with 0 if packets &gt; 0 and no header errors, else exits with 1.</fn>
+      </exports>
+    </file>
+    <file path="sidecar/main.cpp" category="service" lines="265">
+      <purpose>This C++ executable is the 'one hard part' quarantined at the system edge: it connects to Ableton Link, waits for a channel matching a name pattern (case-insensitive substring match via env NAM_CHANNEL, default 'main'), and forwards every received audio buffer to the hub (TCP loopback). It uses non-blocking reconnect logic: if the hub is down, packets are dropped and a DISCONTINUITY flag is set on the first packet after reconnect. The APC1 header is written in native little-endian (assumed for Apple Silicon/x86). Key invariants: (1) Audio buffers are forwarded verbatim (the hub reslices to 10ms); (2) The sequence number increments per packet; (3) A missing Link channel causes indefinite wait without crash; (4) --selftest prints a golden header hex for cross-language validation; (5) --fake mode generates sine tones for hub testing without hardware; (6) The HubLink class uses a mutex for non-blocking sends (lock-free would be better but not critical for loopback). The file is compiled with either actual Link headers or a SELFTEST_ONLY flag that disables Link-dependent code. It assumes POSIX sockets and uses sleep-based polling for the main loop.</purpose>
+    </file>
+    <file path="spikes/tone3000/package.json" category="configuration" lines="21">
+      <purpose>This is a static npm manifest (JSON) that defines the spike's name, version, and entry scripts. The `type` field is `module` so TypeScript files are treated as ESM. The scripts `pkce`, `authorize-url`, `fetch-a2` are convenience commands using `tsx` (a TypeScript executor). No production dependencies, only dev tooling. The `private: true` flag prevents accidental publishing. There are no runtime side effects.</purpose>
+    </file>
+    <file path="spikes/tone3000/src/client.ts" category="service" lines="100">
+      <purpose>This file defines the `T3KClient` class that uses Bearer token authentication. It assumes the API base URL from `TONE3000.base` (imported from `oauth.ts`). All methods throw on non-2xx responses. `listModels` attempts to handle both array and `{data:[...]}` response envelopes for robustness. `downloadModel` returns a `Uint8Array`; a missing `model_url` throws an error. The architecture query parameter defaults to 2 (A2). There is an implicit rate limit of 100 req/min (documented but not enforced in code). The types are loosely typed (`Record&lt;string, unknown&gt;`) because exact fields are not critical for the spike. No side effects on import.</purpose>
+    </file>
+    <file path="spikes/tone3000/src/fetch-a2-model.ts" category="script" lines="88">
+      <purpose>This script first attempts to get an access token from `T3K_ACCESS_TOKEN` env var or by running `runHeadlessFlow` if `T3K_CLIENT_ID` is set. If neither is available, it runs in STUB mode (logs the plan and exits 0). It then reads `T3K_TONE_ID` from env, instantiates `T3KClient`, calls `getTone` and `listModels` with architecture=2, picks the first A2 model (preferring those with `architecture_version===2`), refreshes the model info if `model_url` is missing, downloads it, and writes to `./out/&lt;id&gt;.model`. The script assumes the directory `out/` can be created; it fails if write fails. It uses `console.log`/`console.error` for output and exits with code 1 on error. A footgun: if the token expires during usage, subsequent API calls will fail with 401; there is no refresh logic. Also, the stub mode exits 0 even if `T3K_TONE_ID` is missing, which could mask a misconfigured environment.</purpose>
+      <exports>
+        <fn signature="resolveAccessToken()" export="false">Returns an access token from environment or by running the headless OAuth flow, or null if none available.</fn>
+        <fn signature="main()" export="false">Top-level async function: resolves token, queries tone and models, downloads model file, and saves to disk.</fn>
+      </exports>
+    </file>
+    <file path="spikes/tone3000/src/headless-lan-flow.ts" category="service" lines="140">
+      <purpose>This file owns the headless login flow: it starts a temporary HTTP listener on the machine's LAN IP, builds the authorize URL with PKCE, prints it (or passes to a QR printer), waits for a callback with the authorization code, validates the state parameter, exchanges the code for tokens, and then shuts down. It includes a self-contained CLI stub (when run directly) that either runs the real flow (if T3K_CLIENT_ID is set) or prints a dry-run. Key invariants: (1) The redirect URI must be reachable from the user's phone (i.e., LAN IP, not localhost); (2) The flow auto-times out after 3 minutes (configurable via timeoutMs); (3) State mismatch or missing code will reject the promise and close the server immediately; (4) The server must be closed in both success and error paths to avoid hanging processes. The file assumes the PKCE pair and OAuth helpers are correct; it does not validate the token response. The default printQr just logs the URL; real QR output is injected. The server uses TCP_NODELAY implicitly via createServer (Node's default for HTTP) which is fine for loopback.</purpose>
+      <exports>
+        <fn signature="lanIPv4()" export="true">Returns the first non-internal IPv4 address from OS network interfaces, or 127.0.0.1 if none found.</fn>
+        <fn signature="runHeadlessFlow()" export="true">Starts a local HTTP server, prints an authorization URL (or QR), waits for a callback, exchanges the code for tokens, and returns the result.</fn>
+      </exports>
+    </file>
+    <file path="spikes/tone3000/src/oauth.ts" category="service" lines="135">
+      <purpose>This file encapsulates all OAuth interactions with the Tone3000 API: building the authorization URL (pure, no side effects), exchanging a code for tokens, and refreshing tokens. It uses x-www-form-urlencoded requests to the token endpoint (no client secret, PKCE flow). The safeText helper is used to extract error bodies from failed responses. Key invariants: (1) Authorize URL construction is deterministic and side-effect-free; (2) Token exchange and refresh require a live network connection and valid credentials; (3) The token endpoint returns a JSON object per the documented shape; (4) Error handling throws with the HTTP status and response body (or fallback text). The file defines constants for base URL and paths, and assumes the API endpoint is reachable. The refreshToken function is decoupled from exchangeCodeForToken, so no automatic refresh logic is included. All public functions are async (except buildAuthorizeUrl).</purpose>
+      <exports>
+        <fn signature="buildAuthorizeUrl()" export="true">Builds the OAuth authorize URL as a string from the given parameters.</fn>
+        <fn signature="exchangeCodeForToken()" export="true">Sends a POST request to the token endpoint with the authorization code and PKCE verifier, returns the token response.</fn>
+        <fn signature="refreshToken()" export="true">Sends a POST request to the token endpoint with a refresh token, returns the new token response.</fn>
+        <fn signature="safeText()" export="false">Async helper that safely extracts the response body text, returning '&lt;no body&gt;' on error.</fn>
+      </exports>
+    </file>
+    <file path="spikes/tone3000/src/pkce.ts" category="utility" lines="68">
+      <purpose>This file contains pure cryptographic utility functions for PKCE: base64url encoding (no padding), random code verifier (32 random bytes -&gt; 43 chars), SHA-256 challenge from a verifier, random state for CSRF protection, and a convenience makePkcePair that returns a complete set of PKCE parameters with a fixed challenge method of 'S256'. It uses Node's crypto module (createHash, randomBytes). Key invariants: (1) All functions are deterministic for the same input (except verifier/state generation which rely on randomBytes); (2) base64url output matches RFC 7636 (no padding, URL-safe chars); (3) The self-test at the bottom verifies determinism and base64url cleanliness. This file has no network or file I/O, so it is safe to run anywhere. It exports every function. The makePkcePair function is the only public point for most callers.</purpose>
+      <exports>
+        <fn signature="base64url()" export="true">Converts a Buffer to a base64url-encoded string (no padding, URL-safe).</fn>
+        <fn signature="makeCodeVerifier()" export="true">Generates and returns a random code verifier (32 bytes, URL-safe).</fn>
+        <fn signature="challengeFromVerifier()" export="true">Computes the SHA-256 base64url challenge from a given verifier.</fn>
+        <fn signature="makeState()" export="true">Generates and returns a random state value (16 bytes, URL-safe).</fn>
+        <fn signature="makePkcePair()" export="true">Creates and returns a complete PKCE pair object with verifier, challenge, method, and state.</fn>
+      </exports>
+    </file>
+    <file path="spikes/tone3000/tsconfig.json" category="configuration" lines="16">
+      <purpose>The config sets `moduleResolution` to `Bundler` (for use with tsx), allows importing `.ts` extensions, includes Node types, and skips lib check for speed. `noEmit` is true because `tsx` runs the code directly. The `lib` includes both ES2022 and DOM (though DOM may not be needed). There are no side effects or runtime behavior.</purpose>
+    </file>
+    <file path="tablet/app.js" category="application" lines="285">
+      <purpose>This file is the entire client-side application, loaded as a script in index.html. It uses global state (snap, rev, ws, pendingByCmd Map) and builds DOM entirely from a snapshot. Key invariants: snap must be non-null before buildDom/render is called; rev must increment by exactly 1 for deltas, else resync is triggered. Optimistic hints are cleared on (re)connect. The band math (makeBandMap, collapse) is hand-mirrored from TypeScript reference modules—if those change, this must be updated. Timing: pulseBeat uses short timeout; queued countdown uses setInterval. The toast function uses setTimeout to auto-hide. The WebSocket reconnection loop runs indefinitely on close. DOM events are attached via onclick (no addEventListener abstractions). All commands use absolute target values; no relative nudges.</purpose>
+      <exports>
+        <fn signature="applyPath()" export="false">Applies a path-value change to the snapshot object, throwing on unknown paths.</fn>
+        <fn signature="makeBandMap()" export="false">Generates a mapping of frequency bands (0-47) to bin ranges for spectral collapse.</fn>
+        <fn signature="collapse()" export="false">Averages magnitudes across each band range to produce per-band levels.</fn>
+        <fn signature="sendCommand()" export="false">Sends a command over WebSocket with an optimistic hint tracking entry.</fn>
+        <fn signature="onCommandStatus()" export="false">Handles command status messages to update UI (intent, queued, confirmed, failed).</fn>
+        <fn signature="connect()" export="false">Opens WebSocket connection and sets up event handlers for state/telemetry messages.</fn>
+        <fn signature="send()" export="false">Serializes and sends a JSON message over the WebSocket.</fn>
+        <fn signature="resync()" export="false">Sends a resync request to the hub when a delta revision mismatch occurs.</fn>
+        <fn signature="setConn()" export="false">Updates the connection indicator element text and class.</fn>
+        <fn signature="buildDom()" export="false">Builds the entire DOM structure for chains and scenes from the snapshot.</fn>
+        <fn signature="currentChain()" export="false">Returns the chain object from snap by ID.</fn>
+        <fn signature="render()" export="false">Updates DOM elements to reflect the current snapshot state (mute, volume, clips, etc.).</fn>
+        <fn signature="drawSpectrum()" export="false">Draws a 48-band spectrum visualizer on a canvas with peak hold decay.</fn>
+        <fn signature="pulseBeat()" export="false">Triggers a brief beat lamp animation by toggling class and setting a timeout.</fn>
+        <fn signature="toast()" export="false">Shows a temporary toast notification for a few seconds.</fn>
+      </exports>
+    </file>
+    <file path="tablet/index.html" category="markup" lines="133">
+      <purpose>Static page that loads app.js. Contains a top bar with beat lamp, tempo readout, metronome button, revision display, and connection status. The main content is a div#chains (populated by app.js) and a sticky scenes bar. A toast div is positioned fixed at bottom. All styling is inline in a &lt;style&gt; block, using CSS custom properties for color theming. The page assumes app.js will build all inner elements. No other JavaScript dependencies.</purpose>
+    </file>
+    <file path="tsconfig.json" category="config" lines="25">
+      <purpose>Compiles files under contracts/types/**/*.ts. Uses 'noEmit' (type-check only) and allows importing .ts extensions. Strict mode enabled with noUnusedLocals, noUnusedParameters, noImplicitReturns, noFallthroughCasesInSwitch. Declares 'DOM' lib for potential web-related types. Module resolution is Bundler for ESM compatibility.</purpose>
+    </file>
+  </files>
+</codebase>

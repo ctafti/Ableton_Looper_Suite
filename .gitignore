@@ -1,2 +1,13 @@
 node_modules/
 .venv/
+# secrets / tooling (never commit)
+.env
+*.token
+captcha_token.txt
+codebase_analyzer.py
+data/.codebase_analyzer_state.json
+logs/
+
+# vendored / third-party sources — never analyze or commit
+sidecar-experiment/link/*
+sidecar/build/*
