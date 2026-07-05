@@ -1,60 +1,44 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<codebase generated="2026-07-05T10:38:49" files="56" provider="DeepSeek">
+<codebase generated="2026-07-05T11:52:01" files="58" provider="DeepSeek">
   <architecture>
-    <overview>The NAM A2 architecture is contract-driven, with frozen wire protocols (Contracts 1–8) defined as TypeScript types, JSON schemas, and byte-layout descriptors. The system consists of a Node.js/TypeScript hub that translates between a WebSocket state channel (tablet UI), OSC commands/responses (Ableton Live engine via AbletonOSC), and binary audio/spectral streams (C++ sidecar and Max-for-Live device). The hub implements command lifecycle management with confirmed-echo, idempotent commands, and quantization, while the tablet is a plain-JS WebSocket client that renders snapshot and delta updates. A Python extension provides the custom OSC surface for Live, and a C++ sidecar bridges Ableton Link audio into the hub over TCP. The separation of concerns between contracts, business logic, and I/O enables parallel development and testing.</overview>
-    <tech_stack languages="TypeScript, JavaScript, Python, C++" frameworks="AbletonOSC, WebSocket (ws)" libraries="Node.js standard library, crypto (Node.js, PKCE), dns (Node.js, host resolution), osc-helper (custom), Tone3000 REST API"/>
+    <overview>The NAM A2 project is a modular, contract-driven architecture for a neural amp modeler system integrated with Ableton Live. It comprises multiple independent components—a TypeScript hub that orchestrates state and commands, a Python engine extension for OSC control of Live, a JavaScript tablet frontend for user interaction, a C++ audio sidecar for low-latency PCM streaming, and a set of frozen contracts (TypeScript types, JSON schemas, binary descriptors) that define all inter-component wire protocols. Each component communicates via well-defined boundaries: OSC between hub and engine, WebSocket between hub and tablet, binary TCP for audio, and OAuth/HTTP for model fetching. The system emphasizes absolute, idempotent commands, a confirmed-echo lifecycle for reliability, and stable ID resolution to decouple internal indexing from addressing.</overview>
+    <tech_stack languages="TypeScript, Python, JavaScript, C++" frameworks="AbletonOSC, Node.js, WebSocket (ws)" libraries="uuid, dns, crypto, buffer"/>
     <entry_points>
+      <file>tablet/app.js</file>
       <file>tablet/index.html</file>
-      <file>hub/src/sim/server.ts</file>
       <file>sidecar/main.cpp</file>
-      <file>engine/extension.py</file>
       <file>spikes/tone3000/src/fetch-a2-model.ts</file>
+      <file>spikes/tone3000/src/headless-lan-flow.ts</file>
+      <file>hub/src/sim/server.ts</file>
+      <file>harnesses/src/01-osc-latency.ts</file>
+      <file>harnesses/src/engine-hello.ts</file>
     </entry_points>
     <layer name="presentation">
       <file>tablet/index.html</file>
       <file>tablet/app.js</file>
     </layer>
     <layer name="business_logic">
-      <file>contracts/types/command-rule.ts</file>
-      <file>contracts/types/ids.ts</file>
-      <file>contracts/types/osc.ts</file>
-      <file>contracts/types/ws.ts</file>
-      <file>contracts/types/spectral.ts</file>
-      <file>contracts/types/audio-sidecar.ts</file>
-      <file>contracts/types/ai-tools.ts</file>
-      <file>contracts/types/template.ts</file>
       <file>hub/src/resolver/resolver.ts</file>
       <file>hub/src/mirror/mirror.ts</file>
       <file>hub/src/lifecycle/lifecycle.ts</file>
-      <file>hub/src/math/bands.ts</file>
-      <file>hub/src/math/movement.ts</file>
-      <file>hub/src/dsp.ts</file>
+      <file>hub/src/sim/fake-live.ts</file>
+      <file>engine/extension.py</file>
     </layer>
     <layer name="data_access">
-      <file>hub/src/codec/spectral-codec.ts</file>
-      <file>hub/src/codec/audio-codec.ts</file>
-      <file>hub/src/sim/fake-live.ts</file>
-      <file>hub/src/sim/server.ts</file>
-      <file>engine/extension.py</file>
-      <file>sidecar/main.cpp</file>
+      <file>contracts/types/*.ts</file>
+      <file>contracts/schemas/*.json</file>
       <file>spikes/tone3000/src/client.ts</file>
       <file>spikes/tone3000/src/oauth.ts</file>
-      <file>spikes/tone3000/src/headless-lan-flow.ts</file>
-      <file>harnesses/src/osc-helper.ts</file>
     </layer>
     <layer name="utilities">
       <file>contracts/types/index.ts</file>
+      <file>hub/src/dsp.ts</file>
+      <file>hub/src/codec/audio-codec.ts</file>
+      <file>hub/src/codec/spectral-codec.ts</file>
+      <file>hub/src/math/bands.ts</file>
+      <file>hub/src/math/movement.ts</file>
+      <file>harnesses/src/osc-helper.ts</file>
       <file>spikes/tone3000/src/pkce.ts</file>
-      <file>sidecar-experiment/verify-apc1.ts</file>
-      <file>sidecar-experiment/probe/nam_a2_probe.cpp</file>
-      <file>harnesses/src/01-osc-latency.ts</file>
-      <file>harnesses/src/02-load-item-verify.ts</file>
-      <file>harnesses/src/03-insert-step-automation.ts</file>
-      <file>harnesses/src/04-looper-state-roundtrip.ts</file>
-      <file>harnesses/src/05-confirmed-echo-pinger.ts</file>
-      <file>harnesses/src/engine-hello.ts</file>
-      <file>harnesses/src/get-uri.ts</file>
-      <file>harnesses/src/quant-verify.ts</file>
     </layer>
     <layer name="configuration">
       <file>package.json</file>
@@ -65,40 +49,30 @@
       <file>harnesses/tsconfig.json</file>
       <file>spikes/tone3000/package.json</file>
       <file>spikes/tone3000/tsconfig.json</file>
-      <file>contracts/schemas/ai-tool-call.schema.json</file>
-      <file>contracts/schemas/audio-sidecar.descriptor.json</file>
-      <file>contracts/schemas/spectral-frame.descriptor.json</file>
-      <file>contracts/schemas/ws-state.schema.json</file>
-      <file>contracts/schemas/ws-telemetry.schema.json</file>
     </layer>
     <dependency_chains>
-      <chain description="UI command flow: Tablet sends WebSocket message (Contract 3) to hub, hub processes via lifecycle -&gt; resolver -&gt; OSC engine command -&gt; Live responds and echo triggers status update back to tablet.">
-        <file>tablet/app.js</file>
+      <chain description="Contract types are the foundation: every hub, test, and spike depends on them via the barrel export.">
+        <file>contracts/types/index.ts</file>
         <file>contracts/types/ws.ts</file>
-        <file>hub/src/lifecycle/lifecycle.ts</file>
-        <file>hub/src/resolver/resolver.ts</file>
-        <file>contracts/types/osc.ts</file>
-        <file>engine/extension.py</file>
-      </chain>
-      <chain description="Spectral telemetry: M4L device sends binary SPC1 frames over UDP, hub decodes using spectral codec, collapses to display bands, and forwards to tablet as part of WebSocket telemetry channel.">
-        <file>contracts/types/spectral.ts</file>
-        <file>hub/src/codec/spectral-codec.ts</file>
-        <file>hub/src/math/bands.ts</file>
         <file>hub/src/mirror/mirror.ts</file>
         <file>tablet/app.js</file>
       </chain>
-      <chain description="Audio transport: C++ sidecar publishes PCM over TCP using APC1 protocol (Contract 5), hub decodes and reslices into 10ms frames for WebRTC or further processing.">
-        <file>sidecar/main.cpp</file>
+      <chain description="Hub lifecycle and mirror depend on command-rule and id resolver to process commands and maintain state.">
+        <file>contracts/types/command-rule.ts</file>
+        <file>contracts/types/ids.ts</file>
+        <file>hub/src/lifecycle/lifecycle.ts</file>
+        <file>hub/src/mirror/mirror.ts</file>
+      </chain>
+      <chain description="The engine extension implements Contract-2 OSC commands and is tested via offline mocks that depend on its own code.">
+        <file>contracts/types/osc.ts</file>
+        <file>engine/extension.py</file>
+        <file>engine/test_offline.py</file>
+      </chain>
+      <chain description="Audio sidecar (C++) sends APC1 packets over TCP; the hub decodes them using the audio-codec, which depends on the contract types.">
         <file>contracts/types/audio-sidecar.ts</file>
         <file>hub/src/codec/audio-codec.ts</file>
-        <file>hub/src/dsp.ts</file>
-      </chain>
-      <chain description="A2 model fetch (Tone3000 spike): resolve OAuth token, query tone, list A2 models, download model file — proof of concept for the load_tone AI tool.">
-        <file>spikes/tone3000/src/pkce.ts</file>
-        <file>spikes/tone3000/src/oauth.ts</file>
-        <file>spikes/tone3000/src/headless-lan-flow.ts</file>
-        <file>spikes/tone3000/src/client.ts</file>
-        <file>spikes/tone3000/src/fetch-a2-model.ts</file>
+        <file>sidecar/main.cpp</file>
+        <file>sidecar-experiment/verify-apc1.ts</file>
       </chain>
     </dependency_chains>
   </architecture>
@@ -246,6 +220,12 @@
         <fn signature="sleep()" export="false">Returns a promise that resolves after the given number of milliseconds (simple setTimeout wrapper).</fn>
       </exports>
     </file>
+    <file path="harnesses/src/device-params.ts" category="script" lines="68">
+      <purpose>This file is a standalone executable script (not a module) that exercises the AbletonOSC protocol. It connects to a running Ableton Live instance via OSC, queries the number of parameters for a given track/device, then requests all parameter names and checks if a desired parameter (WANT) is among them. Key invariants: relies on two specific OSC addresses (/live/device/get/num_parameters and /live/device/get/parameters/name) which must be available; expects the reply for parameters/name to have the device index as the first two args and then string names; assumes the last arg of num_parameters reply is the count. Non-obvious: the reply structure is hard-coded, not parsed from a schema; the script fails fast on timeout (1500ms) and calls rigHint() on error to suggest Live connection checks. Footgun: changing the OSC addresses or reply structure without updating this file will break; the script does not handle multiple devices or tracks beyond the env vars; it is not designed to be imported elsewhere.</purpose>
+      <exports>
+        <fn signature="main()" export="false">Queries the number of parameters and their names for a given track/device via OSC, checks for a target parameter, and logs the result.</fn>
+      </exports>
+    </file>
     <file path="harnesses/src/engine-hello.ts" category="harness" lines="46">
       <purpose>Imports OscClient, hostFromEnv, rigHint from osc-helper.ts. Invariant: the extension may announce unsolicited at init or respond to request. The script arms a listener via c.onMessage before sending to catch either. A 3-second timeout (c.waitFor) fails if neither arrives. Footgun: if the extension only announces unsolicited, the script must be running before Live starts (or before the extension initializes) to catch the announce; otherwise you must reopen Live with the prober already running. The rigHint function is called on failure to suggest troubleshooting. The client is closed in a finally block.</purpose>
       <exports>
@@ -372,6 +352,9 @@
     </file>
     <file path="hub/tsconfig.json" category="configuration" lines="17">
       <purpose>Targets ES2022, uses ESNext modules with bundler resolution, allows importing .ts extensions, enforces strict mode and noUnusedLocals, skips lib check, outputs no emit (noEmit), includes source and test files. Includes types for node and ws.</purpose>
+    </file>
+    <file path="models/models.json" category="data" lines="7">
+      <purpose>This file is a static dataset containing a version field and an array of entries. Each entry has an index, a file name (e.g., '651635.model'), a name string, and a toneId number. The structure is straightforward and intended for consumption by other scripts or modules that need to look up model information. There are no functions, exports, or side effects; it is purely declarative data.</purpose>
     </file>
     <file path="package.json" category="config" lines="17">
       <purpose>Private project with 'module' set to 'ESM' and GPL license. The three scripts (typecheck:contracts, typecheck:spike, typecheck:harnesses) compile respective subprojects with separate tsconfigs. Dev dependencies are minimal: TypeScript ~5.6 and @types/node ~22. No runtime dependencies; the project is a collection of contracts, spikes, and test harnesses only.</purpose>
