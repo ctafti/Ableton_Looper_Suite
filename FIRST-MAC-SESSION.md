@@ -22,11 +22,11 @@ guide predicts, that's not a problem — that's DATA. Record it in
 | — | *Side work:* hub duplicate-generation cleanup | ✅ **DONE** (35→20 tests, committed) |
 | — | *Side work:* codebase-analyzer setup + first real run | ✅ **DONE** |
 | — | *Side work:* publish repo to GitHub | ✅ **DONE** (verify push landed) |
-| 3 | Run the simulator | ▶ **YOU ARE HERE / NEXT** |
-| 4 | Install engine extension into Live | ☐ not started |
-| 5 | The harness gauntlet | ☐ not started |
-| 6 | Bench experiments (guitar in hand) | ☐ not started |
-| 7 | TONE3000 | ☐ not started |
+| 3 | Run the simulator | ✅ **DONE** |
+| 4 | Install engine extension into Live | ✅ **DONE** |
+| 5 | The harness gauntlet | ✅ **DONE** (5 spikes; 2 seams closed) |
+| 6 | Bench experiments (guitar in hand) | ◐ **IN PROGRESS** (6.2 ✅ 6.5 ✅; 6.1 next; 6.9 pinned) |
+| 7 | TONE3000 | ✅ **DONE** (real A2 model fetched) |
 | 8 | End-of-session ritual | ☐ not started |
 
 **Nothing in Live has been touched yet.** All recent activity was repo hygiene
@@ -251,48 +251,81 @@ Harness 03 passing = §10 movement design is REAL. Any `[EXT]` failure is an
 
 ---
 
-## Part 6 — Bench experiments from arch §6 (~1 hr, guitar in hand) ☐
+## Part 6 — Bench experiments from arch §6 (~1 hr, guitar in hand) ◐ IN PROGRESS
 
-1. **§6.1 amp-host bring-up (rev 2026-07-03)** — clone + build the `neural~` Max
-   external (repo ships a Mac build script), wrap it in a minimal `NAM_A2_Amp.amxd`
-   with the Contract-7 param names, load a TONE3000 A2 model via the `Model`
-   param, run the model-swap click test mid-sustain. Gateway plugin is your
-   stopgap + A/B reference.
-2. **§6.9 THE FEEL TEST** — 2 chains in a throwaway set, record a clip on chain
-   A, play it back while noodling live on chain B for ten minutes. Then try to
-   noodle on chain A *while its own clip plays* — you can't (monitoring vs
-   playback is mutually exclusive per track, arch §17). Decide the summing-pair
-   contingency: **did that limit annoy you, or did the looper cover it?** Answer
-   in `reports/PROVISIONAL-SEAMS.md`.
-3. **§6.5 Link Audio on the rig** — Live: enable Link + Link Audio, publish
-   Main. Build & run the sidecar (already proven on Linux, see
-   `sidecar-experiment/FINDINGS.md`):
+> **Not a sequence — four independent experiments.** Done so far this session:
+> **§6.2 ✅** and **§6.5 ✅**. **§6.1 is next** (the big from-scratch build).
+> **§6.9 is intentionally PINNED behind §6.1** (see below). Order taken:
+> 6.2 → 6.5 → (7) → 6.1 → 6.9.
+
+1. **§6.1 amp-host bring-up** ☐ **NEXT — being handed to a build AI.** Clone +
+   build the `neural~` Max external (`github.com/apresta/neural_tilde`, MIT —
+   built on NeuralAudio + AudioDSPTools), wrap it in a minimal `NAM_A2_Amp.amxd`
+   with the Contract-7 param names (`Model`/`Rescan`/`Input Trim`/`Output Trim`/
+   `Quality`/`Load OK`), load the fetched A2 model via `Model`, run the model-swap
+   click test mid-sustain (prewarm + output crossfade). **Two docs drive this:**
+   - `reports/handoff/MAX-ENV-SETUP.md` — YOU run first: toolchain + clone the
+     Max SDK & neural_tilde, stage the model into `models/models.json`, smoke-test
+     that `neural~` loads.
+   - `reports/handoff/AMP-HOST-HANDOFF.md` — hand to the build AI (with
+     `CODEBASE_ANALYSIS.xml` + `contracts/types/template.ts`) to build the `.amxd`.
+   > Verified 2026-07-04: Max externals build via the Max SDK (auto-fetches
+   > max-sdk-base; CMake generates an Xcode project); Apple-Silicon `.mxo` needs
+   > ad-hoc codesign (`codesign --force --deep -s - neural~.mxo`).
+
+2. **§6.9 THE FEEL TEST** ☐ **PINNED until §6.1 lands.** 2 chains in a throwaway
+   set, record a clip on chain A, play it back while noodling live on chain B for
+   ten minutes. Then try to noodle on chain A *while its own clip plays* — you
+   can't (monitoring vs playback is mutually exclusive per track, arch §17).
+   Decide the summing-pair contingency: **did that limit annoy you, or did the
+   looper cover it?** Answer in `reports/PROVISIONAL-SEAMS.md`. **Deferred on
+   purpose:** the judgment is only meaningful with real amp tone in hand, not a
+   dry DI — so it waits for §6.1.
+
+3. **§6.5 Link Audio on the rig** ✅ **DONE — proven end-to-end.** Sidecar built
+   clean on Mac (AppleClang 21) and streamed real guitar audio Live → Link Audio
+   → C++ → APC1 → Node decoder: 7,152 packets, `headerBad=0`, `seqSkips=0`, 48 kHz.
+   **Corrected commands (the originals here were wrong — see API-REALITY):**
    ```bash
    cd ~/Aibleton/Aibleton/sidecar
    cmake -B build -DLINK_DIR=../sidecar-experiment/link && cmake --build build
-   node --experimental-strip-types ../sidecar-experiment/verify-apc1.ts 47615 &
-   ./build/nam_a2_sidecar        # NAM_CHANNEL=<name> if Live's channel isn't "main"-ish
+   ./build/nam_a2_sidecar --selftest      # golden APC1 header matches
+   # then, with Live's Link + Link Audio ON and Main published:
+   #   terminal 2:
+   node --experimental-strip-types ../sidecar-experiment/verify-apc1.ts
+   #   terminal 1 (channel is 'Main'; port MUST be 9701 to match the verifier):
+   NAM_CHANNEL=Main NAM_HUB_PORT=9701 ./build/nam_a2_sidecar
+   # then PLAY audio on Main. NB: run Live at 48 kHz or every packet fails.
    ```
-   The sidecar prints every channel it sees, so Live's published-channel name
-   appears on screen. *(`sidecar-experiment/link` is the vendored Ableton Link
-   tree — excluded from the analyzer and untracked in git, but the build still
-   needs it on disk. That's expected.)*
-4. **§6.2 quantization feel** + verify `QUANT_BEATS` (one OSC read:
-   `/live/song/get/clip_trigger_quantization` — see the flagged table in
-   `hub/src/lifecycle/lifecycle.ts`).
+   Findings recorded: channel=`Main`, port=9701, `main.cpp`→`verify-apc1.ts` is
+   the header-check test (NOT the ramp probe), Link Audio enable is a clean
+   Settings toggle, rig must be 48 kHz.
+
+4. **§6.2 quantization feel** + verify `QUANT_BEATS` ✅ **DONE.** Read
+   `/live/song/get/clip_trigger_quantization` at three dropdown settings —
+   None→0, "1 Bar"→4, "1/4"→7 — all matched the assumed table. `QUANT_BEATS` in
+   `hub/src/lifecycle/lifecycle.ts` de-flagged from ASSUMED to verified. (Probe:
+   `harnesses/src/quant-verify.ts`.)
 
 ---
 
-## Part 7 — TONE3000 while you're at it (~10 min) ☐
+## Part 7 — TONE3000 ✅ DONE (real A2 model fetched)
 
-```bash
-cd ~/Aibleton/Aibleton/spikes/tone3000
-nvm use
-npm start   # PKCE login in the browser, fetches one A2 model
-```
+The PKCE flow works from the Mac. **Two gotchas the original steps missed:**
+- The spike has **no `.env` loader** — run it with Node's `--env-file`:
+  ```bash
+  cd ~/Aibleton/Aibleton/spikes/tone3000
+  nvm use
+  node --env-file=.env --import tsx src/fetch-a2-model.ts
+  ```
+  (`.env` needs `T3K_CLIENT_ID=t3k_pub_…` **and** `T3K_TONE_ID=<an A2 tone id>` —
+  the stub fires if EITHER is missing. Use the PUBLISHABLE key, never the secret.)
+- Approve the login in the **Mac's own browser**, not a phone (the callback is
+  the Mac's LAN IP:47700 — a phone on a different segment times out).
 
-Confirms your account + the API from the Mac, and leaves a real `.nam` file for
-the first template.
+Result: fetched tone 74416 → model 651635 ("Marshall 1987X SE Crunch Mod"),
+saved to `spikes/tone3000/out/651635.model` (note: `.model`, not `.nam`). This is
+the model §6.1 loads. `load_tone` (Contract 4) is grounded.
 
 ---
 

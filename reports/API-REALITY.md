@@ -343,11 +343,54 @@ the guide, the disagreement is recorded as data.*
   the header-checking test is `main.cpp → verify-apc1.ts`, NOT the separate
   synthetic-ramp self-test `probe/nam_a2_probe.cpp` (`send`/`recv` pair).
 
+- **§6.1 amp-host FOUNDATION built + proven (env ready; `.amxd` handed off):**
+  `neural~` external (`apresta/neural_tilde`, MIT) compiled clean on the Mac
+  (NeuralAudio + NAM Core + A2 fast-path WaveNet; AppleClang 21), installed to
+  `~/Documents/Max 9/Packages/neural/externals/neural~.mxo`, ad-hoc codesigned
+  (required on Apple Silicon), and **instantiated + loaded a real A2 model in
+  Max 9**. Console receipt on load of `models/651635.nam`:
+  `loaded <path>` / `latency 0` / `loudness -2.83`. **Verified facts for the
+  amp-host build:** neural~ needs `.nam` (not the `.model` the fetch saves —
+  rename); info-outlet vocab is `loaded`/`latency`/`loudness`/`queued`/`cleared`/
+  `error`/`bang`; `prewarm` is NAM-only; 48 kHz → 0 resampling latency. Building
+  the `NAM_A2_Amp.amxd` wrapper is handed to a build AI via
+  `reports/handoff/AMP-HOST-HANDOFF.md`. **Note the neural_tilde build gotcha:**
+  running raw cmake (not `build.sh`) builds the Mac `.mxo` fine but the Windows
+  cross-target errors on missing llvm-mingw — that error is cosmetic; the Mac
+  external builds and installs before it, and you don't want the Windows target.
+
 ### Still open after this session
+
+- **NEW WORKSTREAM — AI device generation (Deliverable E,
+  `reports/handoff/AI-DEVICE-GENERATION.md`):** pipeline for the AI to author
+  `.amxd` devices from intent ("stop, ask, build a patch, load, resume") AND to
+  build the core devices (looper, amp). Tooling identified + real (`js2max`
+  JS→.amxd, `py2max` Python→.maxpat, Ableton `maxdevtools` for text-diffing
+  devices) but **NOT yet verified on this rig** — step 0 (prove a generated
+  device loads + exposes a param + passes signal in Live 12.4.2) is the gate
+  before it's used to build anything. Doesn't fight the architecture *because*
+  the workflow stops first (no live param-surface mutation, no hot audio-graph
+  edits) and loads via the proven browser path. First real target: re-author the
+  looper (Seam 3) via the pipeline.
 
 - **Seam 3** (looper state echo) — device not built. **Seam 4** (Link Audio) —
   ◐ enable mechanism + audio path now proven; only the end-to-end latency NUMBER
   remains (Settings shows 100 ms; direct capture→decode measurement still wanted).
-  Part 6 remaining: **§6.9 feel test** (guitar, no code) and **§6.1 amp host**
-  (the `neural~` external + `.amxd` build) not yet done. **§6.2 quant** and
-  **§6.5 Link Audio** ✅ done this session.
+  Part 6 remaining: **§6.1 amp host** (the `neural~` external + `.amxd` build)
+  is next. **§6.9 feel test is intentionally PINNED until §6.1 lands** — the
+  test is a subjective judgment about whether the monitoring-vs-playback limit
+  annoys you in practice, which is only meaningful with real amp tone in hand,
+  not a dry DI. **§6.2 quant** and **§6.5 Link Audio** ✅ done this session.
+
+- **§7 TONE3000 fetch PROVEN (bonus, done this session):** full PKCE flow works
+  from the Mac — `t3k_pub_…` publishable key accepted, browser login, token
+  exchange, and download of a real A2 model (tone 74416 → model 651635,
+  "Marshall 1987X SE Crunch Mod", 295,168 bytes → `spikes/tone3000/out/651635.model`).
+  `load_tone` (Contract 4) is grounded. **Spike usability findings:** (a) the
+  script has NO `.env` loader — must run with Node's `--env-file=.env`
+  (`node --env-file=.env --import tsx src/fetch-a2-model.ts`), else it silently
+  stubs; (b) the STUB fires on `!token || !toneIdEnv` but doesn't say WHICH is
+  missing — `T3K_TONE_ID` is effectively REQUIRED for a deterministic fetch;
+  (c) the LAN callback must be reachable from the approving device — approve in
+  the **Mac's own browser** (phone-on-different-LAN times out); (d) file saves
+  as `.model`, not `.nam` — watch whether `neural~` cares about the extension.

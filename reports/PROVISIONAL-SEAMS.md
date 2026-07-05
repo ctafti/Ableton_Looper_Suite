@@ -131,8 +131,13 @@ around each seam do not move when it resolves.
      reply) within window W.
   3. The reported state matches the commanded state (absolute → idempotent
      re-send is safe).
-- **If it fails:** add an explicit state-report outlet to the M4L patch (we own
-  it), then re-run. The enum + verb stay frozen.
+- **Build path (2026-07-04):** the M4L looper is the **first real target for the
+  AI device-generation pipeline** (`reports/handoff/AI-DEVICE-GENERATION.md`) —
+  a self-contained device with a small param surface (`State` + a state-report
+  outlet). If the pipeline (once its step-0 verification passes) can produce a
+  working looper that closes this seam, the pipeline is proven on something real.
+  Until then, hand-authoring in Max is the fallback. Either way the state-report
+  outlet requirement above stands.
 - **Rig note (2026-07-04, still OPEN):** spike 04 ran against a rig with no M4L
   looper present (as expected — the device isn't built). Harness output was
   "no echoes / add a state outlet," which is the correct *conclusion*, but
