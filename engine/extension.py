@@ -34,7 +34,7 @@ import logging
 
 from .handler import AbletonOSCHandler
 
-ENGINE_VERSION = "0.1.0"
+ENGINE_VERSION = "0.5.0"  # 2026-07-05: reverted dead command-push; report-out kept
 PROTOCOL = 1  # mirrors WS_PROTOCOL_VERSION / Contract 3
 
 
@@ -51,6 +51,11 @@ class ExtensionHandler(AbletonOSCHandler):
         # Live boot is slow and arch §11 says cache + rebuild on explicit rescan.
         self._browser_names = None
         self._browser_items = None
+
+        # Looper state pushed by the M4L device over OSC (seam #3, fast echo):
+        # (track, device) -> last reported state. Kept fresh by the device on
+        # every transition, so get_state answers instantly without a LOM read.
+        self._looper_report = {}
 
         # ------------------------------------------------------------------
         # /live/engine/hello + /live/engine/ping   (arch §13 "hello on init")
@@ -335,37 +340,89 @@ class ExtensionHandler(AbletonOSCHandler):
 
         # ------------------------------------------------------------------
         # CUSTOM M4L LOOPER STATE (Contract 2 looperSetState/GetState; seam #3)
-        # The looper's State is a NORMAL settable device parameter named "State"
-        # (the whole point of §15). We map by NAME, not index — parameter order
-        # can differ across device versions (same reason as Contract 1 ParamRef).
+        # The looper is our own M4L device (arch §15, LOOPER-HANDOFF.md). It
+        # exposes TWO parameters, matched BY NAME (not index — order can differ
+        # across device versions, same reason as Contract 1 ParamRef):
+        #   "State"     — the COMMAND we write (hub -> device).
+        #   "State Out" — the OBSERVED state the DEVICE authors after it actually
+        #                 transitions. We READ THIS BACK, never the command, so a
+        #                 dead/broken device cannot fake a good echo (§4/§7). If a
+        #                 device has no separate "State Out" (e.g. a single-param
+        #                 build), we fall back to reading "State" — weaker, but the
+        #                 engine still works; the two-param device is what makes
+        #                 the Seam-3 receipt genuinely observed.
+        # find_param_by_name is GUARDED: an out-of-range track/device index (no
+        # looper present) returns None -> an honest (ok=0) tuple, never a crash
+        # (fixes the 2026-07-04 rig finding where find_state_param threw).
         # ------------------------------------------------------------------
-        def find_state_param(t, d):
-            device = track_at(t).devices[int(d)]
+        def find_param_by_name(t, d, want):
+            try:
+                device = track_at(t).devices[int(d)]
+            except Exception:
+                return None  # bad track/device index — honest "not found", not a throw
             for param in device.parameters:
-                if str(param.name).lower() == "state":
+                if str(param.name).lower() == want:
                     return param
             return None
 
+        def find_state_param(t, d):
+            return find_param_by_name(t, d, "state")
+
+        def find_report_param(t, d):
+            # observed truth lives in "State Out"; fall back to "State" if absent.
+            return find_param_by_name(t, d, "state out") or find_param_by_name(t, d, "state")
+
         def looper_set_state(params):
-            # (track, device, state) -> (track, device, observed_state)
+            # (track, device, state) -> NO reply on success.
+            # Sets the "State" command parameter; the device observes it, transitions,
+            # and pushes its resulting state back (report-out -> cache). We return
+            # None so the engine does NOT auto-reply — observed truth comes ONLY from
+            # looper_get_state (the cache). Honest failures reply immediately.
             t, d, state = int(params[0]), int(params[1]), float(params[2])
-            param = find_state_param(t, d)
-            if param is None:
+            cmd = find_state_param(t, d)
+            if cmd is None:
                 self.logger.warning("engine looper set_state: no 'State' param on device %d/%d" % (t, d))
-                return (t, d, -1)  # -1 = no State param found (device missing / not our looper)
-            param.value = state
-            return (t, d, int(param.value))  # echo the OBSERVED value, not the request
+                return (t, d, -1)  # honest failure: not our looper / missing device
+            try:
+                cmd.value = state
+            except Exception as e:
+                self.logger.warning("engine looper set_state failed: %s" % e)
+                return (t, d, -1)
+            return None  # success: no synchronous echo; read it back via get_state
+
+        def looper_report(params):
+            # (track, device, state) — ONE-WAY push FROM the M4L device the instant
+            # it transitions (via its [udpsend] on outlet 2). No reply. We cache it
+            # (so get_state is instant) and forward it to the hub as the
+            # looper_state up-event ("truth up", event-driven — no polling needed).
+            try:
+                t, d, state = int(params[0]), int(params[1]), int(params[2])
+            except Exception as e:
+                self.logger.warning("engine looper report: bad args: %s" % e)
+                return None
+            self._looper_report[(t, d)] = state
+            try:
+                self.osc_server.send("/live/looper/state", (t, d, state))  # up-event to hub
+            except Exception:
+                pass
+            return None  # one-way; do not auto-reply
 
         def looper_get_state(params):
-            # (track, device) -> (track, device, state)
+            # (track, device) -> (track, device, observed_state)  [THE receipt]
+            # Prefer the value the DEVICE pushed (fast, current). Fall back to the
+            # "State Out" parameter if the device hasn't pushed yet (e.g. first read
+            # right after load) — slower but correct. -1 = no looper here.
             t, d = int(params[0]), int(params[1])
-            param = find_state_param(t, d)
-            if param is None:
+            if (t, d) in self._looper_report:
+                return (t, d, int(self._looper_report[(t, d)]))
+            report = find_report_param(t, d)
+            if report is None:
                 return (t, d, -1)
-            return (t, d, int(param.value))
+            return (t, d, int(report.value))
 
         self.osc_server.add_handler("/live/looper/set_state", looper_set_state)
         self.osc_server.add_handler("/live/looper/get/state", looper_get_state)
+        self.osc_server.add_handler("/live/looper/report", looper_report)
 
         # ------------------------------------------------------------------
         # ABLETON LINK ENABLE (Contract 2 setLinkEnabled — LOM-settable, FREEZE;
