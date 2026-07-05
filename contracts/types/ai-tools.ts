@@ -3,7 +3,8 @@
  * CONTRACT 4 — AI ASSISTANT TOOL SCHEMA
  *                                        (arch §5, §9, §12 · BUILD-PLAN Phase 1)
  * TAG: tool VOCABULARY is FREEZE-NOW; specific RETURNS/receipts for
- *      add_device, write_movement, looper_state are PROVISIONAL (inline).
+ *      add_device, write_movement are PROVISIONAL (inline). looper_state receipt
+ *      FROZEN 2026-07-05 (spike 04 closed).
  * ----------------------------------------------------------------------------
  * WHAT THIS IS, IN PLAIN LANGUAGE
  *   The voice AI ("the brain") never touches Live directly. It can only call a
@@ -271,14 +272,14 @@ export const AI_TOOLS: Record<ToolName, ToolDef> = {
     stability: 'FREEZE-NOW',
   },
 
-  // --- looper : verb frozen, ECHO/receipt PROVISIONAL ---------------------
+  // --- looper : verb + receipt FROZEN (spike 04 closed 2026-07-05) --------
   looper_state: {
     name: 'looper_state',
     summary:
       'Set the custom looper on a chain to an ABSOLUTE transport state ' +
       '(Stop/Play/Record/Overdub). Absolute, so a dropped packet is safe to ' +
-      're-send. The verb and enum are frozen; the confirmation echo is not yet ' +
-      'proven because the looper is our own M4L device (arch §15).',
+      're-send. Verb, enum, and the confirmation echo are frozen: the M4L device ' +
+      '(arch §15) reports its resulting state back (observed on the rig, spike 04).',
     params: [
       chainParam('chain', 'Chain whose looper to drive.'),
       {
@@ -296,10 +297,7 @@ export const AI_TOOLS: Record<ToolName, ToolDef> = {
     ],
     semantics: IDEMPOTENT, // absolute target state (Contract 8)
     receiptKind: 'looper_receipt',
-    stability: 'PROVISIONAL',
-    resolvedBy:
-      'PROVISIONAL-SEAMS: looper-state echo. Spike 04 (looper-state round-trip) ' +
-      'must show the M4L device reports its state back over Contract-2 looper_state.',
+    stability: 'FREEZE-NOW', // spike 04 closed on the rig 2026-07-05
   },
 
   // --- automation write : verb frozen, WHOLE receipt PROVISIONAL ----------
@@ -446,16 +444,17 @@ export interface ToneLoadReceipt extends ToolReceiptBase {
 }
 
 /**
- * PROVISIONAL receipts — shapes are our best current design but the exact
- * observable fields are pending the noted spike. Marked with `__provisional`
- * so a grep finds every unfinished seam.
+ * Receipt shapes. The remaining PROVISIONAL ones (movement, device add) carry a
+ * `__provisional` field so a grep finds every unfinished seam; their observable
+ * fields are pending the noted spike. LooperReceipt was PROVISIONAL and is now
+ * FROZEN (spike 04 closed on the rig 2026-07-05) — its `__provisional` was dropped.
  */
 export interface LooperReceipt extends ToolReceiptBase {
   readonly kind: 'looper_receipt';
   readonly chain: ChainID;
-  /** PROVISIONAL: assumes the M4L looper echoes its state. See spike 04. */
+  /** FROZEN (spike 04, 2026-07-05): the M4L device reports its resulting state;
+   *  the hub reads it back as observed truth (Contract 2 looper_state). */
   readonly stateObserved?: LooperState;
-  readonly __provisional: 'looper echo unproven — spike 04';
 }
 export interface MovementReceipt extends ToolReceiptBase {
   readonly kind: 'movement_receipt';
@@ -483,7 +482,7 @@ export type ToolReceipt =
   | MixerStateReceipt
   | TransportStateReceipt
   | ToneLoadReceipt
-  | LooperReceipt // PROVISIONAL
+  | LooperReceipt // FROZEN (spike 04 closed 2026-07-05)
   | MovementReceipt // PROVISIONAL
   | DeviceAddReceipt; // PROVISIONAL
 
