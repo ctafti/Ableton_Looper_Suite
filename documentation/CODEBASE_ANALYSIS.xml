@@ -1,44 +1,52 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<codebase generated="2026-07-05T11:52:01" files="58" provider="DeepSeek">
+<codebase generated="2026-07-05T18:03:36" files="65" provider="DeepSeek">
   <architecture>
-    <overview>The NAM A2 project is a modular, contract-driven architecture for a neural amp modeler system integrated with Ableton Live. It comprises multiple independent components—a TypeScript hub that orchestrates state and commands, a Python engine extension for OSC control of Live, a JavaScript tablet frontend for user interaction, a C++ audio sidecar for low-latency PCM streaming, and a set of frozen contracts (TypeScript types, JSON schemas, binary descriptors) that define all inter-component wire protocols. Each component communicates via well-defined boundaries: OSC between hub and engine, WebSocket between hub and tablet, binary TCP for audio, and OAuth/HTTP for model fetching. The system emphasizes absolute, idempotent commands, a confirmed-echo lifecycle for reliability, and stable ID resolution to decouple internal indexing from addressing.</overview>
-    <tech_stack languages="TypeScript, Python, JavaScript, C++" frameworks="AbletonOSC, Node.js, WebSocket (ws)" libraries="uuid, dns, crypto, buffer"/>
+    <overview>The NAM A2 system uses a layered architecture with frozen contracts (TypeScript types, JSON schemas, binary descriptors) defining protocols between components: spectral telemetry from Max-for-Live devices (Contract 6), WebSocket state channel between hub and tablet (Contract 3), OSC commands between hub and Ableton Live engine (Contract 2), AI tool calls (Contract 4), and PCM audio from a C++ sidecar (Contract 5). The hub (Node.js/TypeScript) orchestrates communication: it decodes binary streams, manages a mirror store for state, resolves stable IDs to Live indices, and commands Live through an AbletonOSC Python extension. A plain-JS tablet frontend connects via WebSocket for real-time rig control and spectral display. Test harnesses and a fake-Live simulator validate the contracts and lifecycle logic.</overview>
+    <tech_stack languages="python, typescript, javascript, c++" frameworks="node.js, websocket, abletonosc" libraries="abletonosc, tailwindcss (in tablet via inline styles)"/>
     <entry_points>
-      <file>tablet/app.js</file>
       <file>tablet/index.html</file>
       <file>sidecar/main.cpp</file>
-      <file>spikes/tone3000/src/fetch-a2-model.ts</file>
-      <file>spikes/tone3000/src/headless-lan-flow.ts</file>
       <file>hub/src/sim/server.ts</file>
+      <file>spikes/tone3000/src/fetch-a2-model.ts</file>
       <file>harnesses/src/01-osc-latency.ts</file>
+      <file>harnesses/src/02-load-item-verify.ts</file>
+      <file>harnesses/src/03-insert-step-automation.ts</file>
+      <file>harnesses/src/04-looper-state-roundtrip.ts</file>
+      <file>harnesses/src/05-confirmed-echo-pinger.ts</file>
       <file>harnesses/src/engine-hello.ts</file>
+      <file>harnesses/src/device-params.ts</file>
+      <file>harnesses/src/get-uri.ts</file>
+      <file>harnesses/src/quant-verify.ts</file>
     </entry_points>
     <layer name="presentation">
-      <file>tablet/index.html</file>
       <file>tablet/app.js</file>
+      <file>tablet/index.html</file>
     </layer>
     <layer name="business_logic">
+      <file>hub/src/lifecycle/lifecycle.ts</file>
       <file>hub/src/resolver/resolver.ts</file>
       <file>hub/src/mirror/mirror.ts</file>
-      <file>hub/src/lifecycle/lifecycle.ts</file>
-      <file>hub/src/sim/fake-live.ts</file>
+      <file>hub/src/dsp.ts</file>
+      <file>hub/src/math/bands.ts</file>
+      <file>hub/src/math/movement.ts</file>
       <file>engine/extension.py</file>
     </layer>
     <layer name="data_access">
-      <file>contracts/types/*.ts</file>
-      <file>contracts/schemas/*.json</file>
+      <file>hub/src/codec/audio-codec.ts</file>
+      <file>hub/src/codec/spectral-codec.ts</file>
+      <file>sidecar/main.cpp</file>
       <file>spikes/tone3000/src/client.ts</file>
-      <file>spikes/tone3000/src/oauth.ts</file>
+      <file>contracts/types/ws.ts</file>
+      <file>contracts/types/osc.ts</file>
+      <file>contracts/types/spectral.ts</file>
+      <file>contracts/types/audio-sidecar.ts</file>
     </layer>
     <layer name="utilities">
       <file>contracts/types/index.ts</file>
-      <file>hub/src/dsp.ts</file>
-      <file>hub/src/codec/audio-codec.ts</file>
-      <file>hub/src/codec/spectral-codec.ts</file>
-      <file>hub/src/math/bands.ts</file>
-      <file>hub/src/math/movement.ts</file>
       <file>harnesses/src/osc-helper.ts</file>
-      <file>spikes/tone3000/src/pkce.ts</file>
+      <file>devgen/amxd_setnames.py</file>
+      <file>devgen/amxd_wire_udpsend.py</file>
+      <file>devgen/looper.js</file>
     </layer>
     <layer name="configuration">
       <file>package.json</file>
@@ -49,30 +57,34 @@
       <file>harnesses/tsconfig.json</file>
       <file>spikes/tone3000/package.json</file>
       <file>spikes/tone3000/tsconfig.json</file>
+      <file>models/models.json</file>
     </layer>
     <dependency_chains>
-      <chain description="Contract types are the foundation: every hub, test, and spike depends on them via the barrel export.">
-        <file>contracts/types/index.ts</file>
+      <chain description="Tablet state display and command dispatch through WebSocket to hub's mirror store and lifecycle.">
+        <file>tablet/app.js</file>
         <file>contracts/types/ws.ts</file>
         <file>hub/src/mirror/mirror.ts</file>
-        <file>tablet/app.js</file>
-      </chain>
-      <chain description="Hub lifecycle and mirror depend on command-rule and id resolver to process commands and maintain state.">
-        <file>contracts/types/command-rule.ts</file>
-        <file>contracts/types/ids.ts</file>
         <file>hub/src/lifecycle/lifecycle.ts</file>
-        <file>hub/src/mirror/mirror.ts</file>
       </chain>
-      <chain description="The engine extension implements Contract-2 OSC commands and is tested via offline mocks that depend on its own code.">
+      <chain description="Hub sends OSC commands to Ableton Live via engine extension and handles echoes.">
         <file>contracts/types/osc.ts</file>
+        <file>hub/src/lifecycle/lifecycle.ts</file>
         <file>engine/extension.py</file>
-        <file>engine/test_offline.py</file>
       </chain>
-      <chain description="Audio sidecar (C++) sends APC1 packets over TCP; the hub decodes them using the audio-codec, which depends on the contract types.">
+      <chain description="Spectral telemetry from M4L device decoded by hub for display and forwarding.">
+        <file>contracts/types/spectral.ts</file>
+        <file>hub/src/codec/spectral-codec.ts</file>
+        <file>hub/src/dsp.ts</file>
+      </chain>
+      <chain description="AI tool calls trigger hub lifecycle which dispatches OSC commands and mirrors state.">
+        <file>contracts/types/ai-tools.ts</file>
+        <file>hub/src/lifecycle/lifecycle.ts</file>
+        <file>contracts/types/osc.ts</file>
+      </chain>
+      <chain description="Audio sidecar sends PCM over TCP to hub for WebRTC forwarding.">
+        <file>sidecar/main.cpp</file>
         <file>contracts/types/audio-sidecar.ts</file>
         <file>hub/src/codec/audio-codec.ts</file>
-        <file>sidecar/main.cpp</file>
-        <file>sidecar-experiment/verify-apc1.ts</file>
       </chain>
     </dependency_chains>
   </architecture>
@@ -92,8 +104,8 @@
     <file path="contracts/schemas/ws-telemetry.schema.json" category="contract" lines="57">
       <purpose>Messages require v=1, ch='telemetry', and type in ['spectra','beat']. For type 'spectra', a 'frame' object must be present following SpectralFrame definition (chainTag, seq, tMs, magnitudes array of 256 floats 0..1). For type 'beat', a 'beat' object must be present with beat position, tMs, and optional tempo. The magnitudes array length must be exactly 256, values normalized 0..1. This schema is a frozen cross-language reference; changes must be coordinated with the Node spectral telemetry emitter and any tablet receiver. The binary wire format is the primary path; JSON is secondary.</purpose>
     </file>
-    <file path="contracts/types/ai-tools.ts" category="contract" lines="514">
-      <purpose>This file is the single source of truth for the AI tool vocabulary. It exports the AI_TOOLS map, all receipt interfaces, and helper types. Three hard rules: spatial language only (CellRef, ChainID, etc.), absolute/idempotent targets, and confirmed receipts (observed state). PROVISIONAL receipt shapes are marked with __provisional flags and resolvedBy pointers to spikes. The helpers cellParam, chainParam, deviceRoleParam are internal (not exported) but shown in the AST. Imports from './ids.ts' and './osc.ts' and './command-rule.ts'—any changes there must be reflected here. A type anchor _AiToolTypeAnchors is exported to force type-checking on referenced types.</purpose>
+    <file path="contracts/types/ai-tools.ts" category="contract" lines="513">
+      <purpose>This file is the single source of truth for the AI tool vocabulary. It exports the AI_TOOLS map, all receipt interfaces, and helper types. Three hard rules: spatial language only (CellRef, ChainID, etc.), absolute/idempotent targets, and confirmed receipts (observed state). PROVISIONAL receipt shapes (movement, device add) are marked with __provisional flags and resolvedBy pointers to spikes; looper receipt was PROVISIONAL but is now FROZEN and its __provisional field removed. The helpers cellParam, chainParam, deviceRoleParam are internal (not exported) but shown in the AST. Imports from './ids.ts' and './osc.ts' and './command-rule.ts'—any changes there must be reflected here. A type anchor _AiToolTypeAnchors is exported to force type-checking on referenced types.</purpose>
       <exports>
         <fn signature="cellParam()" export="false">Creates a ToolParam with type 'object' for a cell reference (chain+slot).</fn>
         <fn signature="chainParam()" export="false">Creates a ToolParam with type 'string' for a ChainID.</fn>
@@ -120,8 +132,8 @@
     <file path="contracts/types/index.ts" category="utility" lines="33">
       <purpose>One import point for every inter-component contract. The file re-exports all named exports from ids.ts, command-rule.ts, osc.ts, ws.ts, ai-tools.ts, audio-sidecar.ts, spectral.ts, and template.ts. Adding a new contract module requires adding a re-export line. This is the source of truth for TypeScript types on the Node/TS side. The JSON schemas under contracts/schemas mirror the wire formats for other languages. This file defines no new symbols.</purpose>
     </file>
-    <file path="contracts/types/osc.ts" category="contract" lines="628">
-      <purpose>This file contains all OSC message definitions for the hub→engine (DOWN) and engine→hub (UP) communication. DOWN commands are defined as objects with address, build function, origin/tag tags, and CommandSemantics. LISTEN helpers arm property listeners. OscUpEvent is a discriminated union of all upstream events. Shared enums (LooperState, WarpMode, MonitoringState) are const objects with associated types. Some items are marked PROVISIONAL (automation, looper, browser load) pending verification. All commands expect already-resolved Live indices. The file imports from ids.ts and command-rule.ts. Key invariants: all command semantics match Contract 8; build functions return proper OscMessage structures. The file does not contain any top-level functions.</purpose>
+    <file path="contracts/types/osc.ts" category="contract" lines="629">
+      <purpose>This file contains all OSC message definitions for the hub→engine (DOWN) and engine→hub (UP) communication. DOWN commands are defined as objects with address, build function, origin/tag tags, and CommandSemantics. LISTEN helpers arm property listeners. OscUpEvent is a discriminated union of all upstream events. Shared enums (LooperState, WarpMode, MonitoringState) are const objects with associated types. The looper commands (looperSetState, looperGetState) and the 'looper_state' upstream event were previously marked PROVISIONAL; now they are tagged FREEZE-NOW and their comments confirm the spike is closed (2026-07-05) and the state mapping is verified on the rig. All commands expect already-resolved Live indices. The file imports from ids.ts and command-rule.ts. Key invariants: all command semantics match Contract 8; build functions return proper OscMessage structures.</purpose>
     </file>
     <file path="contracts/types/spectral.ts" category="contract" lines="118">
       <purpose>This file owns the seam between M4L and the hub for spectral data (Contract 6). The wire format is frozen; any change here must be coordinated with the M4L device and tablet renderer. Key invariants: binCount is exactly 256, magnitudes are normalized 0..1 in the logical view but stored as uint16 on the binary wire, the binary header is fixed at 22 bytes before the variable-length chainTag, and the magic number is 0x53504331. The conversion functions magFromU16/magToU16 are the only place where scaling between float and uint16 occurs; magToU16 clamps input to [0,1] before rounding, which is the correct behavior but a caller passing out-of-range values will not get an error. The binary layout uses little-endian byte order. The file also exports SPECTRAL constants that should be treated as immutable (as const).</purpose>
@@ -141,8 +153,51 @@
     <file path="contracts/types/ws.ts" category="contract" lines="251">
       <purpose>This file is the sole source of truth for the hub-tablet WebSocket protocol. It defines two channels: state (reliable, versioned with monotonic rev) and telemetry (ephemeral, lossy-OK). The MirrorSnapshot interface must include all state the tablet needs to render, with stable IDs (ChainID, SceneID, Slot) rather than indices. MirrorDelta paths are keyed by stable IDs, not array positions; an unknown key triggers resync. Tablet commands are discriminated union types (TabletCommand) each carrying a 'kind' and a semantics field (a convenience mirror; the hub derives retry behavior from kind via TABLET_COMMAND_SEMANTICS table, ignoring the client-sent field). The TABLET_COMMAND_SEMANTICS table is authoritative and maps each kind to IDEMPOTENT or STATEFUL. The protocol version is frozen at WS_PROTOCOL_VERSION = 1; any breaking change must bump this. A footgun: the tablet must not hold authoritative state; it is a rendering client. The duplicate_clip_to command is STATEFUL because the hub must delete an occupied target first (Contract 2 caveat). WebRTC signaling messages (rtc_offer, rtc_answer, rtc_ice) are defined now for Phase 8 but should not be used until then.</purpose>
     </file>
-    <file path="engine/extension.py" category="service" lines="383">
-      <purpose>This file is a drop-in handler for AbletonOSC. It must be placed in the AbletonOSC/abletonosc/ directory and registered. Key invariants: All handlers return honest failure tuples (ok=0 + reason) so the hub never mistakes silence for success. The browser index is built lazily on first query/rescan, not at init, to avoid slow startup. Undo wrapping uses begin_undo_step/end_undo_step with tolerance for older/newer Live signatures. The warp marker add handler tries two calling conventions (positional and dict) to handle Live version variations. The looper state is found by parameter name ('State'), not index. The load_item handler diffes device list before and after to verify the load. The handler sends an unsolicited /live/engine/hello on init so the hub discovers it immediately. Logging goes to the 'abletonosc' logger. All handlers are small and log warnings on failure.</purpose>
+    <file path="devgen/amxd_setnames.py" category="utility" lines="143">
+      <purpose>Reads the .amxd binary file, parses the 'ampf' container to find the 'ptch' chunk containing the 'mx@c' container, extracts the JSON patcher, and for each box relocates any 'parameter_*' keys from saved_object_attributes to saved_attribute_attributes.valueof (optionally forcing parameter_type=1 via --int). It then updates the mx@c header's dir_off and the dlst directory's sz32 field to reflect the new blob size, and writes the result back (either overwriting or to a new file). The script only works on unfrozen generator output (mx@c container); frozen devices raise an error. It assumes the container layout as reverse-engineered from js2max@1.1.2; changes to that format may break the script.</purpose>
+      <exports>
+        <fn signature="load(path)" export="false">Reads .amxd binary, validates 'ampf' magic, parses chunks (meta, ptch, etc.), returns full data and chunk list.</fn>
+        <fn signature="find_ptch(d, chunks)" export="false">Iterates chunks to find the 'ptch' chunk and returns its offset and length.</fn>
+        <fn signature="split_mxc(payload)" export="false">Given mx@c payload, extracts json_off, reserved, dlst directory, json bytes, and terminator bytes.</fn>
+        <fn signature="relocate(patcher_text, force_int)" export="false">Parses JSON patcher, moves parameter* attributes from saved_object_attributes to saved_attribute_attributes.valueof for each box, optionally forces int type, returns updated dict and count of moved parameters.</fn>
+        <fn signature="set_dlst_sz32(dlst, new_sz)" export="false">Finds 'sz32' tag in dlst bytearray and overwrites its value with new blob size, returning modified bytes.</fn>
+        <fn signature="main()" export="false">Entry point: parses arguments (input, optional output, --int), loads file, finds ptch, splits mx@c, relocates parameters, updates sizes, writes output, prints summary.</fn>
+      </exports>
+    </file>
+    <file path="devgen/amxd_wire_udpsend.py" category="utility" lines="172">
+      <purpose>This script modifies the binary structure of .amxd files. It expects an 'ampf' header and a 'ptch' chunk containing a 'mx@c' payload. The wire() function manipulates JSON patches; it finds the v8 box by text 'v8', checks for existing 'udpsend' and 'udpreceive' boxes to avoid duplication, and adds patchlines accordingly. The dlst binary blob must contain a 'sz32' field at a specific offset (8 bytes after the label) – a missing sz32 causes a SystemExit. The set_dlst_sz32() modifies the size in place using struct.pack_into. The script recomputes the mx@c header offsets and the ptch chunk length before writing. CLI flags accept host, port, outlet, and cmd-port. If no output path is given, the source file is overwritten. The script assumes the device is not frozen (mx@c is present) and that v8 exists. It does not validate patching_rect compatibility with Max.</purpose>
+      <exports>
+        <fn signature="load(path)" export="true">Reads .amxd file, verifies header, returns raw data and ptch chunk offset/length.</fn>
+        <fn signature="split_mxc(payload)" export="true">Parses mx@c chunk into JSON, terminator, dlst blob, and offset metadata.</fn>
+        <fn signature="set_dlst_sz32(dlst, new_sz)" export="true">Updates the sz32 field in dlst bytearray to a new size.</fn>
+        <fn signature="next_id(boxes)" export="true">Computes the next available 'obj-N' ID from existing box IDs.</fn>
+        <fn signature="wire(patcher_text, host, port, outlet, cmd_port)" export="true">Adds udpsend and udpreceive boxes and lines to the patcher JSON, returns modified patcher and count of added boxes.</fn>
+        <fn signature="main()" export="true">CLI entry point that orchestrates file modification.</fn>
+      </exports>
+    </file>
+    <file path="devgen/looper.js" category="component" lines="167">
+      <purpose>This JS object runs in v8 inside Max. It observes a LiveAPI parameter 'State' (set by the engine) and also accepts commands via a list message (from [route /cmd]). The state machine (0=STOP,1=PLAY,2=RECORD,3=OVERDUB) fires transport intents on outlet 0 as strings. The 'report()' function pushes the state over OSC (outlet 2) immediately (sub-ms localhost) and schedules a deferred LiveAPI set on 'State Out' parameter via writeTask to avoid reentrancy from observer notifications. The 'list()' handler checks device indices (myTrack, myDevice) to allow multiple loopers on the same command port; if indices haven't resolved (e.g., first call), it acts unconditionally. The observer 'onStateValue' can fire with different argument patterns – it normalizes to setState. The clampState ensures value is 0-3. Footguns: LiveAPI calls may fail silently if device is reloaded; writeTask must exist before any schedule call; the observer may fire before setupApis completes; 'State Out' write is deferred and may be lost if device is destroyed before flush. The parameter names are case-insensitively compared (lowercased). The autowatch=1 ensures the script reloads on edit.</purpose>
+      <exports>
+        <fn signature="bang()" export="true">Max entry point – calls init().</fn>
+        <fn signature="loadbang()" export="true">Max entry point – calls init().</fn>
+        <fn signature="init()" export="true">Initializes state, sets up APIs, emits transport, reports initial state.</fn>
+        <fn signature="setupApis()" export="true">Creates LiveAPI objects for observing 'State' and writing 'State Out', resolves device indices.</fn>
+        <fn signature="resolveMyIndices()" export="true">Parses this_device path to extract track/device indices.</fn>
+        <fn signature="paramName()" export="true">Returns lowercased name from a LiveAPI parameter object.</fn>
+        <fn signature="onStateValue()" export="true">Callback for 'State' parameter value change – calls setState.</fn>
+        <fn signature="msg_int()" export="true">Handles int messages from Max – calls setState.</fn>
+        <fn signature="msg_float()" export="true">Handles float messages from Max – rounds and calls setState.</fn>
+        <fn signature="list()" export="true">Handles list messages from Max (from /cmd route) – calls setState if indices match.</fn>
+        <fn signature="setState()" export="true">Sets the current state, transitions if new.</fn>
+        <fn signature="clampState()" export="true">Clamps a value to the valid 0-3 range.</fn>
+        <fn signature="transition()" export="true">Emits transport intent and updates current state.</fn>
+        <fn signature="emitTransport()" export="true">Sends transport command string on outlet 0 based on state.</fn>
+        <fn signature="report()" export="true">Pushes state over OSC (outlet 2), sets pendingOut, schedules State Out write, writes dial fallback (outlet 1).</fn>
+        <fn signature="flushStateOut()" export="true">Deferred task that writes pendingOut to LiveAPI 'State Out' parameter.</fn>
+      </exports>
+    </file>
+    <file path="engine/extension.py" category="service" lines="440">
+      <purpose>This file defines ExtensionHandler, a drop-in handler for AbletonOSC (placed in AbletonOSC/abletonosc/ directory). Key invariants: All handlers return honest failure tuples (ok=0 + reason) so the hub never mistakes silence for success. The browser index is built lazily on first query/rescan, not at init, to avoid slow startup. Looper state handling was rewritten (v0.5.0): a new two-parameter looper device exposes 'State' (command) and 'State Out' (observed truth). The handler uses find_param_by_name with a 'want' string to match parameters by name, guarded against out-of-range indices (returns None instead of crashing). looper_set_state returns None on success (no synchronous echo; truth comes only from looper_get_state which prefers a cached _looper_report dictionary populated by the new looper_report handler). The looper_report handler receives one-way pushes from the M4L device, caches the state, and forwards it as an up-event (/live/looper/state) to the hub. Undo wrapping uses begin_undo_step/end_undo_step with tolerance for Live version signatures. The load_item handler listens for unsolicited /live/engine/hello on init. Logging goes to 'abletonosc' logger.</purpose>
       <exports>
         <fn signature="ExtensionHandler.__init__(manager)" export="false"></fn>
         <fn signature="ExtensionHandler.init_api()" export="false"></fn>
@@ -204,12 +259,19 @@
         <fn signature="sleep()" export="false">Returns a promise that resolves after the given number of milliseconds (simple setTimeout wrapper).</fn>
       </exports>
     </file>
-    <file path="harnesses/src/04-looper-state-roundtrip.ts" category="test" lines="115">
-      <purpose>Owns the looper-state round-trip probe for provisional seam #3 (arch §6.3, §15). Iterates over all LooperState values (Stop=0, Play=1, Record=2, Overdub=3) imported from `contracts/types/osc.ts` to avoid drift. For each, calls `probeState` which sends a set, waits 60 ms, then sends a get and waits for a reply matching either address. It expects the echoed state to equal the commanded state. Also performs an idempotency spot-check by sending Play twice and checking the second echo. Key invariants: device index defaults to 1 (looper slot in chain), track set via env. If no echoes at all, prints message about adding a state outlet to the M4L patch. The script does not exit except on unhandled errors; it always calls `client.close()` in the `finally` block. Footgun: this probe actually sends state changes to Live; it may affect the looper's current state (though it sets to each state in turn, ending possibly on Overdub). The test does not restore the original state.</purpose>
+    <file path="harnesses/src/04-instrumented.ts" category="service" lines="78">
+      <purpose>This file owns the probe function which performs a set–get round-trip per looper state with hardcoded 60ms settle and 800ms timeout. It installs a persistent onMessage listener that logs every /live/looper message received, independent of waitFor. Inside waitFor's predicate, it logs each evaluated message and whether it matched. On confirmation it prints a comparison flag. It expects environment variables TRACK and DEVICE. Footgun: timing depends on 60ms and 120ms sleeps; if device is slower, replies may be missed or misattributed. The file imports from osc-helper.ts and contracts/types/osc.ts.</purpose>
       <exports>
-        <fn signature="probeState()" export="false">Sets the looper to a given state via `looperSetState`, waits, then requests the state via `looperGetState` and returns the echoed value.</fn>
-        <fn signature="main()" export="false">Iterates over all looper states, probes each, checks idempotency, and prints pass/fail for each step.</fn>
-        <fn signature="sleep()" export="false">Returns a promise that resolves after the given number of milliseconds (simple setTimeout wrapper).</fn>
+        <fn signature="probe()" export="false">Performs a looper set_state, sleeps 60ms, sends get/state, waits for a reply matching SET or GET address with track/device, logs each predicate evaluation, and returns the echo value.</fn>
+        <fn signature="main()" export="false">Creates an OscClient, binds, registers a persistent /live/looper message logger, iterates over all looper states calling probe, closes the client, and prints interpretation.</fn>
+      </exports>
+    </file>
+    <file path="harnesses/src/04-looper-state-roundtrip.ts" category="test" lines="138">
+      <purpose>Owns the looper-state round-trip probe for provisional seam #3 (arch §6.3, §15). Iterates over all LooperState values (Stop=0, Play=1, Record=2, Overdub=3) imported from `contracts/types/osc.ts`. For each, calls `commandAndConfirm` which sends a set, then polls `readState` (a fresh get-reply for this track/device only) until the device reports the commanded state or `SETTLE_TIMEOUT_MS` (default 1500 ms) elapses. Each poll waits up to `GET_TIMEOUT_MS` (default 400 ms) for a reply, with `POLL_MS` (default 25 ms) gap between polls. The elapsed time to confirmation is printed per state. Also performs an idempotency spot-check by re-sending Play twice and verifying it stays Play. Key invariants: device index defaults to 1 (looper slot in chain), track set via env. Uses `osc-helper.ts` for client and `rigHint` on failure. The script does not exit on error; it always calls `client.close()` in the `finally` block (implicit via async flow). Footgun: this probe actually sends state changes to Live; it may affect the looper's current state (though it sets to each state in turn, ending possibly on Overdub). The test does not restore the original state. Assumes get replies only come from `looperGetState` address (not set address) to avoid stale matches.</purpose>
+      <exports>
+        <fn signature="readState()" export="false">Sends a get_state request for the given track/device and waits for a fresh reply, returning the reported state value.</fn>
+        <fn signature="commandAndConfirm()" export="false">Sends a set_state command, then polls readState until the device reports the commanded state or SETTLE_TIMEOUT_MS elapses, returning the final state and latency.</fn>
+        <fn signature="main()" export="false">Iterates over all looper states, calls commandAndConfirm for each, checks idempotency for Play, reports pass/fail and settle latencies.</fn>
       </exports>
     </file>
     <file path="harnesses/src/05-confirmed-echo-pinger.ts" category="test" lines="90">
@@ -232,10 +294,28 @@
         <fn signature="main()" export="false">Creates an OscClient, binds, listens for messages on engine/hello, sends /live/engine/hello, and waits up to 3 seconds for a matching reply; logs success or failure, then closes the client.</fn>
       </exports>
     </file>
+    <file path="harnesses/src/engine-ping.ts" category="utility" lines="41">
+      <purpose>Connects via OscClient, sends a ping, waits for a reply that matches /live/engine/ping or /live/engine/hello with 3s timeout, prints version and protocol. On failure prints error and calls rigHint() to suggest corrective actions. No persistent listeners. It is the standard liveness probe to verify the extension.py is actually running.</purpose>
+      <exports>
+        <fn signature="main()" export="false">Entry point that creates an OscClient, sends ping, waits for reply, prints version/protocol or error, and always closes the client.</fn>
+      </exports>
+    </file>
     <file path="harnesses/src/get-uri.ts" category="harness" lines="72">
       <purpose>Reads environment variables NAME (default 'Reverb') and MAX (default 5). Imports from osc-helper.ts. Sends /live/browser/rescan first (timeout 15s, because first rescan can be slow), then sends /live/browser/query with NAME and MAX. Waits for a reply on a browser* address that is not rescan (timeout 5s). Extracts string args from the reply and guesses the URI as the first string containing ':' or the last string. Invariant: the query reply contains the URI as a string argument; if not, the script prints raw args for manual inspection. Footgun: the URI format may not contain ':' or may be the only string; the heuristic might pick the wrong arg. The rescan timeout may need adjustment if the Live browser is very large. The script does not modify the browser.</purpose>
       <exports>
         <fn signature="main()" export="false">Rescans the browser, queries for a device by NAME, waits for the reply, prints all string args, and guesses the URI for use in a subsequent load-item-verify command.</fn>
+      </exports>
+    </file>
+    <file path="harnesses/src/looper-probe-slow.ts" category="service" lines="67">
+      <purpose>Uses a configurable SETTLE_MS (default 400ms) between set and get to test if the device eventually reaches the intended state. For each looper state, it sends set, waits SETTLE, sends get, and waits only for a get-reply (address===GET + track/device). If the reply value matches the sent value after the longer settle, the problem is settle latency; otherwise it is structural. It prints a summary and recommendation. Assumes environment variables TRACK, DEVICE, SETTLE_MS, TIMEOUT_MS. Footgun: the predicate explicitly ignores set-replies – if the set-reply carries the wrong info, it is not caught. Uses rigHint() on failure.</purpose>
+      <exports>
+        <fn signature="main()" export="false">Entry point that creates OscClient, iterates over all looper states with configurable settle, performs set-get waits, prints per-state result and final conclusion about latency or structural bug.</fn>
+      </exports>
+    </file>
+    <file path="harnesses/src/looper-wire-log.ts" category="service" lines="49">
+      <purpose>Mimics harness 04's sends (set, 60ms wait, get) but does not match any reply; instead it installs a persistent onMessage listener that prints all /live/looper messages with timestamps. After each get it sleeps 500ms to capture all arrivals. This reveals if set_state sends an echo reply and whether it beats the get/state reply. Useful for understanding what harness 04 actually matches. Footgun: no timeout, if engine sends no messages the script will still progress due to fixed sleeps; but if extra messages are sent they will be logged.</purpose>
+      <exports>
+        <fn signature="main()" export="false">Entry point that creates OscClient, installs a passive /live/looper logger, sends set-get commands for each looper state with 60ms and 500ms sleeps, logs all received messages, and closes client.</fn>
       </exports>
     </file>
     <file path="harnesses/src/osc-helper.ts" category="utility" lines="222">
