@@ -1,39 +1,60 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<codebase generated="2026-07-04T15:21:28" files="53" provider="DeepSeek">
+<codebase generated="2026-07-05T10:38:49" files="56" provider="DeepSeek">
   <architecture>
-    <overview>The NAM A2 system is a multi-component architecture for AI-driven control of Ableton Live. It defines several frozen contracts (wire formats) that decouple a TypeScript hub, a Python engine (via OSC), a web tablet (via WebSocket), an AI brain (via tool calls), and a C++ audio sidecar (via TCP). Central to the hub are a resolver translating stable IDs to Live indices, a mirror store for state replication, and a lifecycle manager for idempotent command handling. The system emphasizes absolute addressing, confirmed-echo patterns, and strict layering to ensure reliability for live performance.</overview>
-    <tech_stack languages="TypeScript, Python, C++, JavaScript, HTML" frameworks="Node.js, AbletonOSC (Python framework)" libraries="WebSocket (standard), OSC protocol, Ableton Link (C++ sidecar)"/>
+    <overview>The NAM A2 architecture is contract-driven, with frozen wire protocols (Contracts 1–8) defined as TypeScript types, JSON schemas, and byte-layout descriptors. The system consists of a Node.js/TypeScript hub that translates between a WebSocket state channel (tablet UI), OSC commands/responses (Ableton Live engine via AbletonOSC), and binary audio/spectral streams (C++ sidecar and Max-for-Live device). The hub implements command lifecycle management with confirmed-echo, idempotent commands, and quantization, while the tablet is a plain-JS WebSocket client that renders snapshot and delta updates. A Python extension provides the custom OSC surface for Live, and a C++ sidecar bridges Ableton Link audio into the hub over TCP. The separation of concerns between contracts, business logic, and I/O enables parallel development and testing.</overview>
+    <tech_stack languages="TypeScript, JavaScript, Python, C++" frameworks="AbletonOSC, WebSocket (ws)" libraries="Node.js standard library, crypto (Node.js, PKCE), dns (Node.js, host resolution), osc-helper (custom), Tone3000 REST API"/>
     <entry_points>
+      <file>tablet/index.html</file>
       <file>hub/src/sim/server.ts</file>
-      <file>tablet/index.html (with tablet/app.js)</file>
       <file>sidecar/main.cpp</file>
       <file>engine/extension.py</file>
       <file>spikes/tone3000/src/fetch-a2-model.ts</file>
-      <file>sidecar-experiment/verify-apc1.ts</file>
     </entry_points>
     <layer name="presentation">
       <file>tablet/index.html</file>
       <file>tablet/app.js</file>
     </layer>
     <layer name="business_logic">
-      <file>hub/src/lifecycle/lifecycle.ts</file>
-      <file>hub/src/mirror/mirror.ts</file>
+      <file>contracts/types/command-rule.ts</file>
+      <file>contracts/types/ids.ts</file>
+      <file>contracts/types/osc.ts</file>
+      <file>contracts/types/ws.ts</file>
+      <file>contracts/types/spectral.ts</file>
+      <file>contracts/types/audio-sidecar.ts</file>
+      <file>contracts/types/ai-tools.ts</file>
+      <file>contracts/types/template.ts</file>
       <file>hub/src/resolver/resolver.ts</file>
-      <file>engine/extension.py</file>
-    </layer>
-    <layer name="data_access">
-      <file>sidecar/main.cpp</file>
-      <file>hub/src/codec/audio-codec.ts</file>
-      <file>hub/src/codec/spectral-codec.ts</file>
-      <file>hub/src/sim/fake-live.ts</file>
-    </layer>
-    <layer name="utilities">
-      <file>hub/src/dsp.ts</file>
+      <file>hub/src/mirror/mirror.ts</file>
+      <file>hub/src/lifecycle/lifecycle.ts</file>
       <file>hub/src/math/bands.ts</file>
       <file>hub/src/math/movement.ts</file>
-      <file>harnesses/src/osc-helper.ts</file>
-      <file>spikes/tone3000/src/pkce.ts</file>
+      <file>hub/src/dsp.ts</file>
+    </layer>
+    <layer name="data_access">
+      <file>hub/src/codec/spectral-codec.ts</file>
+      <file>hub/src/codec/audio-codec.ts</file>
+      <file>hub/src/sim/fake-live.ts</file>
+      <file>hub/src/sim/server.ts</file>
+      <file>engine/extension.py</file>
+      <file>sidecar/main.cpp</file>
+      <file>spikes/tone3000/src/client.ts</file>
       <file>spikes/tone3000/src/oauth.ts</file>
+      <file>spikes/tone3000/src/headless-lan-flow.ts</file>
+      <file>harnesses/src/osc-helper.ts</file>
+    </layer>
+    <layer name="utilities">
+      <file>contracts/types/index.ts</file>
+      <file>spikes/tone3000/src/pkce.ts</file>
+      <file>sidecar-experiment/verify-apc1.ts</file>
+      <file>sidecar-experiment/probe/nam_a2_probe.cpp</file>
+      <file>harnesses/src/01-osc-latency.ts</file>
+      <file>harnesses/src/02-load-item-verify.ts</file>
+      <file>harnesses/src/03-insert-step-automation.ts</file>
+      <file>harnesses/src/04-looper-state-roundtrip.ts</file>
+      <file>harnesses/src/05-confirmed-echo-pinger.ts</file>
+      <file>harnesses/src/engine-hello.ts</file>
+      <file>harnesses/src/get-uri.ts</file>
+      <file>harnesses/src/quant-verify.ts</file>
     </layer>
     <layer name="configuration">
       <file>package.json</file>
@@ -44,40 +65,40 @@
       <file>harnesses/tsconfig.json</file>
       <file>spikes/tone3000/package.json</file>
       <file>spikes/tone3000/tsconfig.json</file>
-    </layer>
-    <layer name="contracts">
-      <file>contracts/types/ws.ts</file>
-      <file>contracts/types/osc.ts</file>
-      <file>contracts/types/ai-tools.ts</file>
-      <file>contracts/types/ids.ts</file>
-      <file>contracts/types/spectral.ts</file>
-      <file>contracts/types/template.ts</file>
-      <file>contracts/types/audio-sidecar.ts</file>
-      <file>contracts/types/command-rule.ts</file>
-      <file>contracts/schemas/*.json</file>
+      <file>contracts/schemas/ai-tool-call.schema.json</file>
+      <file>contracts/schemas/audio-sidecar.descriptor.json</file>
+      <file>contracts/schemas/spectral-frame.descriptor.json</file>
+      <file>contracts/schemas/ws-state.schema.json</file>
+      <file>contracts/schemas/ws-telemetry.schema.json</file>
     </layer>
     <dependency_chains>
-      <chain description="Tablet frontend to Live engine: tablet HTML/JS communicates via WebSocket to the hub, which uses the mirror store, resolver, and lifecycle, then sends OSC commands to the Python engine extension.">
-        <file>tablet/index.html</file>
+      <chain description="UI command flow: Tablet sends WebSocket message (Contract 3) to hub, hub processes via lifecycle -&gt; resolver -&gt; OSC engine command -&gt; Live responds and echo triggers status update back to tablet.">
         <file>tablet/app.js</file>
+        <file>contracts/types/ws.ts</file>
+        <file>hub/src/lifecycle/lifecycle.ts</file>
+        <file>hub/src/resolver/resolver.ts</file>
+        <file>contracts/types/osc.ts</file>
+        <file>engine/extension.py</file>
+      </chain>
+      <chain description="Spectral telemetry: M4L device sends binary SPC1 frames over UDP, hub decodes using spectral codec, collapses to display bands, and forwards to tablet as part of WebSocket telemetry channel.">
+        <file>contracts/types/spectral.ts</file>
+        <file>hub/src/codec/spectral-codec.ts</file>
+        <file>hub/src/math/bands.ts</file>
         <file>hub/src/mirror/mirror.ts</file>
-        <file>hub/src/resolver/resolver.ts</file>
-        <file>hub/src/lifecycle/lifecycle.ts</file>
-        <file>contracts/types/osc.ts</file>
-        <file>engine/extension.py</file>
+        <file>tablet/app.js</file>
       </chain>
-      <chain description="AI brain to Live: the AI assistant tool call is received by the hub, processed through lifecycle and resolver, and also sent as OSC to the engine, with mirror updates relayed back.">
-        <file>contracts/types/ai-tools.ts</file>
-        <file>hub/src/lifecycle/lifecycle.ts</file>
-        <file>hub/src/resolver/resolver.ts</file>
-        <file>contracts/types/osc.ts</file>
-        <file>engine/extension.py</file>
-      </chain>
-      <chain description="Audio sidecar to hub: C++ sidecar captures audio from Ableton Link and sends over TCP using the APC1 binary protocol, decoded by the hub's audio codec.">
+      <chain description="Audio transport: C++ sidecar publishes PCM over TCP using APC1 protocol (Contract 5), hub decodes and reslices into 10ms frames for WebRTC or further processing.">
         <file>sidecar/main.cpp</file>
-        <file>sidecar-experiment/probe/nam_a2_probe.cpp</file>
+        <file>contracts/types/audio-sidecar.ts</file>
         <file>hub/src/codec/audio-codec.ts</file>
         <file>hub/src/dsp.ts</file>
+      </chain>
+      <chain description="A2 model fetch (Tone3000 spike): resolve OAuth token, query tone, list A2 models, download model file — proof of concept for the load_tone AI tool.">
+        <file>spikes/tone3000/src/pkce.ts</file>
+        <file>spikes/tone3000/src/oauth.ts</file>
+        <file>spikes/tone3000/src/headless-lan-flow.ts</file>
+        <file>spikes/tone3000/src/client.ts</file>
+        <file>spikes/tone3000/src/fetch-a2-model.ts</file>
       </chain>
     </dependency_chains>
   </architecture>
@@ -225,6 +246,18 @@
         <fn signature="sleep()" export="false">Returns a promise that resolves after the given number of milliseconds (simple setTimeout wrapper).</fn>
       </exports>
     </file>
+    <file path="harnesses/src/engine-hello.ts" category="harness" lines="46">
+      <purpose>Imports OscClient, hostFromEnv, rigHint from osc-helper.ts. Invariant: the extension may announce unsolicited at init or respond to request. The script arms a listener via c.onMessage before sending to catch either. A 3-second timeout (c.waitFor) fails if neither arrives. Footgun: if the extension only announces unsolicited, the script must be running before Live starts (or before the extension initializes) to catch the announce; otherwise you must reopen Live with the prober already running. The rigHint function is called on failure to suggest troubleshooting. The client is closed in a finally block.</purpose>
+      <exports>
+        <fn signature="main()" export="false">Creates an OscClient, binds, listens for messages on engine/hello, sends /live/engine/hello, and waits up to 3 seconds for a matching reply; logs success or failure, then closes the client.</fn>
+      </exports>
+    </file>
+    <file path="harnesses/src/get-uri.ts" category="harness" lines="72">
+      <purpose>Reads environment variables NAME (default 'Reverb') and MAX (default 5). Imports from osc-helper.ts. Sends /live/browser/rescan first (timeout 15s, because first rescan can be slow), then sends /live/browser/query with NAME and MAX. Waits for a reply on a browser* address that is not rescan (timeout 5s). Extracts string args from the reply and guesses the URI as the first string containing ':' or the last string. Invariant: the query reply contains the URI as a string argument; if not, the script prints raw args for manual inspection. Footgun: the URI format may not contain ':' or may be the only string; the heuristic might pick the wrong arg. The rescan timeout may need adjustment if the Live browser is very large. The script does not modify the browser.</purpose>
+      <exports>
+        <fn signature="main()" export="false">Rescans the browser, queries for a device by NAME, waits for the reply, prints all string args, and guesses the URI for use in a subsequent load-item-verify command.</fn>
+      </exports>
+    </file>
     <file path="harnesses/src/osc-helper.ts" category="utility" lines="222">
       <purpose>This file owns the OSC wire protocol adaptation: it must encode messages exactly per OSC 1.0 (4-byte-aligned, null-padded strings, typetag string starting with ',') and decode replies including types i, f, s, T, F, d. The `OscClient` class wraps a UDP socket and exposes `send()`, `onMessage()`, `waitFor()` (with timeout) for request-reply patterns. The socket is lazily bound; `bind()` must be awaited before messages can be received. `waitFor()` removes its listener on match or timeout, preventing leaks. The file assumes the engine is reachable at `127.0.0.1:11000` and listens on `11001`, overridable via `OscClientOptions` or `hostFromEnv()`. It logs no information except via `rigHint()`. A key footgun: the `waitFor` predicate is evaluated for every decoded message; a slow or CPU-intensive predicate can delay other listener callbacks. Also, `off()` (private) filters by reference – anonymous arrow functions passed to `onMessage` will never be removable, but `waitFor()` stores the handler and removes it correctly.</purpose>
       <exports>
@@ -236,6 +269,12 @@
         <fn signature="decodeOsc()" export="true">Decodes a single OSC message Buffer, handling types i, f, s, T, F, d, and returning an OscMessage.</fn>
         <fn signature="rigHint()" export="true">Logs a multi-line hint to the console about rig setup instructions.</fn>
         <fn signature="hostFromEnv()" export="true">Returns the value of the OSC_HOST environment variable or '127.0.0.1'.</fn>
+      </exports>
+    </file>
+    <file path="harnesses/src/quant-verify.ts" category="harness" lines="78">
+      <purpose>Defines a TABLE mirroring QUANT_BEATS (indices 0..13). Imports from osc-helper.ts. Sends /live/song/get/clip_trigger_quantization and waits for the reply (timeout 1.5s). Extracts the first argument as an index and looks it up in the table. Prints the assumed label and beats, then prompts the user to manually confirm that Live's transport quantization dropdown matches. If the index is out of range (0..13), warns of a mismatch. Invariant: Live's enum order is assumed to be exactly as in the table. Footgun: the script does not modify anything, but relies on the user manually setting the dropdown to known values to fully verify. The timeout is short (1.5s) so the reply must arrive quickly. The script does not handle cases where the reply has no numeric argument.</purpose>
+      <exports>
+        <fn signature="main()" export="false">Queries Live's current clip trigger quantization, looks up the index in the assumed table, and guides the user to manually confirm the mapping.</fn>
       </exports>
     </file>
     <file path="harnesses/tsconfig.json" category="config" lines="16">
@@ -267,8 +306,8 @@
         <fn signature="collapseToBands()" export="true">Collapses magnitude bins into display bands via max.</fn>
       </exports>
     </file>
-    <file path="hub/src/lifecycle/lifecycle.ts" category="service" lines="171">
-      <purpose>CommandLifecycle class maintains maps for pending commands and target-key supersession. Expects injected LifecycleEvents callbacks and a now() function. On register, it supersedes previous command on same targetKey. onEcho iterates pending and confirms matching expectation. tick checks deadlines: idempotent commands can blind-retry up to MAX_ATTEMPTS=3; stateful commands emit reconcile event (never blind-retry). reset clears all. The module also exposes pure math functions (msToNextBoundary, quantWindowMs) and a QUANT_BEATS lookup table (provisional data, must be verified on rig). IMMEDIATE_WINDOW_MS=300 for non-quantized ops. No global side effects; state changes only via injected events.</purpose>
+    <file path="hub/src/lifecycle/lifecycle.ts" category="service" lines="172">
+      <purpose>CommandLifecycle class maintains maps for pending commands and target-key supersession. Expects injected LifecycleEvents callbacks and a now() function. On register, it supersedes previous command on same targetKey. onEcho iterates pending and confirms matching expectation. tick checks deadlines: idempotent commands can blind-retry up to MAX_ATTEMPTS=3; stateful commands emit reconcile event (never blind-retry). reset clears all. The module also exposes pure math functions (msToNextBoundary, quantWindowMs) and a QUANT_BEATS lookup table that has been verified on rig (Live 12.4.2) — no longer provisional. IMMEDIATE_WINDOW_MS=300 for non-quantized ops. No global side effects; state changes only via injected events.</purpose>
       <exports>
         <fn signature="msToNextBoundary()" export="true">Compute ms until next quantization boundary given positionBeats, beatsPerBoundary, tempoBpm</fn>
         <fn signature="quantWindowMs()" export="true">Compute confirmation window = msToNextBoundary + marginMs</fn>
