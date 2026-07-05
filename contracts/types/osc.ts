@@ -430,16 +430,16 @@ export const DOWN = {
   } satisfies OscCommandDef<[query: string, maxResults: number]>,
 
   // --- Custom M4L looper state (arch §15) --------------------------------
-  // [EXT] *** PROVISIONAL ***  Semantic wrapper. The looper is our custom M4L
-  // device whose State is a *normal settable device parameter* (that's the
-  // whole point of §15). So it CAN be driven today via setDeviceParameter.
-  // This semantic address exists so callers say "set looper = OVERDUB" without
-  // knowing the param index; the engine maps state->paramValue using the
-  // template (Contract 7). Provisional because the exact state enum + receipt
-  // shape depend on the §6.3 looper spike.
+  // [EXT] FREEZE-NOW (spike 04 CLOSED on the rig 2026-07-05). Semantic wrapper.
+  // The looper is our custom M4L device whose State is a *normal settable device
+  // parameter*. This semantic address exists so callers say "set looper = OVERDUB"
+  // without knowing the param index; the engine maps state->paramValue using the
+  // template (Contract 7). The state enum + receipt shape are now proven:
+  // NAM_A2_Looper reports its resulting state back and the round-trip passes (see
+  // API-REALITY RIG RESULTS 2026-07-05 / PROVISIONAL-SEAMS seam 3).
   looperSetState: {
     address: '/live/looper/set_state',
-    origin: 'EXT', tag: 'PROVISIONAL', semantics: IDEMPOTENT, // absolute target state
+    origin: 'EXT', tag: 'FREEZE-NOW', semantics: IDEMPOTENT, // absolute target state
     build: (t: LiveTrackIndex, d: LiveDeviceIndex, state: LooperState) =>
       ({ address: '/live/looper/set_state', args: [t as number, d as number, state] }),
   } satisfies OscCommandDef<[track: LiveTrackIndex, device: LiveDeviceIndex, state: LooperState]>,
@@ -447,7 +447,7 @@ export const DOWN = {
   /** Read the looper's current state; replies on the same address. */
   looperGetState: {
     address: '/live/looper/get/state',
-    origin: 'EXT', tag: 'PROVISIONAL', semantics: IDEMPOTENT,
+    origin: 'EXT', tag: 'FREEZE-NOW', semantics: IDEMPOTENT,
     build: (t: LiveTrackIndex, d: LiveDeviceIndex) =>
       ({ address: '/live/looper/get/state', args: [t as number, d as number] }),
   } satisfies OscCommandDef<[track: LiveTrackIndex, device: LiveDeviceIndex]>,
@@ -556,7 +556,8 @@ export type OscUpEvent =
       readonly reason?: string; // present when ok === false
     }
   | {
-      // [EXT] PROVISIONAL — looper state readback echo (arch §15 / §6.3 spike).
+      // [EXT] FREEZE-NOW — looper state readback echo (arch §15; spike 04 closed
+      // 2026-07-05). The device reports its resulting state; hub reads observed truth.
       readonly kind: 'looper_state';
       readonly track: LiveTrackIndex;
       readonly device: LiveDeviceIndex;
@@ -581,8 +582,8 @@ export type OscUpEvent =
 /**
  * Looper state — the custom M4L looper's settable State parameter (arch §15).
  * Values are ABSOLUTE targets (Contract 8). The numeric mapping to the M4L
- * device's parameter value is defined by the template (Contract 7) and is
- * PROVISIONAL until the §6.3 spike pins it.
+ * device's parameter value is defined by the template (Contract 7); confirmed
+ * on the rig (spike 04, 2026-07-05) — 0=Stop 1=Play 2=Record 3=Overdub.
  */
 export const LooperState = {
   Stop: 0,
