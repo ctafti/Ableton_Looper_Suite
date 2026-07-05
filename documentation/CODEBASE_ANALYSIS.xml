@@ -1,93 +1,101 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<codebase generated="2026-07-05T18:03:36" files="65" provider="DeepSeek">
-  <architecture>
-    <overview>The NAM A2 system uses a layered architecture with frozen contracts (TypeScript types, JSON schemas, binary descriptors) defining protocols between components: spectral telemetry from Max-for-Live devices (Contract 6), WebSocket state channel between hub and tablet (Contract 3), OSC commands between hub and Ableton Live engine (Contract 2), AI tool calls (Contract 4), and PCM audio from a C++ sidecar (Contract 5). The hub (Node.js/TypeScript) orchestrates communication: it decodes binary streams, manages a mirror store for state, resolves stable IDs to Live indices, and commands Live through an AbletonOSC Python extension. A plain-JS tablet frontend connects via WebSocket for real-time rig control and spectral display. Test harnesses and a fake-Live simulator validate the contracts and lifecycle logic.</overview>
-    <tech_stack languages="python, typescript, javascript, c++" frameworks="node.js, websocket, abletonosc" libraries="abletonosc, tailwindcss (in tablet via inline styles)"/>
-    <entry_points>
-      <file>tablet/index.html</file>
-      <file>sidecar/main.cpp</file>
-      <file>hub/src/sim/server.ts</file>
-      <file>spikes/tone3000/src/fetch-a2-model.ts</file>
-      <file>harnesses/src/01-osc-latency.ts</file>
-      <file>harnesses/src/02-load-item-verify.ts</file>
-      <file>harnesses/src/03-insert-step-automation.ts</file>
-      <file>harnesses/src/04-looper-state-roundtrip.ts</file>
-      <file>harnesses/src/05-confirmed-echo-pinger.ts</file>
-      <file>harnesses/src/engine-hello.ts</file>
-      <file>harnesses/src/device-params.ts</file>
-      <file>harnesses/src/get-uri.ts</file>
-      <file>harnesses/src/quant-verify.ts</file>
-    </entry_points>
-    <layer name="presentation">
-      <file>tablet/app.js</file>
-      <file>tablet/index.html</file>
-    </layer>
-    <layer name="business_logic">
-      <file>hub/src/lifecycle/lifecycle.ts</file>
-      <file>hub/src/resolver/resolver.ts</file>
-      <file>hub/src/mirror/mirror.ts</file>
-      <file>hub/src/dsp.ts</file>
-      <file>hub/src/math/bands.ts</file>
-      <file>hub/src/math/movement.ts</file>
-      <file>engine/extension.py</file>
-    </layer>
-    <layer name="data_access">
-      <file>hub/src/codec/audio-codec.ts</file>
-      <file>hub/src/codec/spectral-codec.ts</file>
-      <file>sidecar/main.cpp</file>
-      <file>spikes/tone3000/src/client.ts</file>
-      <file>contracts/types/ws.ts</file>
-      <file>contracts/types/osc.ts</file>
-      <file>contracts/types/spectral.ts</file>
-      <file>contracts/types/audio-sidecar.ts</file>
-    </layer>
-    <layer name="utilities">
-      <file>contracts/types/index.ts</file>
-      <file>harnesses/src/osc-helper.ts</file>
-      <file>devgen/amxd_setnames.py</file>
-      <file>devgen/amxd_wire_udpsend.py</file>
-      <file>devgen/looper.js</file>
-    </layer>
-    <layer name="configuration">
-      <file>package.json</file>
-      <file>tsconfig.json</file>
-      <file>hub/package.json</file>
-      <file>hub/tsconfig.json</file>
-      <file>harnesses/package.json</file>
-      <file>harnesses/tsconfig.json</file>
-      <file>spikes/tone3000/package.json</file>
-      <file>spikes/tone3000/tsconfig.json</file>
-      <file>models/models.json</file>
-    </layer>
-    <dependency_chains>
-      <chain description="Tablet state display and command dispatch through WebSocket to hub's mirror store and lifecycle.">
-        <file>tablet/app.js</file>
-        <file>contracts/types/ws.ts</file>
-        <file>hub/src/mirror/mirror.ts</file>
-        <file>hub/src/lifecycle/lifecycle.ts</file>
-      </chain>
-      <chain description="Hub sends OSC commands to Ableton Live via engine extension and handles echoes.">
-        <file>contracts/types/osc.ts</file>
-        <file>hub/src/lifecycle/lifecycle.ts</file>
-        <file>engine/extension.py</file>
-      </chain>
-      <chain description="Spectral telemetry from M4L device decoded by hub for display and forwarding.">
-        <file>contracts/types/spectral.ts</file>
-        <file>hub/src/codec/spectral-codec.ts</file>
-        <file>hub/src/dsp.ts</file>
-      </chain>
-      <chain description="AI tool calls trigger hub lifecycle which dispatches OSC commands and mirrors state.">
-        <file>contracts/types/ai-tools.ts</file>
-        <file>hub/src/lifecycle/lifecycle.ts</file>
-        <file>contracts/types/osc.ts</file>
-      </chain>
-      <chain description="Audio sidecar sends PCM over TCP to hub for WebRTC forwarding.">
-        <file>sidecar/main.cpp</file>
-        <file>contracts/types/audio-sidecar.ts</file>
-        <file>hub/src/codec/audio-codec.ts</file>
-      </chain>
-    </dependency_chains>
-  </architecture>
+<codebase generated="2026-07-05T18:50:47" files="65" provider="DeepSeek">
+  <directory total="94" analyzed="65">
+    <entry path="FIRST-MAC-SESSION.md" size="16552" analyzed="false"/>
+    <entry path="Now" size="0" analyzed="false"/>
+    <entry path="README.md" size="10748" analyzed="false"/>
+    <entry path="contracts/CONTRACTS.md" size="13498" analyzed="false"/>
+    <entry path="contracts/schemas/ai-tool-call.schema.json" size="2410" analyzed="true"/>
+    <entry path="contracts/schemas/audio-sidecar.descriptor.json" size="2311" analyzed="true"/>
+    <entry path="contracts/schemas/spectral-frame.descriptor.json" size="1722" analyzed="true"/>
+    <entry path="contracts/schemas/ws-state.schema.json" size="3870" analyzed="true"/>
+    <entry path="contracts/schemas/ws-telemetry.schema.json" size="1774" analyzed="true"/>
+    <entry path="contracts/types/ai-tools.ts" size="20467" analyzed="true"/>
+    <entry path="contracts/types/audio-sidecar.ts" size="7209" analyzed="true"/>
+    <entry path="contracts/types/command-rule.ts" size="3945" analyzed="true"/>
+    <entry path="contracts/types/ids.ts" size="9027" analyzed="true"/>
+    <entry path="contracts/types/index.ts" size="1632" analyzed="true"/>
+    <entry path="contracts/types/osc.ts" size="31633" analyzed="true"/>
+    <entry path="contracts/types/spectral.ts" size="5368" analyzed="true"/>
+    <entry path="contracts/types/template.ts" size="14821" analyzed="true"/>
+    <entry path="contracts/types/ws.ts" size="13175" analyzed="true"/>
+    <entry path="devgen/NAM_A2_Looper.amxd" size="11918" analyzed="false"/>
+    <entry path="devgen/amxd_setnames.py" size="5432" analyzed="true"/>
+    <entry path="devgen/amxd_wire_udpsend.py" size="5724" analyzed="true"/>
+    <entry path="devgen/looper.amxd" size="13199" analyzed="false"/>
+    <entry path="devgen/looper.js" size="6656" analyzed="true"/>
+    <entry path="engine/README.md" size="3634" analyzed="false"/>
+    <entry path="engine/extension.py" size="21752" analyzed="true"/>
+    <entry path="engine/install.sh" size="5678" analyzed="false"/>
+    <entry path="engine/test_offline.py" size="8593" analyzed="true"/>
+    <entry path="harnesses/README.md" size="3009" analyzed="false"/>
+    <entry path="harnesses/package-lock.json" size="246" analyzed="false"/>
+    <entry path="harnesses/package.json" size="701" analyzed="true"/>
+    <entry path="harnesses/src/01-osc-latency.ts" size="3231" analyzed="true"/>
+    <entry path="harnesses/src/02-load-item-verify.ts" size="4317" analyzed="true"/>
+    <entry path="harnesses/src/03-insert-step-automation.ts" size="6640" analyzed="true"/>
+    <entry path="harnesses/src/04-instrumented.ts" size="3565" analyzed="true"/>
+    <entry path="harnesses/src/04-looper-state-roundtrip.ts" size="5754" analyzed="true"/>
+    <entry path="harnesses/src/05-confirmed-echo-pinger.ts" size="3811" analyzed="true"/>
+    <entry path="harnesses/src/device-params.ts" size="2563" analyzed="true"/>
+    <entry path="harnesses/src/engine-hello.ts" size="1752" analyzed="true"/>
+    <entry path="harnesses/src/engine-ping.ts" size="1620" analyzed="true"/>
+    <entry path="harnesses/src/get-uri.ts" size="2819" analyzed="true"/>
+    <entry path="harnesses/src/looper-probe-slow.ts" size="3001" analyzed="true"/>
+    <entry path="harnesses/src/looper-wire-log.ts" size="2121" analyzed="true"/>
+    <entry path="harnesses/src/osc-helper.ts" size="7272" analyzed="true"/>
+    <entry path="harnesses/src/quant-verify.ts" size="3299" analyzed="true"/>
+    <entry path="harnesses/tsconfig.json" size="324" analyzed="true"/>
+    <entry path="hub/README.md" size="2946" analyzed="false"/>
+    <entry path="hub/golden/audio-packet.apc1.bin" size="1000" analyzed="false"/>
+    <entry path="hub/golden/spectral-frame.spc1.bin" size="545" analyzed="false"/>
+    <entry path="hub/package-lock.json" size="2551" analyzed="false"/>
+    <entry path="hub/package.json" size="764" analyzed="true"/>
+    <entry path="hub/src/codec/audio-codec.ts" size="5479" analyzed="true"/>
+    <entry path="hub/src/codec/spectral-codec.ts" size="2892" analyzed="true"/>
+    <entry path="hub/src/dsp.ts" size="3955" analyzed="true"/>
+    <entry path="hub/src/lifecycle/lifecycle.ts" size="6698" analyzed="true"/>
+    <entry path="hub/src/math/bands.ts" size="2806" analyzed="true"/>
+    <entry path="hub/src/math/movement.ts" size="2436" analyzed="true"/>
+    <entry path="hub/src/mirror/mirror.ts" size="5618" analyzed="true"/>
+    <entry path="hub/src/resolver/resolver.ts" size="7379" analyzed="true"/>
+    <entry path="hub/src/sim/fake-live.ts" size="14725" analyzed="true"/>
+    <entry path="hub/src/sim/server.ts" size="3262" analyzed="true"/>
+    <entry path="hub/test/codec.test.ts" size="4645" analyzed="true"/>
+    <entry path="hub/test/core.test.ts" size="10433" analyzed="true"/>
+    <entry path="hub/test/sim.test.ts" size="6890" analyzed="true"/>
+    <entry path="hub/tsconfig.json" size="381" analyzed="true"/>
+    <entry path="models/651635.model" size="295168" analyzed="false"/>
+    <entry path="models/651635.nam" size="295168" analyzed="false"/>
+    <entry path="models/Full Rig Peavey 5150 + Mesa 4x12/Full Rig Peavey 5150 MXR Mesa OS SM57 - jp_is_out_of_tune.nam" size="295061" analyzed="false"/>
+    <entry path="models/Full Rig Peavey 5150 + Mesa 4x12/Full Rig Peavey 5150 MXR Mesa OS SM58 - jp_is_out_of_tune.nam" size="294995" analyzed="false"/>
+    <entry path="models/Full Rig Peavey 5150 + Mesa 4x12/Full Rig Peavey 5150 Maxon Mesa OS SM57 - jp_is_out_of_tune.nam" size="295274" analyzed="false"/>
+    <entry path="models/Full Rig Peavey 5150 + Mesa 4x12/Full Rig Peavey 5150 Maxon Mesa OS SM58 - jp_is_out_of_tune.nam" size="295117" analyzed="false"/>
+    <entry path="models/Full Rig Peavey 5150 + Mesa 4x12/Full Rig Peavey 5150 No boost Mesa OS SM57 - jp_is_out_of_tune.nam" size="294830" analyzed="false"/>
+    <entry path="models/models.json" size="140" analyzed="true"/>
+    <entry path="package-lock.json" size="1480" analyzed="false"/>
+    <entry path="package.json" size="629" analyzed="true"/>
+    <entry path="reports/API-REALITY.md" size="30580" analyzed="false"/>
+    <entry path="reports/PROVISIONAL-SEAMS.md" size="18079" analyzed="false"/>
+    <entry path="sidecar-experiment/FINDINGS.md" size="4547" analyzed="false"/>
+    <entry path="sidecar-experiment/probe/CMakeLists.txt" size="291" analyzed="false"/>
+    <entry path="sidecar-experiment/probe/nam_a2_probe.cpp" size="10856" analyzed="true"/>
+    <entry path="sidecar-experiment/verify-apc1.ts" size="2115" analyzed="true"/>
+    <entry path="sidecar/CMakeLists.txt" size="908" analyzed="false"/>
+    <entry path="sidecar/main.cpp" size="10504" analyzed="true"/>
+    <entry path="spikes/tone3000/README.md" size="3965" analyzed="false"/>
+    <entry path="spikes/tone3000/package-lock.json" size="16026" analyzed="false"/>
+    <entry path="spikes/tone3000/package.json" size="493" analyzed="true"/>
+    <entry path="spikes/tone3000/src/client.ts" size="4226" analyzed="true"/>
+    <entry path="spikes/tone3000/src/fetch-a2-model.ts" size="4470" analyzed="true"/>
+    <entry path="spikes/tone3000/src/headless-lan-flow.ts" size="5225" analyzed="true"/>
+    <entry path="spikes/tone3000/src/oauth.ts" size="4793" analyzed="true"/>
+    <entry path="spikes/tone3000/src/pkce.ts" size="2810" analyzed="true"/>
+    <entry path="spikes/tone3000/tsconfig.json" size="331" analyzed="true"/>
+    <entry path="tablet/app.js" size="12266" analyzed="true"/>
+    <entry path="tablet/index.html" size="6236" analyzed="true"/>
+    <entry path="tsconfig.json" size="559" analyzed="true"/>
+  </directory>
   <files>
     <file path="contracts/schemas/ai-tool-call.schema.json" category="schema" lines="57">
       <purpose>This schema is the source of truth for the wire shape of AI tool calls and receipts. It uses a oneOf to distinguish between ToolCall and ToolReceipt. The tool enum lists all allowed tool verbs; any addition/removal must be coordinated with ai-tools.ts. The CellRef definition requires chain (string) and slot (integer &gt;=0). The receipt includes a receiptKind enum that indicates what kind of state observation follows. The schema notes that some receipt shapes are PROVISIONAL (e.g., looper_state, write_movement, add_device). It enforces that addresses use stable IDs only, never raw Live indices. A footgun: the args object is fluid; the actual param shape is documented in ai-tools.ts, not fully constrained here.</purpose>
