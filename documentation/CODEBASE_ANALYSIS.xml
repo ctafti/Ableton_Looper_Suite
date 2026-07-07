@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<codebase generated="2026-07-05T18:50:47" files="65" provider="DeepSeek">
-  <directory total="94" analyzed="65">
+<codebase generated="2026-07-06T22:10:17" files="71" provider="DeepSeek">
+  <directory total="106" analyzed="71">
     <entry path="FIRST-MAC-SESSION.md" size="16552" analyzed="false"/>
-    <entry path="Now" size="0" analyzed="false"/>
     <entry path="README.md" size="10748" analyzed="false"/>
     <entry path="contracts/CONTRACTS.md" size="13498" analyzed="false"/>
     <entry path="contracts/schemas/ai-tool-call.schema.json" size="2410" analyzed="true"/>
@@ -19,11 +18,20 @@
     <entry path="contracts/types/spectral.ts" size="5368" analyzed="true"/>
     <entry path="contracts/types/template.ts" size="14821" analyzed="true"/>
     <entry path="contracts/types/ws.ts" size="13175" analyzed="true"/>
+    <entry path="devgen/NAM_A2_Amp.amxd" size="56800" analyzed="false"/>
+    <entry path="devgen/NAM_A2_Amp.prewire.amxd" size="25684" analyzed="false"/>
+    <entry path="devgen/NAM_A2_Amp.wired1.amxd" size="27976" analyzed="false"/>
     <entry path="devgen/NAM_A2_Looper.amxd" size="11918" analyzed="false"/>
+    <entry path="devgen/amp.amxd" size="50542" analyzed="false"/>
+    <entry path="devgen/amp.js" size="38839" analyzed="true"/>
     <entry path="devgen/amxd_setnames.py" size="5432" analyzed="true"/>
+    <entry path="devgen/amxd_settype.py" size="3676" analyzed="true"/>
+    <entry path="devgen/amxd_style_amp.py" size="10809" analyzed="true"/>
+    <entry path="devgen/amxd_wire_amp.py" size="9681" analyzed="true"/>
     <entry path="devgen/amxd_wire_udpsend.py" size="5724" analyzed="true"/>
     <entry path="devgen/looper.amxd" size="13199" analyzed="false"/>
     <entry path="devgen/looper.js" size="6656" analyzed="true"/>
+    <entry path="devgen/tone3000_bridge.py" size="19860" analyzed="true"/>
     <entry path="engine/README.md" size="3634" analyzed="false"/>
     <entry path="engine/extension.py" size="21752" analyzed="true"/>
     <entry path="engine/install.sh" size="5678" analyzed="false"/>
@@ -37,6 +45,7 @@
     <entry path="harnesses/src/04-instrumented.ts" size="3565" analyzed="true"/>
     <entry path="harnesses/src/04-looper-state-roundtrip.ts" size="5754" analyzed="true"/>
     <entry path="harnesses/src/05-confirmed-echo-pinger.ts" size="3811" analyzed="true"/>
+    <entry path="harnesses/src/amp-core.test.mjs" size="9755" analyzed="true"/>
     <entry path="harnesses/src/device-params.ts" size="2563" analyzed="true"/>
     <entry path="harnesses/src/engine-hello.ts" size="1752" analyzed="true"/>
     <entry path="harnesses/src/engine-ping.ts" size="1620" analyzed="true"/>
@@ -65,18 +74,21 @@
     <entry path="hub/test/core.test.ts" size="10433" analyzed="true"/>
     <entry path="hub/test/sim.test.ts" size="6890" analyzed="true"/>
     <entry path="hub/tsconfig.json" size="381" analyzed="true"/>
-    <entry path="models/651635.model" size="295168" analyzed="false"/>
-    <entry path="models/651635.nam" size="295168" analyzed="false"/>
-    <entry path="models/Full Rig Peavey 5150 + Mesa 4x12/Full Rig Peavey 5150 MXR Mesa OS SM57 - jp_is_out_of_tune.nam" size="295061" analyzed="false"/>
-    <entry path="models/Full Rig Peavey 5150 + Mesa 4x12/Full Rig Peavey 5150 MXR Mesa OS SM58 - jp_is_out_of_tune.nam" size="294995" analyzed="false"/>
-    <entry path="models/Full Rig Peavey 5150 + Mesa 4x12/Full Rig Peavey 5150 Maxon Mesa OS SM57 - jp_is_out_of_tune.nam" size="295274" analyzed="false"/>
-    <entry path="models/Full Rig Peavey 5150 + Mesa 4x12/Full Rig Peavey 5150 Maxon Mesa OS SM58 - jp_is_out_of_tune.nam" size="295117" analyzed="false"/>
-    <entry path="models/Full Rig Peavey 5150 + Mesa 4x12/Full Rig Peavey 5150 No boost Mesa OS SM57 - jp_is_out_of_tune.nam" size="294830" analyzed="false"/>
-    <entry path="models/models.json" size="140" analyzed="true"/>
+    <entry path="models/Amp + Cab/Fender Deluxe Reverb A2/deluxe-reverb.nam" size="665758" analyzed="false"/>
+    <entry path="models/Pedal/A grab bag of analog pedals/bard-12-bright.nam" size="297315" analyzed="false"/>
+    <entry path="models/Pedal/A grab bag of analog pedals/bard-as-played-nrml-hi-1-30-g-v-11.nam" size="296892" analyzed="false"/>
+    <entry path="models/Pedal/A grab bag of analog pedals/crom-cares-a-little.nam" size="296692" analyzed="false"/>
+    <entry path="models/Pedal/A grab bag of analog pedals/crom-cares-not.nam" size="295698" analyzed="false"/>
+    <entry path="models/Pedal/A grab bag of analog pedals/empress-lightly-kisses-your-sound.nam" size="296874" analyzed="false"/>
+    <entry path="models/Pedal/A grab bag of analog pedals/empress-slam.nam" size="294198" analyzed="false"/>
+    <entry path="models/Pedal/A grab bag of analog pedals/gain-bard-bright.nam" size="297642" analyzed="false"/>
+    <entry path="models/Pedal/A grab bag of analog pedals/gain-bard-normal.nam" size="297395" analyzed="false"/>
+    <entry path="models/Pedal/A grab bag of analog pedals/jangle-bard.nam" size="296721" analyzed="false"/>
+    <entry path="models/Pedal/A grab bag of analog pedals/mira-as-i-usually-set-it-around-12.nam" size="294914" analyzed="false"/>
+    <entry path="models/models.json" size="2214" analyzed="true"/>
+    <entry path="nam-handoff.zip" size="113511" analyzed="false"/>
     <entry path="package-lock.json" size="1480" analyzed="false"/>
     <entry path="package.json" size="629" analyzed="true"/>
-    <entry path="reports/API-REALITY.md" size="30580" analyzed="false"/>
-    <entry path="reports/PROVISIONAL-SEAMS.md" size="18079" analyzed="false"/>
     <entry path="sidecar-experiment/FINDINGS.md" size="4547" analyzed="false"/>
     <entry path="sidecar-experiment/probe/CMakeLists.txt" size="291" analyzed="false"/>
     <entry path="sidecar-experiment/probe/nam_a2_probe.cpp" size="10856" analyzed="true"/>
@@ -96,6 +108,109 @@
     <entry path="tablet/index.html" size="6236" analyzed="true"/>
     <entry path="tsconfig.json" size="559" analyzed="true"/>
   </directory>
+  <architecture>
+    <overview>NAM A2 is a real-time, contract-driven system for controlling a neural amp model within Ableton Live. It comprises an engine extension (Python) that interfaces with Live via OSC, an audio sidecar (C++) that streams PCM audio over TCP, a hub (Node.js/TypeScript) that orchestrates state, commands, and mirrors, and a tablet frontend (plain JS) for user control. All inter-component communication is governed by frozen contracts defined in TypeScript types and JSON schemas, ensuring strict versioning and compatibility. The system uses a confirmed-echo pattern for command lifecycle, absolute and idempotent commands, and a state channel protocol for real-time UI updates.</overview>
+    <tech_stack languages="typescript, javascript, python, c++" frameworks="node.js, abletonosc, max for live" libraries="ableton link, js2max, json schema, tsx, osc"/>
+    <entry_points>
+      <file>sidecar/main.cpp</file>
+      <file>tablet/index.html</file>
+      <file>hub/src/sim/server.ts</file>
+      <file>engine/extension.py (loaded by Ableton Live via AbletonOSC)</file>
+      <file>spikes/tone3000/src/fetch-a2-model.ts</file>
+      <file>devgen/tone3000_bridge.py</file>
+    </entry_points>
+    <layer name="presentation">
+      <file>tablet/app.js</file>
+      <file>tablet/index.html</file>
+    </layer>
+    <layer name="business_logic">
+      <file>hub/src/lifecycle/lifecycle.ts</file>
+      <file>hub/src/resolver/resolver.ts</file>
+      <file>hub/src/mirror/mirror.ts</file>
+      <file>devgen/amp.js</file>
+      <file>devgen/looper.js</file>
+      <file>engine/extension.py</file>
+    </layer>
+    <layer name="data_access">
+      <file>contracts/types/spectral.ts</file>
+      <file>contracts/types/ws.ts</file>
+      <file>contracts/types/ai-tools.ts</file>
+      <file>contracts/schemas/ai-tool-call.schema.json</file>
+      <file>contracts/schemas/audio-sidecar.descriptor.json</file>
+      <file>contracts/schemas/spectral-frame.descriptor.json</file>
+      <file>contracts/schemas/ws-state.schema.json</file>
+      <file>contracts/schemas/ws-telemetry.schema.json</file>
+      <file>sidecar/main.cpp</file>
+      <file>hub/src/codec/spectral-codec.ts</file>
+      <file>hub/src/codec/audio-codec.ts</file>
+      <file>hub/src/sim/fake-live.ts</file>
+      <file>hub/src/sim/server.ts</file>
+      <file>spikes/tone3000/src/client.ts</file>
+      <file>spikes/tone3000/src/oauth.ts</file>
+      <file>spikes/tone3000/src/headless-lan-flow.ts</file>
+      <file>devgen/tone3000_bridge.py</file>
+    </layer>
+    <layer name="utilities">
+      <file>contracts/types/index.ts</file>
+      <file>contracts/types/ids.ts</file>
+      <file>contracts/types/osc.ts</file>
+      <file>contracts/types/command-rule.ts</file>
+      <file>contracts/types/audio-sidecar.ts</file>
+      <file>contracts/types/template.ts</file>
+      <file>hub/src/dsp.ts</file>
+      <file>hub/src/math/bands.ts</file>
+      <file>hub/src/math/movement.ts</file>
+      <file>harnesses/src/osc-helper.ts</file>
+      <file>harnesses/src/04-instrumented.ts</file>
+      <file>harnesses/src/looper-probe-slow.ts</file>
+      <file>harnesses/src/looper-wire-log.ts</file>
+      <file>devgen/amxd_setnames.py</file>
+      <file>devgen/amxd_wire_udpsend.py</file>
+      <file>devgen/amxd_settype.py</file>
+      <file>devgen/amxd_style_amp.py</file>
+      <file>devgen/amxd_wire_amp.py</file>
+      <file>sidecar-experiment/verify-apc1.ts</file>
+      <file>sidecar-experiment/probe/nam_a2_probe.cpp</file>
+      <file>spikes/tone3000/src/pkce.ts</file>
+    </layer>
+    <layer name="configuration">
+      <file>package.json</file>
+      <file>tsconfig.json</file>
+      <file>harnesses/package.json</file>
+      <file>harnesses/tsconfig.json</file>
+      <file>hub/package.json</file>
+      <file>hub/tsconfig.json</file>
+      <file>spikes/tone3000/package.json</file>
+      <file>spikes/tone3000/tsconfig.json</file>
+      <file>models/models.json</file>
+    </layer>
+    <dependency_chains>
+      <chain description="Tablet frontend communicates with the hub via WebSocket (Contract 3) to receive state snapshots/deltas and send commands.">
+        <file>tablet/app.js</file>
+        <file>hub/src/sim/server.ts</file>
+        <file>hub/src/mirror/mirror.ts</file>
+        <file>hub/src/lifecycle/lifecycle.ts</file>
+      </chain>
+      <chain description="Hub resolves ChainIDs to Live indices via the resolver, then sends OSC commands to the engine extension.">
+        <file>hub/src/lifecycle/lifecycle.ts</file>
+        <file>hub/src/resolver/resolver.ts</file>
+        <file>engine/extension.py</file>
+      </chain>
+      <chain description="Audio sidecar streams PCM buffers to the hub over TCP using the APC1 protocol (Contract 5), processed by the audio codec.">
+        <file>sidecar/main.cpp</file>
+        <file>hub/src/codec/audio-codec.ts</file>
+      </chain>
+      <chain description="Spectral telemetry from Max for Live is encoded in SPC1 binary format and decoded by the hub's spectral codec.">
+        <file>contracts/types/spectral.ts</file>
+        <file>hub/src/codec/spectral-codec.ts</file>
+      </chain>
+      <chain description="AI brain invokes tools via Contract 4; the hub validates and dispatches to the lifecycle/OSC path.">
+        <file>contracts/types/ai-tools.ts</file>
+        <file>hub/src/lifecycle/lifecycle.ts</file>
+        <file>engine/extension.py</file>
+      </chain>
+    </dependency_chains>
+  </architecture>
   <files>
     <file path="contracts/schemas/ai-tool-call.schema.json" category="schema" lines="57">
       <purpose>This schema is the source of truth for the wire shape of AI tool calls and receipts. It uses a oneOf to distinguish between ToolCall and ToolReceipt. The tool enum lists all allowed tool verbs; any addition/removal must be coordinated with ai-tools.ts. The CellRef definition requires chain (string) and slot (integer &gt;=0). The receipt includes a receiptKind enum that indicates what kind of state observation follows. The schema notes that some receipt shapes are PROVISIONAL (e.g., looper_state, write_movement, add_device). It enforces that addresses use stable IDs only, never raw Live indices. A footgun: the args object is fluid; the actual param shape is documented in ai-tools.ts, not fully constrained here.</purpose>
@@ -161,6 +276,52 @@
     <file path="contracts/types/ws.ts" category="contract" lines="251">
       <purpose>This file is the sole source of truth for the hub-tablet WebSocket protocol. It defines two channels: state (reliable, versioned with monotonic rev) and telemetry (ephemeral, lossy-OK). The MirrorSnapshot interface must include all state the tablet needs to render, with stable IDs (ChainID, SceneID, Slot) rather than indices. MirrorDelta paths are keyed by stable IDs, not array positions; an unknown key triggers resync. Tablet commands are discriminated union types (TabletCommand) each carrying a 'kind' and a semantics field (a convenience mirror; the hub derives retry behavior from kind via TABLET_COMMAND_SEMANTICS table, ignoring the client-sent field). The TABLET_COMMAND_SEMANTICS table is authoritative and maps each kind to IDEMPOTENT or STATEFUL. The protocol version is frozen at WS_PROTOCOL_VERSION = 1; any breaking change must bump this. A footgun: the tablet must not hold authoritative state; it is a rendering client. The duplicate_clip_to command is STATEFUL because the hub must delete an occupied target first (Contract 2 caveat). WebRTC signaling messages (rtc_offer, rtc_answer, rtc_ice) are defined now for Phase 8 but should not be used until then.</purpose>
     </file>
+    <file path="devgen/amp.js" category="component" lines="885">
+      <purpose>This file is the core Max device script. It exports pure functions for Node tests and also contains Max-specific glue. The load state machine is debounced (150ms) to prevent rapid-load crashes. It observes Model, Rescan, Quality parameters via LiveAPI and sets Load OK via a deferred Task (LiveAPI.set forbidden inside notifications). Load truth is observed from neural~ info messages ('loaded'→1, 'error'→0). ReloadManifest bootstraps an empty manifest if none exists. The file also implements a three-level hierarchy (gear/pack/tone) for UI menus, drop-and-Reload adoption of .nam files, duct/unduct crossfade ramp, DI/bypass mode with dry path, and failure coherence reverting to last good model. File uses conditional checks for Max globals. The MODELS_DIR and QUALITY_MSG are tunables. Key footguns: calling LiveAPI.set inside a notification will throw; all menu updates from observer context are deferred via Tasks; setting Model to its current value may not fire observer (special handling in _flushModelSet). The Node export hook exports pure functions for testing.</purpose>
+      <exports>
+        <fn signature="parseManifest()" export="true">Parses JSON text into a manifest object, throws on invalid JSON.</fn>
+        <fn signature="validateManifest()" export="true">Validates manifest shape, throws on malformed structure.</fn>
+        <fn signature="resolveEntry()" export="true">Resolves a model index to an entry or failure reason (tombstone/missing).</fn>
+        <fn signature="joinModelPath()" export="true">Joins directory and relative path without double slashes.</fn>
+        <fn signature="classifyInfo()" export="true">Classifies neural~ info atoms into known kind.</fn>
+        <fn signature="loadOkFromSelector()" export="true">Maps selector to Load OK value (1/0/null).</fn>
+        <fn signature="isNam()" export="true">Tests if filename ends with .nam.</fn>
+        <fn signature="splitEntryPath()" export="true">Splits file path into gear/pack or null.</fn>
+        <fn signature="gearsFrom()" export="true">Gets ordered unique gears from entries.</fn>
+        <fn signature="packsInGear()" export="true">Gets ordered packs within a gear.</fn>
+        <fn signature="tonesIn()" export="true">Gets ordered tones within gear/pack.</fn>
+        <fn signature="entryPlace()" export="true">Gets gear/pack for a model index or null.</fn>
+        <fn signature="planAdoptions()" export="true">Plans new entries for unknown root .nam files.</fn>
+        <fn signature="bang()" export="false">Reinitializes the device on bang.</fn>
+        <fn signature="loadbang()" export="false">Calls init on load.</fn>
+        <fn signature="init()" export="false">Initializes state, sets up observers, schedules settle.</fn>
+        <fn signature="setupApis()" export="false">Resolves this_device parameters and creates LiveAPI observers for Model, Rescan, Quality.</fn>
+        <fn signature="adoptDroppedFiles()" export="false">Adopts new .nam files from root folder into manifest, writes to disk.</fn>
+        <fn signature="gear()" export="false">Handler when gear umenu value changes; jumps to pack's first tone.</fn>
+        <fn signature="pack()" export="false">Handler when pack umenu value changes; jumps to pack's first tone.</fn>
+        <fn signature="tone()" export="false">Handler when tone umenu value changes; requests that model.</fn>
+        <fn signature="reloadManifest()" export="true">Reloads manifest from disk, bootstraps empty if none, returns success.</fn>
+        <fn signature="flushLoadOk()" export="false">Flushes the deferred Load OK param set via LiveAPI.</fn>
+        <fn signature="onModel()" export="false">Handles Model change: stores index, debounces, schedules load.</fn>
+        <fn signature="onQuality()" export="false">Handles Quality value change; sends message to neural~ if QUALITY_MSG set.</fn>
+        <fn signature="onInfo()" export="false">Processes classified info message: loaded, error, queued, etc., updates state.</fn>
+        <fn signature="loaded()" export="false">Handles 'loaded' info message by calling onInfo.</fn>
+        <fn signature="error()" export="false">Handles 'error' info message by calling onInfo.</fn>
+        <fn signature="queued()" export="false">Handles 'queued' info message by calling onInfo.</fn>
+        <fn signature="cleared()" export="false">Handles 'cleared' info message by calling onInfo.</fn>
+        <fn signature="latency()" export="false">Handles 'latency' info message by calling onInfo.</fn>
+        <fn signature="loudness()" export="false">Handles 'loudness' info message by calling onInfo.</fn>
+        <fn signature="anything()" export="false">Handles unrecognized messages by calling onInfo with messagename.</fn>
+        <fn signature="msg_int()" export="false">Ignores incoming int at inlet 0 (dial fallback).</fn>
+        <fn signature="msg_float()" export="false">Ignores incoming float at inlet 0 (dial fallback).</fn>
+        <fn signature="rescan()" export="false">Reloads manifest on rescan message.</fn>
+        <fn signature="modelsdir()" export="false">Sets MODELS_DIR and reloads manifest, then re-loads last model.</fn>
+        <fn signature="quality_msg()" export="false">Sets QUALITY_MSG to a new value.</fn>
+        <fn signature="dump()" export="false">Posts current configuration and state to Max console.</fn>
+        <fn signature="setModelsDirFromDevice()" export="false">Attempts to derive models dir from this_device path (unused by default).</fn>
+        <fn signature="expandHome()" export="false">Expands '~' in a path to the HOME environment variable.</fn>
+      </exports>
+    </file>
     <file path="devgen/amxd_setnames.py" category="utility" lines="143">
       <purpose>Reads the .amxd binary file, parses the 'ampf' container to find the 'ptch' chunk containing the 'mx@c' container, extracts the JSON patcher, and for each box relocates any 'parameter_*' keys from saved_object_attributes to saved_attribute_attributes.valueof (optionally forcing parameter_type=1 via --int). It then updates the mx@c header's dir_off and the dlst directory's sz32 field to reflect the new blob size, and writes the result back (either overwriting or to a new file). The script only works on unfrozen generator output (mx@c container); frozen devices raise an error. It assumes the container layout as reverse-engineered from js2max@1.1.2; changes to that format may break the script.</purpose>
       <exports>
@@ -170,6 +331,34 @@
         <fn signature="relocate(patcher_text, force_int)" export="false">Parses JSON patcher, moves parameter* attributes from saved_object_attributes to saved_attribute_attributes.valueof for each box, optionally forces int type, returns updated dict and count of moved parameters.</fn>
         <fn signature="set_dlst_sz32(dlst, new_sz)" export="false">Finds 'sz32' tag in dlst bytearray and overwrites its value with new blob size, returning modified bytes.</fn>
         <fn signature="main()" export="false">Entry point: parses arguments (input, optional output, --int), loads file, finds ptch, splits mx@c, relocates parameters, updates sizes, writes output, prints summary.</fn>
+      </exports>
+    </file>
+    <file path="devgen/amxd_settype.py" category="utility" lines="100">
+      <purpose>Run after amxd_setnames.py (without --int) to assign correct types: Model, Rescan, Load OK as Int (1); Input Trim, Output Trim, Quality as Float (0). It modifies the JSON inside the mx@c container by matching parameter_longname in saved_attribute_attributes.valueof. Uses helpers from amxd_setnames (load, find_ptch, split_mxc, set_dlst_sz32). Exits with error if any named parameter is not found. Idempotent: already-set names are skipped. Should be run before amxd_wire_amp.py and amxd_style_amp.py.</purpose>
+      <depends_on>amxd_setnames</depends_on>
+      <exports>
+        <fn signature="parse_args(argv)" export="false">Parses command-line arguments to extract positional args and type assignments (--int/--float/--enum).</fn>
+        <fn signature="set_types(patcher_text, want)" export="false">Modifies the patcher JSON to set parameter_type for matching parameter_longnames, returns updated dict and count of changes.</fn>
+        <fn signature="main()" export="false">Reads the .amxd file, applies set_types, and writes the modified file back.</fn>
+      </exports>
+    </file>
+    <file path="devgen/amxd_style_amp.py" category="utility" lines="242">
+      <purpose>This is the final styling pass after wiring. It sets presentation attributes, short names (Gain/Volume), converts Rescan toggle to live.text button with 'Reload', hides Model and Quality params, styles tone name display, three umenu dropdowns, background panels, etc. Idempotent: style boxes with varname amp_style_* are replaced. Uses container helpers from amxd_setnames. Must be run after amxd_wire_amp.py. Checks that no control exceeds device bounds (460x168). Sorts boxes by z-order (panels behind, then comments, then controls). Sets devicewidth/deviceheight to match layout.</purpose>
+      <depends_on>amxd_setnames</depends_on>
+      <exports>
+        <fn signature="style(patcher_text)" export="false">Applies all styling changes to the patcher JSON (short names, hide params, layout boxes, menus, bounds check).</fn>
+        <fn signature="main()" export="false">Reads .amxd, applies style, writes output file.</fn>
+      </exports>
+    </file>
+    <file path="devgen/amxd_wire_amp.py" category="utility" lines="251">
+      <purpose>Run after amxd_setnames.py and amxd_settype.py. It adds newobj boxes: neural~, *~ gain stages, dbtoa, line~, loadmess, prepend set, comment for tone name, live.text Browse button, three umenu dropdowns with prepend prefixes, and patchlines. It removes the default plugin~ to plugout~ cords. Idempotent: if neural~ already exists, no change. Optional --info-outlet flag selects which neural~ outlet carries info messages (default 1). Also adds dry DI path with Volume gain and gate line~. Uses container helpers (load, find_ptch, split_mxc, set_dlst_sz32). Must be run before amxd_style_amp.py.</purpose>
+      <depends_on>amxd_setnames</depends_on>
+      <exports>
+        <fn signature="next_id(boxes)" export="false">Finds the maximum existing obj-id in boxes to assign unique ids for new boxes.</fn>
+        <fn signature="find_by_text(boxes, text)" export="false">Finds a box id whose text equals the given string, or None.</fn>
+        <fn signature="find_param(boxes, longname)" export="false">Finds a box id whose parameter_longname equals the given name, or None.</fn>
+        <fn signature="wire(patcher_text, info_outlet)" export="false">Adds neural~ graph and all wiring to the patcher JSON, returns updated object, count of additions, and message.</fn>
+        <fn signature="main()" export="false">Reads .amxd, applies wire, writes output, and prints result.</fn>
       </exports>
     </file>
     <file path="devgen/amxd_wire_udpsend.py" category="utility" lines="172">
@@ -202,6 +391,36 @@
         <fn signature="emitTransport()" export="true">Sends transport command string on outlet 0 based on state.</fn>
         <fn signature="report()" export="true">Pushes state over OSC (outlet 2), sets pendingOut, schedules State Out write, writes dial fallback (outlet 1).</fn>
         <fn signature="flushStateOut()" export="true">Deferred task that writes pendingOut to LiveAPI 'State Out' parameter.</fn>
+      </exports>
+    </file>
+    <file path="devgen/tone3000_bridge.py" category="service" lines="485">
+      <purpose>This file implements a self-contained server that mediates between a user browsing tones on tone3000.com and a NAM A2 amp controlled over OSC (AbletonOSC). It owns the entire OAuth token lifecycle: PKCE authorization, code exchange, token refresh, and caching to ~/.t3k_tokens.json. Model download uses Bearer auth, byte-sniffs file headers to decide the correct extension (RIFF→.wav, FORM→.aif, JSON→.nam), and falls back to server-supplied filenames. After download, it communicates with the amp via a simple UDP OSC protocol to trigger rescan, read the updated models.json manifest, and set the Model parameter to the highest new index. Critical invariants: the amp’s parameter indices are resolved by name at runtime (never hardcoded); the Rescan-&gt;Model sequence assumes the amp writes models.json within 1 second; the OSC recv socket must not be conflicted (port 11001 by default). Footguns: token expiry is checked with a 60s buffer; the choose_filename function never invents .nam for unknown binary data (marks them .bin instead); the global CFG dict is mutated by main() and used throughout; STATE is mutated per session; network timeouts (30s for API, 120s for downloads) may cause long stalls; the OSC request loop has a 3s timeout and may return None.</purpose>
+      <exports>
+        <fn signature="gear_label(tone)" export="true">Extract a human-readable gear label from a TONE3000 tone object, defaulting to 'Other'.</fn>
+        <fn signature="b64url(raw)" export="true">Base64url encode bytes without padding.</fn>
+        <fn signature="make_pkce()" export="true">Generate PKCE verifier, challenge, and random state.</fn>
+        <fn signature="authorize_url(key, redirect_uri, challenge, state)" export="true">Build the TONE3000 OAuth authorize URL with query parameters.</fn>
+        <fn signature="http_json(url, data, headers)" export="true">Send an HTTP request and parse the JSON response (POST with form-encoded data or GET).</fn>
+        <fn signature="exchange_code(key, code, verifier, redirect_uri)" export="true">Exchange an authorization code for an access token.</fn>
+        <fn signature="refresh(key, refresh_token)" export="true">Refresh an expired access token using the refresh token.</fn>
+        <fn signature="load_tokens()" export="true">Load cached OAuth tokens from ~/.t3k_tokens.json.</fn>
+        <fn signature="save_tokens(t)" export="true">Save OAuth tokens to disk and inject an expiry timestamp.</fn>
+        <fn signature="bearer(key)" export="true">Return a valid Bearer token, refreshing if necessary.</fn>
+        <fn signature="api_get(key, path)" export="true">Make an authenticated GET request to the TONE3000 API.</fn>
+        <fn signature="choose_filename(model_url, content_disposition, blob, display_name)" export="true">Determine the saved filename by byte-sniffing, Content-Disposition, and URL extension.</fn>
+        <fn signature="download_model(key, model_url, dest_dir, display_name)" export="true">Fetch a model file with Bearer auth and save it to the destination directory.</fn>
+        <fn signature="osc_pack(addr, args)" export="true">Pack an OSC message (address + args) into binary format.</fn>
+        <fn signature="osc_unpack(data)" export="true">Unpack binary OSC data into (address, args list).</fn>
+        <fn signature="Osc.__init__()" export="false">Create a UDP socket bound to the configured receive port.</fn>
+        <fn signature="Osc.send(addr, args)" export="false">Send an OSC message to the amp.</fn>
+        <fn signature="Osc.request(addr, args, reply_contains)" export="false">Send an OSC message and wait for a reply containing the expected address fragment.</fn>
+        <fn signature="Osc.close()" export="false">Close the UDP socket.</fn>
+        <fn signature="amp_param_indices(osc)" export="true">Resolve the amp's parameter indices by name over OSC.</fn>
+        <fn signature="poke_amp_after_download(n_files)" export="true">Trigger rescan on the amp, read the manifest, and set the model index.</fn>
+        <fn signature="get_key()" export="true">Read the TONE3000 API key from environment or file.</fn>
+        <fn signature="Handler.log_message()" export="false">Suppress default HTTP log output.</fn>
+        <fn signature="Handler.do_GET()" export="false">Route GET requests: index, browse, callback, fallback 404.</fn>
+        <fn signature="main()" export="true">Entry point: parse arguments, start the HTTP server.</fn>
       </exports>
     </file>
     <file path="engine/extension.py" category="service" lines="440">
@@ -288,6 +507,12 @@
         <fn signature="parseArgs()" export="false">Parses a comma-separated string of numbers from an environment variable, falling back to a provided default array.</fn>
         <fn signature="main()" export="false">Arms a listener, registers an expectation, sends the command, awaits confirmation, and prints the round-trip time or failure message.</fn>
         <fn signature="sleep()" export="false">Returns a promise that resolves after the given number of milliseconds (simple setTimeout wrapper).</fn>
+      </exports>
+    </file>
+    <file path="harnesses/src/amp-core.test.mjs" category="test" lines="193">
+      <purpose>The test file validates every exported pure function from amp.js using Node's assert library. It uses a local helper `ok` to log passes and increment a counter. Tests include manifest validation (version 1, 6 entries), tombstone resolution (index 0), live .nam file resolution (indices 1-5), missing index handling, absolute path building, append-only index matching (scrambled manifest), classifyInfo vocabulary recognition, loadOkFromSelector mapping, rejection of malformed manifests, planAdoptions for appending new root .nam files (including depth-2 paths), gearsFrom/packsInTones/tonesIn/entryPlace hierarchy functions, and the bootstrap of an empty manifest when models.json is missing. It also tests the in-memory manifest persistence after a failed reload. The test runs with `node amp-core.test.mjs` and assumes models.json exists in the same directory. Modifications to pure functions in amp.js should be mirrored here.</purpose>
+      <exports>
+        <fn signature="ok()" export="false">Test runner helper that executes a test function and increments a pass counter, logging a checkmark on success.</fn>
       </exports>
     </file>
     <file path="harnesses/src/device-params.ts" category="script" lines="68">
@@ -441,8 +666,8 @@
     <file path="hub/tsconfig.json" category="configuration" lines="17">
       <purpose>Targets ES2022, uses ESNext modules with bundler resolution, allows importing .ts extensions, enforces strict mode and noUnusedLocals, skips lib check, outputs no emit (noEmit), includes source and test files. Includes types for node and ws.</purpose>
     </file>
-    <file path="models/models.json" category="data" lines="7">
-      <purpose>This file is a static dataset containing a version field and an array of entries. Each entry has an index, a file name (e.g., '651635.model'), a name string, and a toneId number. The structure is straightforward and intended for consumption by other scripts or modules that need to look up model information. There are no functions, exports, or side effects; it is purely declarative data.</purpose>
+    <file path="models/models.json" category="config" lines="71">
+      <purpose>This file contains a version number and an array of entries, each with an index, a file path (including subdirectories), a name string, and a toneId field (currently all null). The file is purely declarative data with no functions, exports, or side effects. Invariants: the 'version' field is always present, each entry has a sequential 'index' starting from 0, and the 'file' field includes relative paths with folder structure. A potential footgun: the 'toneId' being null indicates that tone data is not associated, which may affect downstream processing that expects a numeric tone ID.</purpose>
     </file>
     <file path="package.json" category="config" lines="17">
       <purpose>Private project with 'module' set to 'ESM' and GPL license. The three scripts (typecheck:contracts, typecheck:spike, typecheck:harnesses) compile respective subprojects with separate tsconfigs. Dev dependencies are minimal: TypeScript ~5.6 and @types/node ~22. No runtime dependencies; the project is a collection of contracts, spikes, and test harnesses only.</purpose>
