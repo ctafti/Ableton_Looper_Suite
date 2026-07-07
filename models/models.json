@@ -1,6 +1,71 @@
 {
-  "version": 1,
-  "entries": [
-    { "index": 0, "file": "651635.model", "name": "Marshall 1987X SE Crunch Mod", "toneId": 651635 }
-  ]
+    "version": 1,
+    "entries": [
+        {
+            "index": 0,
+            "file": "Amp + Cab/Fender Deluxe Reverb A2/deluxe-reverb.nam",
+            "name": "deluxe-reverb",
+            "toneId": null
+        },
+        {
+            "index": 1,
+            "file": "Pedal/A grab bag of analog pedals/bard-12-bright.nam",
+            "name": "bard-12-bright",
+            "toneId": null
+        },
+        {
+            "index": 2,
+            "file": "Pedal/A grab bag of analog pedals/bard-as-played-nrml-hi-1-30-g-v-11.nam",
+            "name": "bard-as-played-nrml-hi-1-30-g-v-11",
+            "toneId": null
+        },
+        {
+            "index": 3,
+            "file": "Pedal/A grab bag of analog pedals/crom-cares-a-little.nam",
+            "name": "crom-cares-a-little",
+            "toneId": null
+        },
+        {
+            "index": 4,
+            "file": "Pedal/A grab bag of analog pedals/crom-cares-not.nam",
+            "name": "crom-cares-not",
+            "toneId": null
+        },
+        {
+            "index": 5,
+            "file": "Pedal/A grab bag of analog pedals/empress-lightly-kisses-your-sound.nam",
+            "name": "empress-lightly-kisses-your-sound",
+            "toneId": null
+        },
+        {
+            "index": 6,
+            "file": "Pedal/A grab bag of analog pedals/empress-slam.nam",
+            "name": "empress-slam",
+            "toneId": null
+        },
+        {
+            "index": 7,
+            "file": "Pedal/A grab bag of analog pedals/gain-bard-bright.nam",
+            "name": "gain-bard-bright",
+            "toneId": null
+        },
+        {
+            "index": 8,
+            "file": "Pedal/A grab bag of analog pedals/gain-bard-normal.nam",
+            "name": "gain-bard-normal",
+            "toneId": null
+        },
+        {
+            "index": 9,
+            "file": "Pedal/A grab bag of analog pedals/jangle-bard.nam",
+            "name": "jangle-bard",
+            "toneId": null
+        },
+        {
+            "index": 10,
+            "file": "Pedal/A grab bag of analog pedals/mira-as-i-usually-set-it-around-12.nam",
+            "name": "mira-as-i-usually-set-it-around-12",
+            "toneId": null
+        }
+    ]
 }
