@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<codebase generated="2026-07-06T22:10:17" files="71" provider="DeepSeek">
-  <directory total="106" analyzed="71">
+<codebase generated="2026-07-08T23:05:04" files="75" provider="DeepSeek">
+  <directory total="112" analyzed="75">
     <entry path="FIRST-MAC-SESSION.md" size="16552" analyzed="false"/>
     <entry path="README.md" size="10748" analyzed="false"/>
     <entry path="contracts/CONTRACTS.md" size="13498" analyzed="false"/>
@@ -21,16 +21,21 @@
     <entry path="devgen/NAM_A2_Amp.amxd" size="56800" analyzed="false"/>
     <entry path="devgen/NAM_A2_Amp.prewire.amxd" size="25684" analyzed="false"/>
     <entry path="devgen/NAM_A2_Amp.wired1.amxd" size="27976" analyzed="false"/>
-    <entry path="devgen/NAM_A2_Looper.amxd" size="11918" analyzed="false"/>
+    <entry path="devgen/NAM_A2_Looper.amxd" size="49604" analyzed="false"/>
     <entry path="devgen/amp.amxd" size="50542" analyzed="false"/>
     <entry path="devgen/amp.js" size="38839" analyzed="true"/>
+    <entry path="devgen/amxd_check_looper.py" size="11136" analyzed="true"/>
     <entry path="devgen/amxd_setnames.py" size="5432" analyzed="true"/>
     <entry path="devgen/amxd_settype.py" size="3676" analyzed="true"/>
     <entry path="devgen/amxd_style_amp.py" size="10809" analyzed="true"/>
+    <entry path="devgen/amxd_style_looper.py" size="9224" analyzed="true"/>
     <entry path="devgen/amxd_wire_amp.py" size="9681" analyzed="true"/>
+    <entry path="devgen/amxd_wire_looper.py" size="18104" analyzed="true"/>
     <entry path="devgen/amxd_wire_udpsend.py" size="5724" analyzed="true"/>
-    <entry path="devgen/looper.amxd" size="13199" analyzed="false"/>
-    <entry path="devgen/looper.js" size="6656" analyzed="true"/>
+    <entry path="devgen/build_looper.sh" size="1426" analyzed="false"/>
+    <entry path="devgen/looper.amxd" size="31079" analyzed="false"/>
+    <entry path="devgen/looper.js" size="23919" analyzed="true"/>
+    <entry path="devgen/reference/NAM_A2_Looper.v1.amxd" size="11918" analyzed="false"/>
     <entry path="devgen/tone3000_bridge.py" size="19860" analyzed="true"/>
     <entry path="engine/README.md" size="3634" analyzed="false"/>
     <entry path="engine/extension.py" size="21752" analyzed="true"/>
@@ -50,6 +55,7 @@
     <entry path="harnesses/src/engine-hello.ts" size="1752" analyzed="true"/>
     <entry path="harnesses/src/engine-ping.ts" size="1620" analyzed="true"/>
     <entry path="harnesses/src/get-uri.ts" size="2819" analyzed="true"/>
+    <entry path="harnesses/src/looper-core.test.mjs" size="14103" analyzed="true"/>
     <entry path="harnesses/src/looper-probe-slow.ts" size="3001" analyzed="true"/>
     <entry path="harnesses/src/looper-wire-log.ts" size="2121" analyzed="true"/>
     <entry path="harnesses/src/osc-helper.ts" size="7272" analyzed="true"/>
@@ -109,105 +115,81 @@
     <entry path="tsconfig.json" size="559" analyzed="true"/>
   </directory>
   <architecture>
-    <overview>NAM A2 is a real-time, contract-driven system for controlling a neural amp model within Ableton Live. It comprises an engine extension (Python) that interfaces with Live via OSC, an audio sidecar (C++) that streams PCM audio over TCP, a hub (Node.js/TypeScript) that orchestrates state, commands, and mirrors, and a tablet frontend (plain JS) for user control. All inter-component communication is governed by frozen contracts defined in TypeScript types and JSON schemas, ensuring strict versioning and compatibility. The system uses a confirmed-echo pattern for command lifecycle, absolute and idempotent commands, and a state channel protocol for real-time UI updates.</overview>
-    <tech_stack languages="typescript, javascript, python, c++" frameworks="node.js, abletonosc, max for live" libraries="ableton link, js2max, json schema, tsx, osc"/>
+    <overview>The NAM A2 system is a contract-driven distributed audio processing platform for Ableton Live. A central Node.js hub manages command lifecycle, state mirroring, WebSocket connections, and an ID resolver, communicating via OSC with a Python engine extension (AbletonOSC) and via binary streams with a C++ audio sidecar. The tablet UI is a plain JavaScript/HTML frontend that uses a frozen WebSocket protocol (Contract 3) to display rig state and send commands. Max for Live devices (amp, looper) are generated and wired by Python scripts, each containing a pure-logic core tested offline. All inter-component contracts are frozen and versioned, enabling safe independent evolution of Hub, Engine, Sidecar, and Tablet.</overview>
+    <tech_stack languages="typescript, python, javascript, c++, json, html" frameworks="nodejs, abletonosc, max for live, ableton link" libraries="abletonosc (python), typescript (strict branding types), ws (websocket), frozen contracts, pkce oauth"/>
     <entry_points>
-      <file>sidecar/main.cpp</file>
       <file>tablet/index.html</file>
       <file>hub/src/sim/server.ts</file>
-      <file>engine/extension.py (loaded by Ableton Live via AbletonOSC)</file>
+      <file>sidecar/main.cpp</file>
       <file>spikes/tone3000/src/fetch-a2-model.ts</file>
-      <file>devgen/tone3000_bridge.py</file>
+      <file>harnesses/src/01-osc-latency.ts</file>
     </entry_points>
     <layer name="presentation">
-      <file>tablet/app.js</file>
       <file>tablet/index.html</file>
+      <file>tablet/app.js</file>
+      <file>hub/src/sim/server.ts</file>
     </layer>
     <layer name="business_logic">
       <file>hub/src/lifecycle/lifecycle.ts</file>
-      <file>hub/src/resolver/resolver.ts</file>
       <file>hub/src/mirror/mirror.ts</file>
-      <file>devgen/amp.js</file>
+      <file>hub/src/resolver/resolver.ts</file>
       <file>devgen/looper.js</file>
+      <file>devgen/amp.js</file>
       <file>engine/extension.py</file>
     </layer>
     <layer name="data_access">
-      <file>contracts/types/spectral.ts</file>
+      <file>contracts/types/osc.ts</file>
+      <file>contracts/types/audio-sidecar.ts</file>
       <file>contracts/types/ws.ts</file>
-      <file>contracts/types/ai-tools.ts</file>
-      <file>contracts/schemas/ai-tool-call.schema.json</file>
-      <file>contracts/schemas/audio-sidecar.descriptor.json</file>
-      <file>contracts/schemas/spectral-frame.descriptor.json</file>
-      <file>contracts/schemas/ws-state.schema.json</file>
-      <file>contracts/schemas/ws-telemetry.schema.json</file>
-      <file>sidecar/main.cpp</file>
-      <file>hub/src/codec/spectral-codec.ts</file>
       <file>hub/src/codec/audio-codec.ts</file>
-      <file>hub/src/sim/fake-live.ts</file>
-      <file>hub/src/sim/server.ts</file>
-      <file>spikes/tone3000/src/client.ts</file>
-      <file>spikes/tone3000/src/oauth.ts</file>
-      <file>spikes/tone3000/src/headless-lan-flow.ts</file>
-      <file>devgen/tone3000_bridge.py</file>
+      <file>hub/src/codec/spectral-codec.ts</file>
+      <file>sidecar/main.cpp</file>
     </layer>
     <layer name="utilities">
       <file>contracts/types/index.ts</file>
       <file>contracts/types/ids.ts</file>
-      <file>contracts/types/osc.ts</file>
-      <file>contracts/types/command-rule.ts</file>
-      <file>contracts/types/audio-sidecar.ts</file>
+      <file>contracts/types/spectral.ts</file>
       <file>contracts/types/template.ts</file>
+      <file>contracts/types/command-rule.ts</file>
       <file>hub/src/dsp.ts</file>
       <file>hub/src/math/bands.ts</file>
       <file>hub/src/math/movement.ts</file>
       <file>harnesses/src/osc-helper.ts</file>
-      <file>harnesses/src/04-instrumented.ts</file>
-      <file>harnesses/src/looper-probe-slow.ts</file>
-      <file>harnesses/src/looper-wire-log.ts</file>
-      <file>devgen/amxd_setnames.py</file>
-      <file>devgen/amxd_wire_udpsend.py</file>
-      <file>devgen/amxd_settype.py</file>
-      <file>devgen/amxd_style_amp.py</file>
-      <file>devgen/amxd_wire_amp.py</file>
-      <file>sidecar-experiment/verify-apc1.ts</file>
-      <file>sidecar-experiment/probe/nam_a2_probe.cpp</file>
-      <file>spikes/tone3000/src/pkce.ts</file>
     </layer>
     <layer name="configuration">
       <file>package.json</file>
       <file>tsconfig.json</file>
-      <file>harnesses/package.json</file>
-      <file>harnesses/tsconfig.json</file>
       <file>hub/package.json</file>
       <file>hub/tsconfig.json</file>
+      <file>harnesses/package.json</file>
       <file>spikes/tone3000/package.json</file>
-      <file>spikes/tone3000/tsconfig.json</file>
       <file>models/models.json</file>
     </layer>
     <dependency_chains>
-      <chain description="Tablet frontend communicates with the hub via WebSocket (Contract 3) to receive state snapshots/deltas and send commands.">
+      <chain description="Tablet frontend to Hub: app.js opens WebSocket, receives snapshots/deltas via Contract 3, sends commands (which hub routes to engine via OSC).">
         <file>tablet/app.js</file>
-        <file>hub/src/sim/server.ts</file>
         <file>hub/src/mirror/mirror.ts</file>
-        <file>hub/src/lifecycle/lifecycle.ts</file>
-      </chain>
-      <chain description="Hub resolves ChainIDs to Live indices via the resolver, then sends OSC commands to the engine extension.">
         <file>hub/src/lifecycle/lifecycle.ts</file>
         <file>hub/src/resolver/resolver.ts</file>
         <file>engine/extension.py</file>
       </chain>
-      <chain description="Audio sidecar streams PCM buffers to the hub over TCP using the APC1 protocol (Contract 5), processed by the audio codec.">
-        <file>sidecar/main.cpp</file>
-        <file>hub/src/codec/audio-codec.ts</file>
-      </chain>
-      <chain description="Spectral telemetry from Max for Live is encoded in SPC1 binary format and decoded by the hub's spectral codec.">
-        <file>contracts/types/spectral.ts</file>
-        <file>hub/src/codec/spectral-codec.ts</file>
-      </chain>
-      <chain description="AI brain invokes tools via Contract 4; the hub validates and dispatches to the lifecycle/OSC path.">
+      <chain description="AI tool command path: AI sends tool call (Contract 4) to hub, hub translates to OSC commands, engine executes and echoes back, hub updates mirror and sends receipt.">
         <file>contracts/types/ai-tools.ts</file>
         <file>hub/src/lifecycle/lifecycle.ts</file>
+        <file>contracts/types/osc.ts</file>
         <file>engine/extension.py</file>
+        <file>hub/src/mirror/mirror.ts</file>
+      </chain>
+      <chain description="Audio sidecar chain: C++ sidecar joins Ableton Link, forwards PCM audio over TCP using Contract-5 APC1 protocol; hub decodes and feeds WebRTC.">
+        <file>sidecar/main.cpp</file>
+        <file>contracts/types/audio-sidecar.ts</file>
+        <file>hub/src/codec/audio-codec.ts</file>
+      </chain>
+      <chain description="Max for Live device generation: Python devgen scripts create and wire .amxd files from js2max output, setting parameter names, types, and audio routing.">
+        <file>devgen/amxd_setnames.py</file>
+        <file>devgen/amxd_settype.py</file>
+        <file>devgen/amxd_wire_amp.py</file>
+        <file>devgen/amxd_style_amp.py</file>
       </chain>
     </dependency_chains>
   </architecture>
@@ -322,6 +304,18 @@
         <fn signature="expandHome()" export="false">Expands '~' in a path to the HOME environment variable.</fn>
       </exports>
     </file>
+    <file path="devgen/amxd_check_looper.py" category="utility" lines="245">
+      <purpose>Parses a binary .amxd file, extracts the patcher JSON, and runs a series of checks on the patcher structure. Verifies exactly two Live parameters (State, State Out) both Int, echo path cords, dry passthrough cords, all live.text have parameter_enable=0, core DSP objects present, v8 outlet wiring to DSP route (all 14 outlets), loop output reaches both plugout~ inlets, all seven buttons present and wired through prepend to v8, v8[3] UI route feeding correct targets, layout dimensions and bounds, and v2.1 undo buffers and position ticker. Optionally compares frozen params against a reference v1 device. Exits with 0 if all checks pass, otherwise prints first failure and exits non-zero. Relies on amxd_setnames for binary loading/splitting.</purpose>
+      <depends_on>amxd_setnames</depends_on>
+      <exports>
+        <fn signature="check(name, cond, detail)" export="false">Print a check mark or cross and append failure name to FAILED list if condition is false.</fn>
+        <fn signature="patcher_of(path)" export="false">Load and decode the .amxd file, returning the patcher JSON object.</fn>
+        <fn signature="index(pat)" export="false">Build indices from patcher data: boxes dict by id, lines set, text prefix lookup, params dict by longname, varnames dict.</fn>
+        <fn signature="first(by, key)" export="false">Get first element from a list associated with key in a dict, or None.</fn>
+        <fn signature="has_cord(lines, s, so, d, di)" export="false">Check if a patchline exists with given source and destination ids and outlets.</fn>
+        <fn signature="main()" export="false">Parse arguments, run all checks, print results, and exit with appropriate code.</fn>
+      </exports>
+    </file>
     <file path="devgen/amxd_setnames.py" category="utility" lines="143">
       <purpose>Reads the .amxd binary file, parses the 'ampf' container to find the 'ptch' chunk containing the 'mx@c' container, extracts the JSON patcher, and for each box relocates any 'parameter_*' keys from saved_object_attributes to saved_attribute_attributes.valueof (optionally forcing parameter_type=1 via --int). It then updates the mx@c header's dir_off and the dlst directory's sz32 field to reflect the new blob size, and writes the result back (either overwriting or to a new file). The script only works on unfrozen generator output (mx@c container); frozen devices raise an error. It assumes the container layout as reverse-engineered from js2max@1.1.2; changes to that format may break the script.</purpose>
       <exports>
@@ -350,6 +344,14 @@
         <fn signature="main()" export="false">Reads .amxd, applies style, writes output file.</fn>
       </exports>
     </file>
+    <file path="devgen/amxd_style_looper.py" category="utility" lines="229">
+      <purpose>Modifies the patcher JSON to apply cosmetic changes: adds background panels, styles the status bar comment, positions transport buttons (Rec/Play/Dub/Stop) as large live.text toggles (same class for identical rendering), a thin slider for position display, Clear bottom-left, Undo/Redo buttons, take indicator comment, and 'NAM A2' credit. Hides State and State Out dials (presentation 0) while preserving their param functionality. Adds parameter_info to the hidden params. Idempotent: removes any previously added style boxes (varnames starting with 'looper_style_'). Asserts all required varnames exist (looper_status, looper_btn_*, looper_pos_bar, looper_undo_ind). Sorts boxes by z-order (panels first, comments next, interactive elements last). Rearranges boxes list order, which may affect Max loading order (stable sort preserves relative order within ranks). Device size is fixed at 460x168; any presented rect exceeding bounds raises SystemExit.</purpose>
+      <depends_on>amxd_setnames</depends_on>
+      <exports>
+        <fn signature="style(patcher_text)" export="false">Apply styling to the patcher JSON, returning the modified patcher dict.</fn>
+        <fn signature="main()" export="false">Parse arguments, load source, call style, and write the output .amxd file.</fn>
+      </exports>
+    </file>
     <file path="devgen/amxd_wire_amp.py" category="utility" lines="251">
       <purpose>Run after amxd_setnames.py and amxd_settype.py. It adds newobj boxes: neural~, *~ gain stages, dbtoa, line~, loadmess, prepend set, comment for tone name, live.text Browse button, three umenu dropdowns with prepend prefixes, and patchlines. It removes the default plugin~ to plugout~ cords. Idempotent: if neural~ already exists, no change. Optional --info-outlet flag selects which neural~ outlet carries info messages (default 1). Also adds dry DI path with Volume gain and gate line~. Uses container helpers (load, find_ptch, split_mxc, set_dlst_sz32). Must be run before amxd_style_amp.py.</purpose>
       <depends_on>amxd_setnames</depends_on>
@@ -359,6 +361,18 @@
         <fn signature="find_param(boxes, longname)" export="false">Finds a box id whose parameter_longname equals the given name, or None.</fn>
         <fn signature="wire(patcher_text, info_outlet)" export="false">Adds neural~ graph and all wiring to the patcher JSON, returns updated object, count of additions, and message.</fn>
         <fn signature="main()" export="false">Reads .amxd, applies wire, writes output, and prints result.</fn>
+      </exports>
+    </file>
+    <file path="devgen/amxd_wire_looper.py" category="utility" lines="400">
+      <purpose>Adds the DSP graph for loop record/playback/overdub, undo shadow buffers (single-level 3-way swap using duplicate messages and t b b b), position monitoring via metro-&gt;snapshot~ on the shared index signal, and a complete human UI with 4 transport toggles, clear/undo/redo buttons, status comment, take indicator, and position slider. Wires v8 outlet 0 to a route with 14 DSP command words, and v8 outlet 3 to a route for UI updates (LED highlights, status, position, undo/redo active state). Forces v8 to have 4 outlets (otherwise Max drops cords to outlet 3). Idempotent: skips if buffer~ nam_loop already exists. Expects plugin~, plugout~, v8, State and State Out params, and udpsend to be present. The undo swap uses right-to-left firing order of t b b b. The position ticker samples the same index signal used for write/read to guarantee consistency. All UI buttons are live.text with parameter_enable=0, wired through prepend to v8. Adds ~50 new objects and patchlines.</purpose>
+      <depends_on>amxd_setnames</depends_on>
+      <exports>
+        <fn signature="next_id(boxes)" export="false">Return the maximum numeric obj- id found in the boxes list.</fn>
+        <fn signature="find_by_text(boxes, text)" export="false">Return the id of the first box whose text exactly matches the given string.</fn>
+        <fn signature="find_by_prefix(boxes, prefix)" export="false">Return the id of the first box whose text starts with the given prefix.</fn>
+        <fn signature="find_param(boxes, longname)" export="false">Return the id of the box containing a Live parameter with the given longname.</fn>
+        <fn signature="wire(patcher_text)" export="false">Inject all DSP and UI components into the patcher JSON, returning the modified patcher, maximum id used, and a summary message.</fn>
+        <fn signature="main()" export="false">Parse arguments, load source, call wire, and write the output .amxd file.</fn>
       </exports>
     </file>
     <file path="devgen/amxd_wire_udpsend.py" category="utility" lines="172">
@@ -372,25 +386,61 @@
         <fn signature="main()" export="true">CLI entry point that orchestrates file modification.</fn>
       </exports>
     </file>
-    <file path="devgen/looper.js" category="component" lines="167">
-      <purpose>This JS object runs in v8 inside Max. It observes a LiveAPI parameter 'State' (set by the engine) and also accepts commands via a list message (from [route /cmd]). The state machine (0=STOP,1=PLAY,2=RECORD,3=OVERDUB) fires transport intents on outlet 0 as strings. The 'report()' function pushes the state over OSC (outlet 2) immediately (sub-ms localhost) and schedules a deferred LiveAPI set on 'State Out' parameter via writeTask to avoid reentrancy from observer notifications. The 'list()' handler checks device indices (myTrack, myDevice) to allow multiple loopers on the same command port; if indices haven't resolved (e.g., first call), it acts unconditionally. The observer 'onStateValue' can fire with different argument patterns – it normalizes to setState. The clampState ensures value is 0-3. Footguns: LiveAPI calls may fail silently if device is reloaded; writeTask must exist before any schedule call; the observer may fire before setupApis completes; 'State Out' write is deferred and may be lost if device is destroyed before flush. The parameter names are case-insensitively compared (lowercased). The autowatch=1 ensures the script reloads on edit.</purpose>
+    <file path="devgen/looper.js" category="component" lines="549">
+      <purpose>This file is the control brain for a mono looper with overdub, undo/redo, and truthful UI. It is divided into a pure-logic section (functions like dspPlan, posFrac, histNext, needUndoSave) that contain no Max globals and can be unit-tested, and a runtime section that uses Max's LiveAPI, Task, and outlet(). The state machine (STOP/PLAY/RECORD/OVERDUB) is driven by: (1) a LiveAPI observer on 'State' parameter (written by the engine), (2) button messages from Max UI (btnrec, btnplay, etc.), (3) list messages from /cmd route. Buttons set state directly AND queue a deferred sync to ensure the 'State' parameter is updated (observer won't fire if value unchanged). The DSP control plan is computed by dspPlan() and sent as messages for a Max route, controlling index source, write gate, overdub flag, play gate, frequency, phase, and clear. Undo/redo history is single-level: a shadow buffer save before destructive overwrites (entering OVERDUB or RECORD over existing loop). The position fraction (posFrac) is computed from the shared index signal tapped at the audio rate. The file also handles sample-rate overrides, sample count capture, and UI updates via outlet 3 (including flash status, undo/redo indicators, take text). Footguns: LiveAPI calls may fail silently if device is reloaded; Task must exist before schedule; observer may fire before setupApis completes; 'State Out' write is deferred; parameter name comparison is case-insensitive (lowercased); button handlers set state directly but must also update the param (syncStateParam) to keep hub in sync; clearPlan() sends 'clear' message which wipes buffer~; the undo/redo swap is a single snapshot, not a full multilevel history; the number of outlets is 4 (set by wirer, not by JS code); autowatch and inlets/outlets are guarded for Node compatibility.</purpose>
       <exports>
+        <fn signature="clampState()" export="false">Clamps a value to the valid 0–3 range.</fn>
+        <fn signature="stateName()" export="false">Returns the human-readable name for a given state (STOPPED, PLAYING, etc.).</fn>
+        <fn signature="bufCapSamps()" export="false">Returns the maximum number of samples the loop buffer can hold at a given sample rate.</fn>
+        <fn signature="clampLen()" export="false">Sanitizes a snapshot~ length capture into a valid loop length (samples) clamped to buffer capacity.</fn>
+        <fn signature="needSnap()" export="false">Returns true iff the state change ends a fresh recording (RECORD → something else).</fn>
+        <fn signature="loopFreq()" export="false">Returns the phasor~ frequency for a loop of given length in samples (0 if no loop).</fn>
+        <fn signature="dspPlan()" export="false">Generates an array of DSP control messages for entering a target state from a previous state.</fn>
+        <fn signature="clearPlan()" export="false">Generates DSP messages that clear the loop buffer and reset length.</fn>
+        <fn signature="posFrac()" export="false">Returns the playhead position as a fraction 0..1 for the position bar.</fn>
+        <fn signature="needUndoSave()" export="false">Returns true if the transition requires saving the loop to undo shadow before overwriting.</fn>
+        <fn signature="histNext()" export="false">Computes the next hist state (undo/redo flags) given an event: save, undo, or redo.</fn>
+        <fn signature="swapOffered()" export="false">Returns the name of the state to swap to (null if no swap available).</fn>
+        <fn signature="takeText()" export="false">Returns a string describing the current take/undo state for the UI indicator.</fn>
+        <fn signature="uiPlan()" export="false">Generates an array of UI messages (leds, status, undo/redo indicators) for the current state.</fn>
+        <fn signature="btnIntent()" export="false">Returns the state intent for a button name (or undefined if invalid).</fn>
         <fn signature="bang()" export="true">Max entry point – calls init().</fn>
         <fn signature="loadbang()" export="true">Max entry point – calls init().</fn>
-        <fn signature="init()" export="true">Initializes state, sets up APIs, emits transport, reports initial state.</fn>
+        <fn signature="init()" export="true">Initializes state, sets up APIs, resolves indices, reports initial state.</fn>
         <fn signature="setupApis()" export="true">Creates LiveAPI objects for observing 'State' and writing 'State Out', resolves device indices.</fn>
-        <fn signature="resolveMyIndices()" export="true">Parses this_device path to extract track/device indices.</fn>
+        <fn signature="resolveMyIndices()" export="true">Parses this_device path to extract track and device indices.</fn>
         <fn signature="paramName()" export="true">Returns lowercased name from a LiveAPI parameter object.</fn>
         <fn signature="onStateValue()" export="true">Callback for 'State' parameter value change – calls setState.</fn>
         <fn signature="msg_int()" export="true">Handles int messages from Max – calls setState.</fn>
         <fn signature="msg_float()" export="true">Handles float messages from Max – rounds and calls setState.</fn>
         <fn signature="list()" export="true">Handles list messages from Max (from /cmd route) – calls setState if indices match.</fn>
-        <fn signature="setState()" export="true">Sets the current state, transitions if new.</fn>
-        <fn signature="clampState()" export="true">Clamps a value to the valid 0-3 range.</fn>
-        <fn signature="transition()" export="true">Emits transport intent and updates current state.</fn>
+        <fn signature="setState()" export="true">Sets the current state, triggers transition if changed, updates UI.</fn>
+        <fn signature="transition()" export="true">Emits transport intent, DSP plan, UI updates, and handles undo save / history.</fn>
         <fn signature="emitTransport()" export="true">Sends transport command string on outlet 0 based on state.</fn>
         <fn signature="report()" export="true">Pushes state over OSC (outlet 2), sets pendingOut, schedules State Out write, writes dial fallback (outlet 1).</fn>
         <fn signature="flushStateOut()" export="true">Deferred task that writes pendingOut to LiveAPI 'State Out' parameter.</fn>
+        <fn signature="sendDsp()" export="true">Sends DSP control messages on outlet 0 based on the current state and loop length.</fn>
+        <fn signature="samps()" export="true">Handles 'samps &lt;n&gt;' message to capture snapshot~ length.</fn>
+        <fn signature="pos()" export="true">Handles 'pos &lt;n&gt;' message from position ticker, updates UI position bar.</fn>
+        <fn signature="sr()" export="true">Handles 'sr &lt;hz&gt;' message to override sample rate.</fn>
+        <fn signature="doUndoSave()" export="true">Sends DSP message to save loop shadow snapshot (usave).</fn>
+        <fn signature="doUndo()" export="true">Sends DSP message for undo swap (uswap) and updates history.</fn>
+        <fn signature="doRedo()" export="true">Sends DSP message for redo swap (uswap) and updates history.</fn>
+        <fn signature="doSwap()" export="false">Helper to perform DSP swap (uswap) with given update to history.</fn>
+        <fn signature="btnrec()" export="true">Handler for 'btnrec' message – calls handleButton with RECORD state.</fn>
+        <fn signature="btnplay()" export="true">Handler for 'btnplay' message – calls handleButton with PLAY state.</fn>
+        <fn signature="btndub()" export="true">Handler for 'btndub' message – calls handleButton with OVERDUB state.</fn>
+        <fn signature="btnstop()" export="true">Handler for 'btnstop' message – calls handleButton with STOP state.</fn>
+        <fn signature="btnclear()" export="true">Handler for 'btnclear' message – clears the loop.</fn>
+        <fn signature="btnundo()" export="true">Handler for 'btnundo' message – triggers undo if available.</fn>
+        <fn signature="btnredo()" export="true">Handler for 'btnredo' message – triggers redo if available.</fn>
+        <fn signature="handleButton()" export="true">Handles button press: sets state directly and schedules param sync.</fn>
+        <fn signature="clearLoop()" export="true">Clears loop buffer (sends DSP clear, resets length), transitions to STOP.</fn>
+        <fn signature="syncStateParam()" export="true">Deferred task to set 'State' LiveAPI parameter to current state (for mirror/dial sync).</fn>
+        <fn signature="flushStateSet()" export="true">Deferred task that writes pendingStateSet to LiveAPI 'State' parameter.</fn>
+        <fn signature="updateUi()" export="true">Sends UI messages on outlet 3 (leds, status, position, undo/redo indicators).</fn>
+        <fn signature="flashStatus()" export="true">Temporarily forces status text to current state name, then resets after delay.</fn>
+        <fn signature="unflash()" export="true">Restores status to stateName after flash.</fn>
       </exports>
     </file>
     <file path="devgen/tone3000_bridge.py" category="service" lines="485">
@@ -537,6 +587,15 @@
       <purpose>Reads environment variables NAME (default 'Reverb') and MAX (default 5). Imports from osc-helper.ts. Sends /live/browser/rescan first (timeout 15s, because first rescan can be slow), then sends /live/browser/query with NAME and MAX. Waits for a reply on a browser* address that is not rescan (timeout 5s). Extracts string args from the reply and guesses the URI as the first string containing ':' or the last string. Invariant: the query reply contains the URI as a string argument; if not, the script prints raw args for manual inspection. Footgun: the URI format may not contain ':' or may be the only string; the heuristic might pick the wrong arg. The rescan timeout may need adjustment if the Live browser is very large. The script does not modify the browser.</purpose>
       <exports>
         <fn signature="main()" export="false">Rescans the browser, queries for a device by NAME, waits for the reply, prints all string args, and guesses the URI for use in a subsequent load-item-verify command.</fn>
+      </exports>
+    </file>
+    <file path="harnesses/src/looper-core.test.mjs" category="test" lines="316">
+      <purpose>This file imports the looper module via a temporary CommonJS copy (to work around ESM/CJS mismatch) and tests all exported functions of looper.js. It exercises all 16 (prev-&gt;target) state transitions for dspPlan, verifies consistency (e.g., wminus = wgate - 1) and completeness. Tests clearPlan, uiPlan (LED active, status text), posFrac, needUndoSave, histNext (undo/redo policy), swapOffered, takeText, and btnIntent. Key invariants: dspPlan messages must be self-consistent; the test asserts strict equality. Footgun: creates temporary .cjs file in /tmp; if aborted, temp files may remain. The test is the sole regression gate for looper.js pure logic.</purpose>
+      <exports>
+        <fn signature="ok()" export="false">Run a named test function and increment the pass counter.</fn>
+        <fn signature="get()" export="false">Filter a message array by selector string.</fn>
+        <fn signature="one()" export="false">Assert exactly one message matches the selector and return it.</fn>
+        <fn signature="none()" export="false">Assert no message matches the selector.</fn>
       </exports>
     </file>
     <file path="harnesses/src/looper-probe-slow.ts" category="service" lines="67">
