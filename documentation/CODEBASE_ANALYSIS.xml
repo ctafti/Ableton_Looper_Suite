@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<codebase generated="2026-07-08T23:05:04" files="75" provider="DeepSeek">
-  <directory total="112" analyzed="75">
+<codebase generated="2026-07-12T11:06:35" files="77" provider="DeepSeek">
+  <directory total="122" analyzed="77">
     <entry path="FIRST-MAC-SESSION.md" size="16552" analyzed="false"/>
     <entry path="README.md" size="10748" analyzed="false"/>
     <entry path="contracts/CONTRACTS.md" size="13498" analyzed="false"/>
@@ -21,7 +21,7 @@
     <entry path="devgen/NAM_A2_Amp.amxd" size="56800" analyzed="false"/>
     <entry path="devgen/NAM_A2_Amp.prewire.amxd" size="25684" analyzed="false"/>
     <entry path="devgen/NAM_A2_Amp.wired1.amxd" size="27976" analyzed="false"/>
-    <entry path="devgen/NAM_A2_Looper.amxd" size="49604" analyzed="false"/>
+    <entry path="devgen/NAM_A2_Looper.amxd" size="51795" analyzed="false"/>
     <entry path="devgen/amp.amxd" size="50542" analyzed="false"/>
     <entry path="devgen/amp.js" size="38839" analyzed="true"/>
     <entry path="devgen/amxd_check_looper.py" size="11136" analyzed="true"/>
@@ -30,11 +30,11 @@
     <entry path="devgen/amxd_style_amp.py" size="10809" analyzed="true"/>
     <entry path="devgen/amxd_style_looper.py" size="9224" analyzed="true"/>
     <entry path="devgen/amxd_wire_amp.py" size="9681" analyzed="true"/>
-    <entry path="devgen/amxd_wire_looper.py" size="18104" analyzed="true"/>
+    <entry path="devgen/amxd_wire_looper.py" size="18434" analyzed="true"/>
     <entry path="devgen/amxd_wire_udpsend.py" size="5724" analyzed="true"/>
     <entry path="devgen/build_looper.sh" size="1426" analyzed="false"/>
-    <entry path="devgen/looper.amxd" size="31079" analyzed="false"/>
-    <entry path="devgen/looper.js" size="23919" analyzed="true"/>
+    <entry path="devgen/looper.amxd" size="32237" analyzed="false"/>
+    <entry path="devgen/looper.js" size="25029" analyzed="true"/>
     <entry path="devgen/reference/NAM_A2_Looper.v1.amxd" size="11918" analyzed="false"/>
     <entry path="devgen/tone3000_bridge.py" size="19860" analyzed="true"/>
     <entry path="engine/README.md" size="3634" analyzed="false"/>
@@ -55,17 +55,18 @@
     <entry path="harnesses/src/engine-hello.ts" size="1752" analyzed="true"/>
     <entry path="harnesses/src/engine-ping.ts" size="1620" analyzed="true"/>
     <entry path="harnesses/src/get-uri.ts" size="2819" analyzed="true"/>
-    <entry path="harnesses/src/looper-core.test.mjs" size="14103" analyzed="true"/>
+    <entry path="harnesses/src/looper-core.test.mjs" size="14562" analyzed="true"/>
     <entry path="harnesses/src/looper-probe-slow.ts" size="3001" analyzed="true"/>
     <entry path="harnesses/src/looper-wire-log.ts" size="2121" analyzed="true"/>
     <entry path="harnesses/src/osc-helper.ts" size="7272" analyzed="true"/>
     <entry path="harnesses/src/quant-verify.ts" size="3299" analyzed="true"/>
+    <entry path="harnesses/src/template-scan.ts" size="5197" analyzed="true"/>
     <entry path="harnesses/tsconfig.json" size="324" analyzed="true"/>
     <entry path="hub/README.md" size="2946" analyzed="false"/>
     <entry path="hub/golden/audio-packet.apc1.bin" size="1000" analyzed="false"/>
     <entry path="hub/golden/spectral-frame.spc1.bin" size="545" analyzed="false"/>
     <entry path="hub/package-lock.json" size="2551" analyzed="false"/>
-    <entry path="hub/package.json" size="764" analyzed="true"/>
+    <entry path="hub/package.json" size="829" analyzed="true"/>
     <entry path="hub/src/codec/audio-codec.ts" size="5479" analyzed="true"/>
     <entry path="hub/src/codec/spectral-codec.ts" size="2892" analyzed="true"/>
     <entry path="hub/src/dsp.ts" size="3955" analyzed="true"/>
@@ -74,6 +75,7 @@
     <entry path="hub/src/math/movement.ts" size="2436" analyzed="true"/>
     <entry path="hub/src/mirror/mirror.ts" size="5618" analyzed="true"/>
     <entry path="hub/src/resolver/resolver.ts" size="7379" analyzed="true"/>
+    <entry path="hub/src/rig/server.ts" size="29491" analyzed="true"/>
     <entry path="hub/src/sim/fake-live.ts" size="14725" analyzed="true"/>
     <entry path="hub/src/sim/server.ts" size="3262" analyzed="true"/>
     <entry path="hub/test/codec.test.ts" size="4645" analyzed="true"/>
@@ -92,7 +94,6 @@
     <entry path="models/Pedal/A grab bag of analog pedals/jangle-bard.nam" size="296721" analyzed="false"/>
     <entry path="models/Pedal/A grab bag of analog pedals/mira-as-i-usually-set-it-around-12.nam" size="294914" analyzed="false"/>
     <entry path="models/models.json" size="2214" analyzed="true"/>
-    <entry path="nam-handoff.zip" size="113511" analyzed="false"/>
     <entry path="package-lock.json" size="1480" analyzed="false"/>
     <entry path="package.json" size="629" analyzed="true"/>
     <entry path="sidecar-experiment/FINDINGS.md" size="4547" analyzed="false"/>
@@ -112,49 +113,70 @@
     <entry path="spikes/tone3000/tsconfig.json" size="331" analyzed="true"/>
     <entry path="tablet/app.js" size="12266" analyzed="true"/>
     <entry path="tablet/index.html" size="6236" analyzed="true"/>
+    <entry path="template/NAM_A2_Template Project/Icon" size="0" analyzed="false"/>
+    <entry path="template/NAM_A2_Template Project/NAM_A2_Template.als" size="13566" analyzed="false"/>
+    <entry path="template/NAM_A2_Template Project/Samples/Recorded/Clean [[chain.clean]] 0001 [2026-07-12 103114].wav" size="1152080" analyzed="false"/>
+    <entry path="template/NAM_A2_Template Project/Samples/Recorded/Clean [[chain.clean]] 0001 [2026-07-12 103114].wav.asd" size="17106" analyzed="false"/>
+    <entry path="template/NAM_A2_Template Project/Samples/Recorded/Clean [[chain.clean]] 0002 [2026-07-12 104035].wav" size="1389392" analyzed="false"/>
+    <entry path="template/NAM_A2_Template Project/Samples/Recorded/Clean [[chain.clean]] 0002 [2026-07-12 104035].wav.asd" size="20258" analyzed="false"/>
+    <entry path="template/NAM_A2_Template Project/Samples/Recorded/Crunch [[chain.crunch]] 0001 [2026-07-12 104048].wav" size="576080" analyzed="false"/>
+    <entry path="template/NAM_A2_Template Project/Samples/Recorded/Crunch [[chain.crunch]] 0001 [2026-07-12 104048].wav.asd" size="10362" analyzed="false"/>
+    <entry path="template/NAM_A2_Template Project/Samples/Recorded/Crunch [[chain.crunch]] 0002 [2026-07-12 104050].wav" size="0" analyzed="false"/>
     <entry path="tsconfig.json" size="559" analyzed="true"/>
   </directory>
   <architecture>
-    <overview>The NAM A2 system is a contract-driven distributed audio processing platform for Ableton Live. A central Node.js hub manages command lifecycle, state mirroring, WebSocket connections, and an ID resolver, communicating via OSC with a Python engine extension (AbletonOSC) and via binary streams with a C++ audio sidecar. The tablet UI is a plain JavaScript/HTML frontend that uses a frozen WebSocket protocol (Contract 3) to display rig state and send commands. Max for Live devices (amp, looper) are generated and wired by Python scripts, each containing a pure-logic core tested offline. All inter-component contracts are frozen and versioned, enabling safe independent evolution of Hub, Engine, Sidecar, and Tablet.</overview>
-    <tech_stack languages="typescript, python, javascript, c++, json, html" frameworks="nodejs, abletonosc, max for live, ableton link" libraries="abletonosc (python), typescript (strict branding types), ws (websocket), frozen contracts, pkce oauth"/>
+    <overview>NAM A2 is a modular, contract-driven system for controlling a Neural Amp Modeler (NAM) via Ableton Live. The architecture consists of a Node.js hub that mediates between a tablet UI (plain JavaScript, WebSocket), a Max for Live looper/amp device (JavaScript, Max objects), a Python AbletonOSC extension, and a C++ audio sidecar. All inter-component communication is governed by frozen wire-format contracts (binary and JSON) defined in TypeScript and JSON Schema. The system emphasizes idempotent commands, confirmed-echo lifecycle, and state mirroring for robust real-time control.</overview>
+    <tech_stack languages="TypeScript, JavaScript, Python, C++" frameworks="AbletonOSC, Node.js HTTP/WebSocket" libraries="AbletonOSC, LiveAPI, Link Audio"/>
     <entry_points>
-      <file>tablet/index.html</file>
+      <file>hub/src/rig/server.ts</file>
       <file>hub/src/sim/server.ts</file>
-      <file>sidecar/main.cpp</file>
-      <file>spikes/tone3000/src/fetch-a2-model.ts</file>
-      <file>harnesses/src/01-osc-latency.ts</file>
+      <file>tablet/index.html</file>
+      <file>harnesses/src/template-scan.ts</file>
+      <file>devgen/tone3000_bridge.py</file>
     </entry_points>
     <layer name="presentation">
       <file>tablet/index.html</file>
       <file>tablet/app.js</file>
-      <file>hub/src/sim/server.ts</file>
+      <file>devgen/amp.js</file>
+      <file>devgen/looper.js</file>
     </layer>
     <layer name="business_logic">
       <file>hub/src/lifecycle/lifecycle.ts</file>
-      <file>hub/src/mirror/mirror.ts</file>
       <file>hub/src/resolver/resolver.ts</file>
-      <file>devgen/looper.js</file>
-      <file>devgen/amp.js</file>
+      <file>hub/src/mirror/mirror.ts</file>
+      <file>hub/src/codec/spectral-codec.ts</file>
+      <file>hub/src/codec/audio-codec.ts</file>
+      <file>hub/src/math/bands.ts</file>
+      <file>hub/src/math/movement.ts</file>
+      <file>hub/src/sim/fake-live.ts</file>
+      <file>hub/src/rig/server.ts</file>
       <file>engine/extension.py</file>
     </layer>
     <layer name="data_access">
-      <file>contracts/types/osc.ts</file>
-      <file>contracts/types/audio-sidecar.ts</file>
       <file>contracts/types/ws.ts</file>
-      <file>hub/src/codec/audio-codec.ts</file>
-      <file>hub/src/codec/spectral-codec.ts</file>
-      <file>sidecar/main.cpp</file>
+      <file>contracts/types/spectral.ts</file>
+      <file>contracts/types/ids.ts</file>
+      <file>contracts/types/ai-tools.ts</file>
+      <file>contracts/types/audio-sidecar.ts</file>
+      <file>contracts/types/osc.ts</file>
+      <file>contracts/types/command-rule.ts</file>
+      <file>contracts/types/template.ts</file>
+      <file>contracts/schemas/*</file>
     </layer>
     <layer name="utilities">
       <file>contracts/types/index.ts</file>
-      <file>contracts/types/ids.ts</file>
-      <file>contracts/types/spectral.ts</file>
-      <file>contracts/types/template.ts</file>
-      <file>contracts/types/command-rule.ts</file>
       <file>hub/src/dsp.ts</file>
-      <file>hub/src/math/bands.ts</file>
-      <file>hub/src/math/movement.ts</file>
       <file>harnesses/src/osc-helper.ts</file>
+      <file>devgen/amxd_setnames.py</file>
+      <file>devgen/amxd_wire_udpsend.py</file>
+      <file>devgen/amxd_settype.py</file>
+      <file>devgen/amxd_style_amp.py</file>
+      <file>devgen/amxd_wire_amp.py</file>
+      <file>devgen/amxd_check_looper.py</file>
+      <file>devgen/amxd_style_looper.py</file>
+      <file>devgen/amxd_wire_looper.py</file>
+      <file>spikes/tone3000/src/pkce.ts</file>
+      <file>spikes/tone3000/src/oauth.ts</file>
     </layer>
     <layer name="configuration">
       <file>package.json</file>
@@ -162,34 +184,30 @@
       <file>hub/package.json</file>
       <file>hub/tsconfig.json</file>
       <file>harnesses/package.json</file>
+      <file>harnesses/tsconfig.json</file>
       <file>spikes/tone3000/package.json</file>
+      <file>spikes/tone3000/tsconfig.json</file>
       <file>models/models.json</file>
+      <file>sidecar/main.cpp</file>
     </layer>
     <dependency_chains>
-      <chain description="Tablet frontend to Hub: app.js opens WebSocket, receives snapshots/deltas via Contract 3, sends commands (which hub routes to engine via OSC).">
+      <chain description="Tablet UI connects to hub via WebSocket (Contract 3). Hub receives OSC from Live engine (Contract 2) and sends down commands. Audio sidecar sends PCM over TCP (Contract 5).">
         <file>tablet/app.js</file>
-        <file>hub/src/mirror/mirror.ts</file>
+        <file>hub/src/rig/server.ts</file>
+        <file>engine/extension.py</file>
+        <file>sidecar/main.cpp</file>
+      </chain>
+      <chain description="Command lifecycle: hub registers command, sends OSC to Live, confirms echo, retries if needed, and sends delta to tablet.">
         <file>hub/src/lifecycle/lifecycle.ts</file>
         <file>hub/src/resolver/resolver.ts</file>
         <file>engine/extension.py</file>
-      </chain>
-      <chain description="AI tool command path: AI sends tool call (Contract 4) to hub, hub translates to OSC commands, engine executes and echoes back, hub updates mirror and sends receipt.">
-        <file>contracts/types/ai-tools.ts</file>
-        <file>hub/src/lifecycle/lifecycle.ts</file>
-        <file>contracts/types/osc.ts</file>
-        <file>engine/extension.py</file>
         <file>hub/src/mirror/mirror.ts</file>
       </chain>
-      <chain description="Audio sidecar chain: C++ sidecar joins Ableton Link, forwards PCM audio over TCP using Contract-5 APC1 protocol; hub decodes and feeds WebRTC.">
-        <file>sidecar/main.cpp</file>
-        <file>contracts/types/audio-sidecar.ts</file>
-        <file>hub/src/codec/audio-codec.ts</file>
-      </chain>
-      <chain description="Max for Live device generation: Python devgen scripts create and wire .amxd files from js2max output, setting parameter names, types, and audio routing.">
-        <file>devgen/amxd_setnames.py</file>
-        <file>devgen/amxd_settype.py</file>
-        <file>devgen/amxd_wire_amp.py</file>
-        <file>devgen/amxd_style_amp.py</file>
+      <chain description="AI tool calls (Contract 4) are received by hub, translated to OSC commands, and receipts returned.">
+        <file>contracts/types/ai-tools.ts</file>
+        <file>contracts/types/ai-tool-call.schema.json</file>
+        <file>hub/src/rig/server.ts</file>
+        <file>engine/extension.py</file>
       </chain>
     </dependency_chains>
   </architecture>
@@ -363,8 +381,8 @@
         <fn signature="main()" export="false">Reads .amxd, applies wire, writes output, and prints result.</fn>
       </exports>
     </file>
-    <file path="devgen/amxd_wire_looper.py" category="utility" lines="400">
-      <purpose>Adds the DSP graph for loop record/playback/overdub, undo shadow buffers (single-level 3-way swap using duplicate messages and t b b b), position monitoring via metro-&gt;snapshot~ on the shared index signal, and a complete human UI with 4 transport toggles, clear/undo/redo buttons, status comment, take indicator, and position slider. Wires v8 outlet 0 to a route with 14 DSP command words, and v8 outlet 3 to a route for UI updates (LED highlights, status, position, undo/redo active state). Forces v8 to have 4 outlets (otherwise Max drops cords to outlet 3). Idempotent: skips if buffer~ nam_loop already exists. Expects plugin~, plugout~, v8, State and State Out params, and udpsend to be present. The undo swap uses right-to-left firing order of t b b b. The position ticker samples the same index signal used for write/read to guarantee consistency. All UI buttons are live.text with parameter_enable=0, wired through prepend to v8. Adds ~50 new objects and patchlines.</purpose>
+    <file path="devgen/amxd_wire_looper.py" category="utility" lines="406">
+      <purpose>Adds the DSP graph for loop record/playback/overdub, undo shadow buffers (single-level 3-way swap using duplicate messages and t b b b), position monitoring via metro-&gt;snapshot~ on the shared index signal, and a complete human UI with 4 transport toggles, clear/undo/redo buttons, status comment, take indicator, and position slider. Wires v8 outlet 0 to a route with 14 DSP command words, and v8 outlet 3 to a route for UI updates (LED highlights, status, position, undo/redo active state, and now also un-latch commands for the one-shot buttons). Forces v8 to have 4 outlets (otherwise Max drops cords to outlet 3). Idempotent: skips if buffer~ nam_loop already exists. Expects plugin~, plugout~, v8, State and State Out params, and udpsend to be present. The undo swap uses right-to-left firing order of t b b b. The position ticker samples the same index signal used for write/read to guarantee consistency. All UI buttons are live.text with parameter_enable=0, wired through prepend to v8. In v2.3, transport buttons clear/undo/redo have mode=0 (toggle) instead of momentary (mode=1); they are un-latched via dedicated prepend set paths from the route (cset/uset/rset). Adds ~55 new objects and patchlines.</purpose>
       <depends_on>amxd_setnames</depends_on>
       <exports>
         <fn signature="next_id(boxes)" export="false">Return the maximum numeric obj- id found in the boxes list.</fn>
@@ -386,8 +404,8 @@
         <fn signature="main()" export="true">CLI entry point that orchestrates file modification.</fn>
       </exports>
     </file>
-    <file path="devgen/looper.js" category="component" lines="549">
-      <purpose>This file is the control brain for a mono looper with overdub, undo/redo, and truthful UI. It is divided into a pure-logic section (functions like dspPlan, posFrac, histNext, needUndoSave) that contain no Max globals and can be unit-tested, and a runtime section that uses Max's LiveAPI, Task, and outlet(). The state machine (STOP/PLAY/RECORD/OVERDUB) is driven by: (1) a LiveAPI observer on 'State' parameter (written by the engine), (2) button messages from Max UI (btnrec, btnplay, etc.), (3) list messages from /cmd route. Buttons set state directly AND queue a deferred sync to ensure the 'State' parameter is updated (observer won't fire if value unchanged). The DSP control plan is computed by dspPlan() and sent as messages for a Max route, controlling index source, write gate, overdub flag, play gate, frequency, phase, and clear. Undo/redo history is single-level: a shadow buffer save before destructive overwrites (entering OVERDUB or RECORD over existing loop). The position fraction (posFrac) is computed from the shared index signal tapped at the audio rate. The file also handles sample-rate overrides, sample count capture, and UI updates via outlet 3 (including flash status, undo/redo indicators, take text). Footguns: LiveAPI calls may fail silently if device is reloaded; Task must exist before schedule; observer may fire before setupApis completes; 'State Out' write is deferred; parameter name comparison is case-insensitive (lowercased); button handlers set state directly but must also update the param (syncStateParam) to keep hub in sync; clearPlan() sends 'clear' message which wipes buffer~; the undo/redo swap is a single snapshot, not a full multilevel history; the number of outlets is 4 (set by wirer, not by JS code); autowatch and inlets/outlets are guarded for Node compatibility.</purpose>
+    <file path="devgen/looper.js" category="component" lines="570">
+      <purpose>This file is the control brain for a mono looper with overdub, undo/redo, and truthful UI. It is divided into a pure-logic section (functions like dspPlan, posFrac, histNext, needUndoSave) that contain no Max globals and can be unit-tested, and a runtime section that uses Max's LiveAPI, Task, and outlet(). The state machine (STOP/PLAY/RECORD/OVERDUB) is driven by: (1) a LiveAPI observer on 'State' parameter (written by the engine), (2) button messages from Max UI (btnrec, btnplay, etc.), (3) list messages from /cmd route. Buttons set state directly AND queue a deferred sync to ensure the 'State' parameter is updated (observer won't fire if value unchanged). The DSP control plan is computed by dspPlan() and sent as messages for a Max route, controlling index source, write gate, overdub flag, play gate, frequency, phase, and clear. Undo/redo history is single-level: a shadow buffer save before destructive overwrites (entering OVERDUB or RECORD over existing loop). The position fraction (posFrac) is computed from the shared index signal tapped at the audio rate. The file also handles sample-rate overrides, sample count capture, and UI updates via outlet 3 (including flash status, undo/redo indicators, take text). v2.3 fixes a 'press twice' bug: Clear/Undo/Redo buttons previously filtered on nonzero values (assuming press+release widgets), but actual toggles emit alternating values per click, causing every second press to be ignored. Now all buttons accept any value as intent, and Clear/Undo/Redo get a silent un-latch via new btnResetMsg() that sends cset/uset/rset=0 on outlet 3 after each press, ensuring every click emits fresh. Transport toggles remain latched (their UI state is owned by uiPlan). Footguns: LiveAPI calls may fail silently if device is reloaded; Task must exist before schedule; observer may fire before setupApis completes; 'State Out' write is deferred; parameter name comparison is case-insensitive (lowercased); button handlers set state directly but must also update the param (syncStateParam) to keep hub in sync; clearPlan() sends 'clear' message which wipes buffer~; the undo/redo swap is a single snapshot, not a full multilevel history; the number of outlets is 4 (set by wirer, not by JS code); autowatch and inlets/outlets are guarded for Node compatibility.</purpose>
       <exports>
         <fn signature="clampState()" export="false">Clamps a value to the valid 0–3 range.</fn>
         <fn signature="stateName()" export="false">Returns the human-readable name for a given state (STOPPED, PLAYING, etc.).</fn>
@@ -403,7 +421,8 @@
         <fn signature="swapOffered()" export="false">Returns the name of the state to swap to (null if no swap available).</fn>
         <fn signature="takeText()" export="false">Returns a string describing the current take/undo state for the UI indicator.</fn>
         <fn signature="uiPlan()" export="false">Generates an array of UI messages (leds, status, undo/redo indicators) for the current state.</fn>
-        <fn signature="btnIntent()" export="false">Returns the state intent for a button name (or undefined if invalid).</fn>
+        <fn signature="btnIntent()" export="false">Returns the state intent for a button name (now accepts any value, always returns intent for clear/undo/redo).</fn>
+        <fn signature="btnResetMsg()" export="true">Returns a [cset,0], [uset,0], or [rset,0] message to un-latch a one-shot button, else null.</fn>
         <fn signature="bang()" export="true">Max entry point – calls init().</fn>
         <fn signature="loadbang()" export="true">Max entry point – calls init().</fn>
         <fn signature="init()" export="true">Initializes state, sets up APIs, resolves indices, reports initial state.</fn>
@@ -434,7 +453,7 @@
         <fn signature="btnclear()" export="true">Handler for 'btnclear' message – clears the loop.</fn>
         <fn signature="btnundo()" export="true">Handler for 'btnundo' message – triggers undo if available.</fn>
         <fn signature="btnredo()" export="true">Handler for 'btnredo' message – triggers redo if available.</fn>
-        <fn signature="handleButton()" export="true">Handles button press: sets state directly and schedules param sync.</fn>
+        <fn signature="handleButton()" export="true">Handles button press: logs event, determines intent, sends reset message for one-shot buttons, then dispatches (clear, undo, redo, or setState).</fn>
         <fn signature="clearLoop()" export="true">Clears loop buffer (sends DSP clear, resets length), transitions to STOP.</fn>
         <fn signature="syncStateParam()" export="true">Deferred task to set 'State' LiveAPI parameter to current state (for mirror/dial sync).</fn>
         <fn signature="flushStateSet()" export="true">Deferred task that writes pendingStateSet to LiveAPI 'State' parameter.</fn>
@@ -589,8 +608,8 @@
         <fn signature="main()" export="false">Rescans the browser, queries for a device by NAME, waits for the reply, prints all string args, and guesses the URI for use in a subsequent load-item-verify command.</fn>
       </exports>
     </file>
-    <file path="harnesses/src/looper-core.test.mjs" category="test" lines="316">
-      <purpose>This file imports the looper module via a temporary CommonJS copy (to work around ESM/CJS mismatch) and tests all exported functions of looper.js. It exercises all 16 (prev-&gt;target) state transitions for dspPlan, verifies consistency (e.g., wminus = wgate - 1) and completeness. Tests clearPlan, uiPlan (LED active, status text), posFrac, needUndoSave, histNext (undo/redo policy), swapOffered, takeText, and btnIntent. Key invariants: dspPlan messages must be self-consistent; the test asserts strict equality. Footgun: creates temporary .cjs file in /tmp; if aborted, temp files may remain. The test is the sole regression gate for looper.js pure logic.</purpose>
+    <file path="harnesses/src/looper-core.test.mjs" category="test" lines="325">
+      <purpose>This file imports the looper module via a temporary CommonJS copy (to work around ESM/CJS mismatch) and tests all exported functions of looper.js. It exercises all 16 (prev-&gt;target) state transitions for dspPlan, verifies consistency (e.g., wminus = wgate - 1) and completeness. Tests clearPlan, uiPlan (LED active, status text), posFrac, needUndoSave, histNext (undo/redo policy), swapOffered, takeText, btnIntent, and now btnResetMsg. The v2.3 update adds a critical regression test: clear/undo/redo accept any click value (1 or 0) because the widgets emit alternating 1,0,1,0 and v2.2’s nonzero filter ate every second press. It also verifies that one-shot buttons (clear/undo/redo) send an un-latch message via btnResetMsg while latching transport buttons return null. Key invariants: dspPlan messages must be self-consistent; the test asserts strict equality. Footgun: creates temporary .cjs file in /tmp; if aborted, temp files may remain. The test is the sole regression gate for looper.js pure logic.</purpose>
       <exports>
         <fn signature="ok()" export="false">Run a named test function and increment the pass counter.</fn>
         <fn signature="get()" export="false">Filter a message array by selector string.</fn>
@@ -629,11 +648,18 @@
         <fn signature="main()" export="false">Queries Live's current clip trigger quantization, looks up the index in the assumed table, and guides the user to manually confirm the mapping.</fn>
       </exports>
     </file>
+    <file path="harnesses/src/template-scan.ts" category="utility" lines="109">
+      <purpose>This script is the template verification harness for Contract 7. It connects to Ableton Live via OSC (using OscClient from osc-helper.ts), sends queries for track names and cue points, and validates that chain tags (e.g., [[chain.clean]]) exist and that expected devices (amp, looper) are present on each chain. It also checks the sentinel cue point for matching contract version. The script prints raw OSC replies verbatim before interpretation to reveal surprising shapes. It runs as a standalone harness (node --experimental-strip-types). Important invariants: TIMEOUT=3000ms for all waits; uses hostFromEnv() or defaults; ask() is async and waits for matching address; it assumes the template set is open in Live. Non-obvious: return-track visibility is OBSERVED (not assumed) – it reports whether returns appear in track_names but does not fail if missing. Footgun: if the OSC port is occupied (e.g., hub running), it will fail. It uses console.log for all output. This file is a utility and not loaded as part of the hub.</purpose>
+      <exports>
+        <fn signature="ask()" export="false">Sends an OSC message and waits for a reply matching the address with a timeout.</fn>
+        <fn signature="main()" export="false">Runs the template scan: checks engine, reads track names and cue points, validates chain tags and sentinel, checks devices per chain.</fn>
+      </exports>
+    </file>
     <file path="harnesses/tsconfig.json" category="config" lines="16">
       <purpose>This config compiles only for type-checking (noEmit: true). It includes all .ts files under src/. The moduleResolution is set to 'Bundler', which works with the --experimental-strip-types runtime flag. The types array is limited to 'node'. The lib is ES2022. Modifying this file: changes to target, module, or moduleResolution may break compatibility with the strip-types runner. The allowImportingTsExtensions flag is necessary for direct .ts imports. Keep strict: true to catch type errors.</purpose>
     </file>
-    <file path="hub/package.json" category="configuration" lines="30">
-      <purpose>Defines the project as private, ES module type, with a main entry point 'index.js' (likely placeholder). Scripts include test (runs node --test with .test.ts files), typecheck (tsc), and sim (runs the simulator server). Dependencies: ws (WebSocket library). Dev dependencies: TypeScript and type definitions. Engines require Node &gt;=20. This is a standard Node package configuration.</purpose>
+    <file path="hub/package.json" category="config" lines="32">
+      <purpose>Defines the project as private, ES module type, with main entry point 'index.js'. Scripts include test (node --test with .test.ts files), typecheck (tsc), sim (runs the simulator server at src/sim/server.ts), and a newly added rig (runs a rig server at src/rig/server.ts). Dependencies: ws (WebSocket library). Dev dependencies: TypeScript and type definitions. Engines require Node &gt;=20. Standard Node package configuration; the rig script suggests a new test infrastructure component.</purpose>
     </file>
     <file path="hub/src/codec/audio-codec.ts" category="utility" lines="140">
       <purpose>Encode/decode functions validate sample count and header length; header magic/version are checked on decode. StreamFramer buffers arbitrary chunks and yields complete packets by parsing header length. TenMsReslicer accumulates samples and outputs fixed 10ms frames; it drops its buffer on format change or DISCONTINUITY flag (bit 0) to avoid gluing unrelated audio. All byte layouts are frozen and backed by golden vectors.</purpose>
@@ -693,6 +719,15 @@
       <purpose>Owns the Resolver class and the assignRoles helper. Key invariant: ChainIDs are stable across rebuilds (same tag yields same ChainID). The rebuildFromSnapshot method processes a LiveSnapshot (tracks with devices) and builds internal maps. Device-to-role mapping follows Contract 7: ROLE_MATCHERS identify fixed roles (amp, looper, eq, spectral) by name hints; inline_fx is the first unclaimed device between looper and eq; remaining devices get their own name as an open role. The path grammar for mirror deltas is not used here; this module only resolves indices. The concrete ROLE_MATCHERS regexps are data (contract fixtures) and should be verified against a real .als file on first boot. The resolver assumes slot numbers are 1:1 with clip slots; future non-1:1 layout would change resolveCell.</purpose>
       <exports>
         <fn signature="assignRoles()" export="false">Assigns device roles for a chain entry by matching name hints and filling inline_fx and open roles.</fn>
+      </exports>
+    </file>
+    <file path="hub/src/rig/server.ts" category="service" lines="604">
+      <purpose>This file is the core server for the rig. It imports prebuilt modules (MirrorStore, Resolver, CommandLifecycle) and wires them together. Boot sequence: forge engine ping, sentinel check (exits if missing), scan tracks/devices, rebuild Resolver snapshot, build MirrorStore via live reads. It uses an Osc class with ask/tryAsk (tryAsk returns null on timeout, used for resilience). It listens on HTTP (default 8420) and WebSocket for tablet connections. The CommandLifecycle is fed with timeouts (LOOPER_WINDOW_MS, CONFIRM_GET_DELAY_MS). Key invariants: sentinel must match SENTINEL.version or process.exit(1); boot retries engine ping forever; all live reads use observed values, not assumptions; confirmed-echo pattern uses immediate send + delayed GET readback for verification; lifecycle tick every 50ms. Non-obvious behavior: return tracks are not read at boot (invisible to track_names) – sendA/B defaults to 0 and not read; looper layers/speed are provisional (set to 0/1); duplicate_clip_to is pass-through (no occupied-target policy yet). Footguns: CONFIRM_GET_DELAY_MS=120ms is based on harness findings – too short may cause false failures; OSC port 11001 used exclusively (harnesses cannot run simultaneously); the file does not export anything; main() called at module scope; it reads TABLET_DIR relative to import.meta.url (assumes tablet/ sibling directory). It has side effects: starts HTTP server, binds OSC client, sets up interval, calls main(). Also note: the global live snapshot is stored in variable 'live' which is captured in buildMirror closure and used in refresh – after boot it is not updated (tracks are fixed); only mirror data changes via readbacks.</purpose>
+      <exports>
+        <fn signature="log()" export="false">Logs a message prefixed with '[rig]'.</fn>
+        <fn signature="bootScan()" export="false">Pings engine, checks sentinel, scans tracks/devices, returns LiveSnapshot and track names.</fn>
+        <fn signature="buildMirror()" export="false">Reads live state via OSC to build a full MirrorSnapshot for the resolver's chain set.</fn>
+        <fn signature="main()" export="false">Main entry point: binds OSC, boot scans, builds mirror, sets up WebSocket server and command lifecycle.</fn>
       </exports>
     </file>
     <file path="hub/src/sim/fake-live.ts" category="simulation" lines="318">
