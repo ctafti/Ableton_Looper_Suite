@@ -7,7 +7,8 @@
   "scripts": {
     "test": "node --experimental-strip-types --test test/*.test.ts",
     "typecheck": "tsc --noEmit",
-    "sim": "node --experimental-strip-types src/sim/server.ts"
+    "sim": "node --experimental-strip-types src/sim/server.ts",
+    "rig": "node --experimental-strip-types src/rig/server.ts"
   },
   "engines": {
     "node": ">=20"
