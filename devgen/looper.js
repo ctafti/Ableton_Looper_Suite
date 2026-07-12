@@ -46,7 +46,9 @@
  *      uswap = 3-way live<->shadow swap (undo/redo), pmet = position metro on/off.
  *   1: State Out dial (fallback)                                   [v1, frozen]
  *   2: OSC push -> [udpsend 127.0.0.1 11000]                       [v1, frozen]
- *   3: UI -> [route ledrec ledplay ledstop leddub status pos uact ract uind]
+ *   3: UI -> [route ledrec ledplay ledstop leddub status pos uact ract uind
+ *      cset uset rset]  (v2.3: cset/uset/rset silently un-latch Clear/Undo/
+ *      Redo after each press — all buttons are now toggles, any value = press)
  *      v2.1: pos = playhead fraction 0..1 -> position bar. v2.2: uact/ract =
  *      Undo/Redo button active/grey; uind = take indicator ("take: current" /
  *      "take: undone").
@@ -246,16 +248,28 @@ function uiPlan(state, lenSamps, sr, hist) {
 }
 
 /** Button selector -> intended state (or "clear"/"undo"/"redo"), else null.
- *  Any value counts as a press for the transport toggles (a click on the lit
- *  current-state button arrives as 0 — still an intent; re-sends are idempotent
- *  by contract). Clear/Undo/Redo act on nonzero only (live.text button mode
- *  sends press AND release). */
+ *  v2.3: EVERY value is an intent for EVERY button. The v2.2 nonzero filter
+ *  assumed mode-1 (press+release) widgets; on the rig the widgets emit ONE
+ *  alternating-value event per click (toggle behavior), so the filter ate
+ *  every second press — the "press twice" bug. Now all buttons are toggles
+ *  accepting any value, and Clear/Undo/Redo are silently `set` back to 0
+ *  after each press (see btnResetMsg) so every click emits fresh. */
 function btnIntent(selector, value) {
-  if (selector === "btnclear") return (Number(value) !== 0) ? "clear" : null;
-  if (selector === "btnundo") return (Number(value) !== 0) ? "undo" : null;
-  if (selector === "btnredo") return (Number(value) !== 0) ? "redo" : null;
+  if (selector === "btnclear") return "clear";
+  if (selector === "btnundo") return "undo";
+  if (selector === "btnredo") return "redo";
   if (Object.prototype.hasOwnProperty.call(BTN_TO_STATE, selector))
     return BTN_TO_STATE[selector];
+  return null;
+}
+
+/** OUT_UI message that un-latches a one-shot button after a press (set = no
+ *  output = no feedback loop). Transport toggles return null: their latched
+ *  value IS the state highlight, owned by uiPlan's led messages. */
+function btnResetMsg(selector) {
+  if (selector === "btnclear") return ["cset", 0];
+  if (selector === "btnundo") return ["uset", 0];
+  if (selector === "btnredo") return ["rset", 0];
   return null;
 }
 
@@ -478,7 +492,13 @@ function btnundo(v)  { handleButton("btnundo", v); }
 function btnredo(v)  { handleButton("btnredo", v); }
 
 function handleButton(sel, v) {
+  // v2.3: EVERY button event is logged — v2.2 logged only accepted intents,
+  // so a swallowed press was console SILENCE (the least informative symptom).
+  post("NAM_A2_Looper: " + sel + " event (v=" + v + " state=" + stateName(current)
+       + " u=" + hist.u + " r=" + hist.r + ")\n");
   var intent = btnIntent(sel, v);
+  var reset = btnResetMsg(sel);
+  if (reset) outlet.apply(null, [OUT_UI].concat(reset)); // un-latch: next click emits
   if (intent === null) return;
   if (intent === "clear") { clearLoop(); return; }
   if (intent === "undo") { doUndo(v); return; }
@@ -544,5 +564,6 @@ if (typeof module !== "undefined" && module.exports) {
     uiPlan: uiPlan, btnIntent: btnIntent,
     posFrac: posFrac, needUndoSave: needUndoSave,
     histNext: histNext, swapOffered: swapOffered, takeText: takeText,
+    btnResetMsg: btnResetMsg,
   };
 }
