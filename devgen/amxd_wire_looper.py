@@ -62,7 +62,8 @@ from amxd_setnames import load, find_ptch, split_mxc, set_dlst_sz32
 
 ROUTE_DSP = ("route srcsel freq phase len wgate wminus ovd play snap cnt clear "
              "usave uswap pmet")
-ROUTE_UI = "route ledrec ledplay ledstop leddub status pos uact ract uind"
+ROUTE_UI = ("route ledrec ledplay ledstop leddub status pos uact ract uind "
+            "cset uset rset")
 BUTTONS = [  # (varname, prepend selector, label)
     ("looper_btn_rec", "btnrec", "Rec"),
     ("looper_btn_play", "btnplay", "Play"),
@@ -277,7 +278,7 @@ def wire(patcher_text):
         x += 110
     clear_btn = add_box({
         "maxclass": "live.text", "varname": "looper_btn_clear",
-        "mode": 1,                                    # momentary button
+        "mode": 0,     # v2.3: TOGGLE (rig-proven); v8 un-latches via set
         "text": "Clear", "texton": "Clear",
         "numinlets": 1, "numoutlets": 2, "outlettype": ["", ""],
         "patching_rect": [float(x), 640.0, 70.0, 22.0],
@@ -291,7 +292,7 @@ def wire(patcher_text):
     # v2.1/v2.2 Undo + Redo (single-level history; content-only, never touch State)
     undo_btn = add_box({
         "maxclass": "live.text", "varname": "looper_btn_undo",
-        "mode": 1,                                    # momentary button
+        "mode": 0,     # v2.3: TOGGLE (rig-proven); v8 un-latches via set
         "text": "Undo", "texton": "Undo",
         "numinlets": 1, "numoutlets": 2, "outlettype": ["", ""],
         "patching_rect": [float(x), 640.0, 70.0, 22.0],
@@ -303,7 +304,7 @@ def wire(patcher_text):
     x += 110
     redo_btn = add_box({
         "maxclass": "live.text", "varname": "looper_btn_redo",
-        "mode": 1,                                    # momentary button
+        "mode": 0,     # v2.3: TOGGLE (rig-proven); v8 un-latches via set
         "text": "Redo", "texton": "Redo",
         "numinlets": 1, "numoutlets": 2, "outlettype": ["", ""],
         "patching_rect": [float(x), 640.0, 70.0, 22.0],
@@ -337,7 +338,7 @@ def wire(patcher_text):
         "patching_rect": [300.0, 720.0, 140.0, 20.0],
     })
 
-    rui = add(ROUTE_UI, 1, 10, 40, 780, 480, outlettype=[""] * 10)
+    rui = add(ROUTE_UI, 1, 13, 40, 780, 620, outlettype=[""] * 13)
     link(v8, 3, rui, 0)
     # ROUTE_UI word order: ledrec ledplay ledstop leddub status pos uact ract uind
     led_targets = [("looper_btn_rec", 0), ("looper_btn_play", 1),
@@ -362,6 +363,11 @@ def wire(patcher_text):
     pind = add("prepend set", 1, 1, 770, 820, 80)      # uind -> take indicator
     link(rui, 8, pind, 0)
     link(pind, 0, takeind, 0)
+    # v2.3 un-latch paths: cset/uset/rset -> prepend set -> the one-shot buttons
+    for out_idx, target in ((9, clear_btn), (10, undo_btn), (11, redo_btn)):
+        pr = add("prepend set", 1, 1, 40 + (out_idx - 9) * 90, 860, 80)
+        link(rui, out_idx, pr, 0)
+        link(pr, 0, target, 0)
 
     return p, counter[0], ("injected loop core + UI: buffer~/poke~/index~ graph "
                            "+ undo shadow/tmp buffers + position ticker, "
