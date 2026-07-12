@@ -299,13 +299,22 @@ ok('button map: rec/play/dub/stop -> states; any click value is an intent', () =
   assert.equal(L.btnIntent('btnstop', 1), STOP);
 });
 
-ok('clear, undo, redo act on press only (button mode sends press AND release)', () => {
-  assert.equal(L.btnIntent('btnclear', 1), 'clear');
-  assert.equal(L.btnIntent('btnclear', 0), null);
-  assert.equal(L.btnIntent('btnundo', 1), 'undo');
-  assert.equal(L.btnIntent('btnundo', 0), null);
-  assert.equal(L.btnIntent('btnredo', 1), 'redo');
-  assert.equal(L.btnIntent('btnredo', 0), null);
+ok('v2.3: clear/undo/redo accept ANY value — the alternating-toggle regression', () => {
+  // THE BUG (rig, 2026-07-08): the widgets emit ONE event per click with
+  // alternating value 1,0,1,0; v2.2's nonzero filter ate every second press.
+  for (const v of [1, 0]) {
+    assert.equal(L.btnIntent('btnclear', v), 'clear');
+    assert.equal(L.btnIntent('btnundo', v), 'undo');
+    assert.equal(L.btnIntent('btnredo', v), 'redo');
+  }
+});
+
+ok('v2.3: one-shot buttons get un-latched after every press; transports do not', () => {
+  assert.deepEqual(L.btnResetMsg('btnclear'), ['cset', 0]);
+  assert.deepEqual(L.btnResetMsg('btnundo'), ['uset', 0]);
+  assert.deepEqual(L.btnResetMsg('btnredo'), ['rset', 0]);
+  for (const sel of ['btnrec', 'btnplay', 'btndub', 'btnstop'])
+    assert.equal(L.btnResetMsg(sel), null);   // their latch IS the highlight
 });
 
 ok('unknown selectors are ignored', () => {
