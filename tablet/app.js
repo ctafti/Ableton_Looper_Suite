@@ -66,6 +66,25 @@ function collapse(mags) {
 // ---------- command lifecycle (tablet side: optimistic hints) ----------------
 let cmdSeq = 0;
 const pendingByCmd = new Map(); // commandId -> {el, revertClass}
+
+/** Throttle for CONTINUOUS controls (sliders): at most one command per `ms`,
+ *  trailing edge guaranteed so the FINAL value always lands. Without this a
+ *  single drag emits ~70 commands (observed 2026-07-19) — supersession copes,
+ *  but the wire shouldn't have to. */
+function throttleSend(fn, ms) {
+  let last = 0, timer = null, pendingArgs = null;
+  return (...args) => {
+    const now = Date.now();
+    pendingArgs = args;
+    if (now - last >= ms) { last = now; fn(...pendingArgs); pendingArgs = null; }
+    else if (!timer) {
+      timer = setTimeout(() => {
+        timer = null; last = Date.now();
+        if (pendingArgs) { fn(...pendingArgs); pendingArgs = null; }
+      }, ms - (now - last));
+    }
+  };
+}
 function sendCommand(kind, fields, hint) {
   const commandId = 'c' + (++cmdSeq) + '_' + Date.now();
   const semantics = { absolute: true, mutation: kind === 'duplicate_clip_to' ? 'stateful' : 'idempotent' };
@@ -157,7 +176,11 @@ function buildDom() {
     const head = document.createElement('div');
     head.className = 'head';
     head.innerHTML = `<div class="name">${chain.name}</div><div class="input">${chain.inputName ?? ''} · in</div><div class="livebadge">● LIVE</div>`;
-    head.onclick = () => sendCommand('go_live', { chain: chain.id }, { el: root }); // "play through this"
+    head.onclick = () => {
+      // UI toggle, absolute commands: live chain -> stand_down; else go_live.
+      const kind = currentChain(chain.id).live ? 'stand_down' : 'go_live';
+      sendCommand(kind, { chain: chain.id }, { el: root });
+    };
     root.appendChild(head);
 
     const cellsEl = document.createElement('div');
@@ -168,14 +191,35 @@ function buildDom() {
       cell.className = 'cell';
       cell.innerHTML = `<span class="label"></span><span class="loopbtn">↻</span>`;
       cell.onclick = () => {
+        if (dupMode) return cellTapDup(chain.id, s, cell);
         const mirror = currentChain(chain.id).cells.find((c) => c.slot === s);
-        const kind = mirror.playing ? 'stop_clip' : 'fire_clip';
+        // recording cell: fire again = FINISH the take and loop it (Live behavior);
+        // playing cell: stop; empty cell: fire = record promotion (hub policy).
+        const kind = mirror.recording ? 'fire_clip' : mirror.playing ? 'stop_clip' : 'fire_clip';
         sendCommand(kind, { cell: { chain: chain.id, slot: s } }, { el: cell });
       };
-      cell.querySelector('.loopbtn').onclick = (ev) => {
+      const lb = cell.querySelector('.loopbtn');
+      let holdTimer = null, held = false;
+      lb.oncontextmenu = (ev) => ev.preventDefault();
+      lb.onpointerdown = () => {
+        held = false;
+        holdTimer = setTimeout(() => {
+          held = true;
+          toast('looper: STOP (hold)');
+          sendCommand('looper_state', { chain: chain.id, state: 0 }, { el: cell });
+        }, 500); // hold ↻ half a second = looper Stop (the tap cycle has no Stop)
+      };
+      lb.onpointerup = lb.onpointerleave = () => clearTimeout(holdTimer);
+      lb.onclick = (ev) => {
         ev.stopPropagation();
+        if (held) { held = false; return; } // the hold already sent Stop
+        // §15 pedal-style tap cycle: Stop(0)→Record(2), Record(2)→Play(1)
+        // (closes the take), Play(1)→Overdub(3), Overdub(3)→Play(1).
         const looperState = currentChain(chain.id).devices.find((d) => d.role === 'looper')?.params.find((p) => p.name === 'State');
-        const next = looperState && looperState.value === 3 ? 1 : 3; // toggle Overdub<->Play
+        const cur = looperState ? looperState.value : 0;
+        const next = cur === 0 ? 2 : cur === 2 ? 1 : cur === 1 ? 3 : 1;
+        const NAMES = ['Stop', 'Play', 'REC', 'OVERDUB'];
+        toast('looper: ' + NAMES[cur] + ' → ' + NAMES[next]); // DEBUG (rig sprint) — visible evidence of the tablet's belief at tap time
         sendCommand('looper_state', { chain: chain.id, state: next }, { el: cell });
       };
       cellsEl.appendChild(cell);
@@ -191,16 +235,34 @@ function buildDom() {
     mixer.className = 'mixer';
     const vol = document.createElement('input');
     vol.type = 'range'; vol.min = 0; vol.max = 1; vol.step = 0.01;
-    vol.oninput = () => sendCommand('set_volume', { chain: chain.id, value01: Number(vol.value) });
+    const volSend = throttleSend((v) => sendCommand('set_volume', { chain: chain.id, value01: v }), 80);
+    vol.oninput = () => volSend(Number(vol.value));
     const mute = document.createElement('button');
     mute.className = 'silk mute'; mute.textContent = 'M';
     mute.onclick = () => sendCommand('set_mute', { chain: chain.id, muted: !currentChain(chain.id).muted });
     mixer.append(vol, mute);
-    strip.append(canvas, mixer);
+    // sends row (Phase 3 item 6): A = shared reverb, B = shared delay
+    const sends = document.createElement('div');
+    sends.className = 'sends';
+    const mkSend = (bus) => {
+      const wrap = document.createElement('label');
+      wrap.className = 'sendctl';
+      wrap.textContent = bus;
+      const r = document.createElement('input');
+      r.type = 'range'; r.min = 0; r.max = 1; r.step = 0.01;
+      const push = throttleSend((v) => sendCommand('set_send', { chain: chain.id, send: bus, value01: v }), 80);
+      r.oninput = () => push(Number(r.value));
+      wrap.appendChild(r);
+      sends.appendChild(wrap);
+      return r;
+    };
+    const sendA = mkSend('A');
+    const sendB = mkSend('B');
+    strip.append(canvas, mixer, sends);
     root.appendChild(strip);
 
     host.appendChild(root);
-    chainEls.set(chain.id, { root, cells: cellRefs, canvas, peak: new Array(BANDS).fill(0), lastT: 0, vol, mute });
+    chainEls.set(chain.id, { root, cells: cellRefs, canvas, peak: new Array(BANDS).fill(0), lastT: 0, vol, mute, sendA, sendB });
   }
   // scenes bar
   const scenes = document.getElementById('scenes');
@@ -219,14 +281,20 @@ function currentChain(id) { return snap.chains.find((c) => c.id === id); }
 function render() {
   document.getElementById('tempo').textContent = snap.tempoBpm.toFixed(1) + ' BPM';
   document.getElementById('metro').classList.toggle('on', snap.metronome);
+  document.getElementById('play').classList.toggle('on', snap.isPlaying);
+  document.getElementById('stop').classList.toggle('on', !snap.isPlaying);
   for (const chain of snap.chains) {
     const els = chainEls.get(chain.id);
     if (!els) continue;
     els.root.classList.toggle('live', chain.live);
     els.root.style.opacity = chain.muted ? 0.45 : 1;
     if (document.activeElement !== els.vol) els.vol.value = chain.volume01;
+    if (document.activeElement !== els.sendA) els.sendA.value = chain.sendA01;
+    if (document.activeElement !== els.sendB) els.sendB.value = chain.sendB01;
     els.mute.classList.toggle('on', chain.muted);
     const looper = chain.devices.find((d) => d.role === 'looper')?.params.find((p) => p.name === 'State');
+    const lst = looper ? looper.value : -1;
+    const GLYPH = ['↻', '↻', '●', '◉'];
     chain.cells.forEach((cellMirror) => {
       const el = els.cells[cellMirror.slot];
       el.classList.toggle('hasclip', cellMirror.hasClip);
@@ -234,6 +302,10 @@ function render() {
       el.classList.toggle('recording', cellMirror.recording);
       el.classList.toggle('looping', !!looper && looper.value >= 2 && cellMirror.playing);
       el.querySelector('.label').textContent = cellMirror.name ?? '';
+      // loop button always shows the tablet's BELIEVED looper state
+      const lb = el.querySelector('.loopbtn');
+      lb.textContent = GLYPH[lst] ?? '↻';
+      lb.className = 'loopbtn st' + lst;
     });
   }
 }
@@ -280,5 +352,39 @@ function toast(text) {
 
 document.getElementById('metro').onclick = () =>
   sendCommand('set_metronome', { on: !snap.metronome });
+
+// ---------- DUP mode (TEMPORARY test affordance for duplicate_clip_to; the
+// real interaction is the hero drag — this stands in until it's built) ------
+let dupMode = false, dupFrom = null;
+function exitDup() {
+  dupMode = false;
+  if (dupFrom) dupFrom.el.classList.remove('dupsrc');
+  dupFrom = null;
+  document.getElementById('dup').classList.remove('on');
+}
+function cellTapDup(chainId, s, el) {
+  const cellMirror = currentChain(chainId).cells.find((c) => c.slot === s);
+  if (!dupFrom) {
+    if (!cellMirror.hasClip) { toast('pick a cell WITH a clip as the source'); return; }
+    dupFrom = { chain: chainId, slot: s, el };
+    el.classList.add('dupsrc');
+    toast('source picked — now tap the target cell');
+  } else {
+    sendCommand('duplicate_clip_to', { from: { chain: dupFrom.chain, slot: dupFrom.slot }, to: { chain: chainId, slot: s } }, { el });
+    exitDup();
+  }
+}
+document.getElementById('dup').onclick = () => {
+  if (dupMode) { exitDup(); toast('dup cancelled'); return; }
+  dupMode = true;
+  document.getElementById('dup').classList.add('on');
+  toast('DUP: tap the source cell');
+};
+
+// Transport (Phase 3): ABSOLUTE states — ▶ always means "playing = true".
+document.getElementById('play').onclick = () =>
+  sendCommand('set_playing', { playing: true }, { el: document.getElementById('play') });
+document.getElementById('stop').onclick = () =>
+  sendCommand('set_playing', { playing: false }, { el: document.getElementById('stop') });
 
 connect();
