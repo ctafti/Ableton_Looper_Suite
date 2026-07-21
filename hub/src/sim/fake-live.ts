@@ -231,10 +231,17 @@ export class FakeLive {
         return confirmNow(() => this.push(this.store.setChainField(cmd.chain as string, 'panMinus1to1', cmd.valueMinus1to1)));
       case 'go_live':
         return confirmNow(() => this.goLiveInternal(cmd.chain as string));
+      case 'stand_down': // absolute inverse of go_live (added 2026-07-19)
+        return confirmNow(() => {
+          this.push(this.store.setChainField(cmd.chain as string, 'live', false));
+          this.push(this.store.setChainField(cmd.chain as string, 'armed', false));
+        });
       case 'set_tempo':
         return confirmNow(() => this.push(this.store.setTop('tempoBpm', cmd.bpm)));
       case 'set_metronome':
         return confirmNow(() => this.push(this.store.setTop('metronome', cmd.on)));
+      case 'set_playing': // Phase 3 transport: absolute play state
+        return confirmNow(() => this.push(this.store.setTop('isPlaying', cmd.playing)));
       case 'looper_state':
         return confirmNow(() => {
           // looper guard (Contract 7): Record/Overdub stops this chain's clips
