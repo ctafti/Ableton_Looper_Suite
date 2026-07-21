@@ -197,6 +197,9 @@ export const DOWN = {
   setTrackSend: {
     address: '/live/track/set/send',
     origin: 'OSC', tag: 'FREEZE-NOW', semantics: IDEMPOTENT,
+    // ✅ VERIFIED ON RIG 2026-07-19: set works AND '/live/track/get/send'
+    // ANSWERS with [track, send_id, value] — full set→GET→confirm loop proven
+    // on both busses (API-REALITY RIG RESULTS 2026-07-12→19).
     build: (t: LiveTrackIndex, sendId: LiveSendIndex, v: number) =>
       ({ address: '/live/track/set/send', args: [t as number, sendId as number, v] }),
   } satisfies OscCommandDef<[track: LiveTrackIndex, send: LiveSendIndex, value01: number]>,
@@ -506,6 +509,9 @@ export const LISTEN = {
   /** Per-clip recording/overdub state (looper + record confirms). */
   clipIsRecording: (t: LiveTrackIndex, c: LiveClipSlotIndex): OscMessage =>
     ({ address: '/live/clip/start_listen/is_recording', args: [t as number, c as number] }),
+  /** ⚠️ REALITY (rig 2026-07-12): DEAD — Live's Clip has no
+   *  add_is_playing_listener ("'Clip' object has no attribute..."). Do NOT arm;
+   *  playing truth flows via trackPlayingSlot instead. Kept for the record. */
   clipIsPlaying: (t: LiveTrackIndex, c: LiveClipSlotIndex): OscMessage =>
     ({ address: '/live/clip/start_listen/is_playing', args: [t as number, c as number] }),
   /** Per-parameter value (confirm set_param + read looper state param). */
