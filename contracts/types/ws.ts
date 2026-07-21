@@ -215,9 +215,20 @@ export type TabletCommand =
    *  header tap / "play through this"). Hub arms+monitors it and disarms the
    *  previous live chain on the same physical input (Contract 7 ARM_POLICY). */
   | ({ readonly kind: 'go_live'; readonly commandId: string; readonly chain: ChainID } & Sem)
+  /** Inverse of go_live (ADDED 2026-07-19, owner decision; CHANGELOG recorded):
+   *  ABSOLUTE "this chain is NOT live" — hub disarms it and clears its hub-owned
+   *  live flag. ARM_POLICY permits zero live chains per input; this reaches
+   *  that state. UI toggles are client-side only: the tablet reads mirror truth
+   *  and sends whichever absolute command applies (never a "toggle" op). */
+  | ({ readonly kind: 'stand_down'; readonly commandId: string; readonly chain: ChainID } & Sem)
   | ({ readonly kind: 'looper_state'; readonly commandId: string; readonly chain: ChainID; readonly state: LooperState } & Sem)
   | ({ readonly kind: 'set_tempo'; readonly commandId: string; readonly bpm: number } & Sem)
-  | ({ readonly kind: 'set_metronome'; readonly commandId: string; readonly on: boolean } & Sem);
+  | ({ readonly kind: 'set_metronome'; readonly commandId: string; readonly on: boolean } & Sem)
+  /** Transport (arch §5.2 — Phase 3): ABSOLUTE play state, never "toggle"
+   *  (Contract 8). Down-path = the frozen Contract-2 DOWN.startPlaying /
+   *  stopPlaying; confirm = the armed is_playing listener echo or a GET
+   *  readback. ADDED 2026-07-12 (additive; CHANGELOG entry recorded). */
+  | ({ readonly kind: 'set_playing'; readonly commandId: string; readonly playing: boolean } & Sem);
 
 /** Attaches the frozen Contract-8 semantics to each command variant. */
 interface Sem {
@@ -244,7 +255,9 @@ export const TABLET_COMMAND_SEMANTICS: Record<TabletCommand['kind'], CommandSema
   set_volume: IDEMPOTENT,         // absolute mixer volume (was missing — mirror exposed it, nothing could set it)
   set_pan: IDEMPOTENT,            // absolute mixer pan (same fix)
   go_live: IDEMPOTENT,            // absolute target ("this chain is live"), safe to re-send
+  stand_down: IDEMPOTENT,         // absolute inverse ("this chain is NOT live"), safe to re-send
   looper_state: IDEMPOTENT,       // absolute state (arch §15)
   set_tempo: IDEMPOTENT,
   set_metronome: IDEMPOTENT,
+  set_playing: IDEMPOTENT,        // absolute transport state (Phase 3, 2026-07-12)
 };
