@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<codebase generated="2026-07-12T11:06:35" files="77" provider="DeepSeek">
-  <directory total="122" analyzed="77">
+<codebase generated="2026-07-20T21:49:55" files="77" provider="DeepSeek">
+  <directory total="156" analyzed="77">
     <entry path="FIRST-MAC-SESSION.md" size="16552" analyzed="false"/>
     <entry path="README.md" size="10748" analyzed="false"/>
-    <entry path="contracts/CONTRACTS.md" size="13498" analyzed="false"/>
+    <entry path="contracts/CONTRACTS.md" size="15553" analyzed="false"/>
     <entry path="contracts/schemas/ai-tool-call.schema.json" size="2410" analyzed="true"/>
     <entry path="contracts/schemas/audio-sidecar.descriptor.json" size="2311" analyzed="true"/>
     <entry path="contracts/schemas/spectral-frame.descriptor.json" size="1722" analyzed="true"/>
@@ -14,10 +14,10 @@
     <entry path="contracts/types/command-rule.ts" size="3945" analyzed="true"/>
     <entry path="contracts/types/ids.ts" size="9027" analyzed="true"/>
     <entry path="contracts/types/index.ts" size="1632" analyzed="true"/>
-    <entry path="contracts/types/osc.ts" size="31633" analyzed="true"/>
+    <entry path="contracts/types/osc.ts" size="32087" analyzed="true"/>
     <entry path="contracts/types/spectral.ts" size="5368" analyzed="true"/>
     <entry path="contracts/types/template.ts" size="14821" analyzed="true"/>
-    <entry path="contracts/types/ws.ts" size="13175" analyzed="true"/>
+    <entry path="contracts/types/ws.ts" size="14253" analyzed="true"/>
     <entry path="devgen/NAM_A2_Amp.amxd" size="56800" analyzed="false"/>
     <entry path="devgen/NAM_A2_Amp.prewire.amxd" size="25684" analyzed="false"/>
     <entry path="devgen/NAM_A2_Amp.wired1.amxd" size="27976" analyzed="false"/>
@@ -75,13 +75,14 @@
     <entry path="hub/src/math/movement.ts" size="2436" analyzed="true"/>
     <entry path="hub/src/mirror/mirror.ts" size="5618" analyzed="true"/>
     <entry path="hub/src/resolver/resolver.ts" size="7379" analyzed="true"/>
-    <entry path="hub/src/rig/server.ts" size="29491" analyzed="true"/>
-    <entry path="hub/src/sim/fake-live.ts" size="14725" analyzed="true"/>
+    <entry path="hub/src/rig/server.ts" size="51344" analyzed="true"/>
+    <entry path="hub/src/sim/fake-live.ts" size="15170" analyzed="true"/>
     <entry path="hub/src/sim/server.ts" size="3262" analyzed="true"/>
     <entry path="hub/test/codec.test.ts" size="4645" analyzed="true"/>
     <entry path="hub/test/core.test.ts" size="10433" analyzed="true"/>
     <entry path="hub/test/sim.test.ts" size="6890" analyzed="true"/>
     <entry path="hub/tsconfig.json" size="381" analyzed="true"/>
+    <entry path="make-phase4-bundle.sh" size="1775" analyzed="false"/>
     <entry path="models/Amp + Cab/Fender Deluxe Reverb A2/deluxe-reverb.nam" size="665758" analyzed="false"/>
     <entry path="models/Pedal/A grab bag of analog pedals/bard-12-bright.nam" size="297315" analyzed="false"/>
     <entry path="models/Pedal/A grab bag of analog pedals/bard-as-played-nrml-hi-1-30-g-v-11.nam" size="296892" analyzed="false"/>
@@ -111,103 +112,147 @@
     <entry path="spikes/tone3000/src/oauth.ts" size="4793" analyzed="true"/>
     <entry path="spikes/tone3000/src/pkce.ts" size="2810" analyzed="true"/>
     <entry path="spikes/tone3000/tsconfig.json" size="331" analyzed="true"/>
-    <entry path="tablet/app.js" size="12266" analyzed="true"/>
-    <entry path="tablet/index.html" size="6236" analyzed="true"/>
+    <entry path="tablet/app.js" size="17236" analyzed="true"/>
+    <entry path="tablet/index.html" size="7374" analyzed="true"/>
     <entry path="template/NAM_A2_Template Project/Icon" size="0" analyzed="false"/>
     <entry path="template/NAM_A2_Template Project/NAM_A2_Template.als" size="13566" analyzed="false"/>
     <entry path="template/NAM_A2_Template Project/Samples/Recorded/Clean [[chain.clean]] 0001 [2026-07-12 103114].wav" size="1152080" analyzed="false"/>
     <entry path="template/NAM_A2_Template Project/Samples/Recorded/Clean [[chain.clean]] 0001 [2026-07-12 103114].wav.asd" size="17106" analyzed="false"/>
+    <entry path="template/NAM_A2_Template Project/Samples/Recorded/Clean [[chain.clean]] 0001 [2026-07-20 204017].wav" size="864080" analyzed="false"/>
+    <entry path="template/NAM_A2_Template Project/Samples/Recorded/Clean [[chain.clean]] 0001 [2026-07-20 204017].wav.asd" size="13482" analyzed="false"/>
+    <entry path="template/NAM_A2_Template Project/Samples/Recorded/Clean [[chain.clean]] 0001 [2026-07-20 205151].wav" size="288080" analyzed="false"/>
+    <entry path="template/NAM_A2_Template Project/Samples/Recorded/Clean [[chain.clean]] 0001 [2026-07-20 205151].wav.asd" size="6826" analyzed="false"/>
     <entry path="template/NAM_A2_Template Project/Samples/Recorded/Clean [[chain.clean]] 0002 [2026-07-12 104035].wav" size="1389392" analyzed="false"/>
     <entry path="template/NAM_A2_Template Project/Samples/Recorded/Clean [[chain.clean]] 0002 [2026-07-12 104035].wav.asd" size="20258" analyzed="false"/>
+    <entry path="template/NAM_A2_Template Project/Samples/Recorded/Clean [[chain.clean]] 0002 [2026-07-20 204113].wav" size="576080" analyzed="false"/>
+    <entry path="template/NAM_A2_Template Project/Samples/Recorded/Clean [[chain.clean]] 0002 [2026-07-20 204113].wav.asd" size="10170" analyzed="false"/>
+    <entry path="template/NAM_A2_Template Project/Samples/Recorded/Clean [[chain.clean]] 0003 [2026-07-12 164618].wav" size="1728080" analyzed="false"/>
+    <entry path="template/NAM_A2_Template Project/Samples/Recorded/Clean [[chain.clean]] 0003 [2026-07-12 164618].wav.asd" size="23486" analyzed="false"/>
+    <entry path="template/NAM_A2_Template Project/Samples/Recorded/Clean [[chain.clean]] 0003 [2026-07-20 204138].wav" size="576080" analyzed="false"/>
+    <entry path="template/NAM_A2_Template Project/Samples/Recorded/Clean [[chain.clean]] 0003 [2026-07-20 204138].wav.asd" size="10154" analyzed="false"/>
+    <entry path="template/NAM_A2_Template Project/Samples/Recorded/Clean [[chain.clean]] 0004 [2026-07-12 164646].wav" size="576080" analyzed="false"/>
+    <entry path="template/NAM_A2_Template Project/Samples/Recorded/Clean [[chain.clean]] 0004 [2026-07-12 164646].wav.asd" size="10146" analyzed="false"/>
+    <entry path="template/NAM_A2_Template Project/Samples/Recorded/Clean [[chain.clean]] 0005 [2026-07-12 164728].wav" size="576080" analyzed="false"/>
+    <entry path="template/NAM_A2_Template Project/Samples/Recorded/Clean [[chain.clean]] 0005 [2026-07-12 164728].wav.asd" size="10094" analyzed="false"/>
+    <entry path="template/NAM_A2_Template Project/Samples/Recorded/Clean [[chain.clean]] 0006 [2026-07-12 164804].wav" size="864080" analyzed="false"/>
+    <entry path="template/NAM_A2_Template Project/Samples/Recorded/Clean [[chain.clean]] 0006 [2026-07-12 164804].wav.asd" size="13650" analyzed="false"/>
+    <entry path="template/NAM_A2_Template Project/Samples/Recorded/Clean [[chain.clean]] 0007 [2026-07-12 172930].wav" size="864080" analyzed="false"/>
+    <entry path="template/NAM_A2_Template Project/Samples/Recorded/Clean [[chain.clean]] 0007 [2026-07-12 172930].wav.asd" size="13770" analyzed="false"/>
+    <entry path="template/NAM_A2_Template Project/Samples/Recorded/Clean [[chain.clean]] 0008 [2026-07-12 200325].wav" size="576080" analyzed="false"/>
+    <entry path="template/NAM_A2_Template Project/Samples/Recorded/Clean [[chain.clean]] 0008 [2026-07-12 200325].wav.asd" size="10198" analyzed="false"/>
+    <entry path="template/NAM_A2_Template Project/Samples/Recorded/Clean [[chain.clean]] 0009 [2026-07-12 200356].wav" size="864080" analyzed="false"/>
+    <entry path="template/NAM_A2_Template Project/Samples/Recorded/Clean [[chain.clean]] 0009 [2026-07-12 200356].wav.asd" size="13322" analyzed="false"/>
+    <entry path="template/NAM_A2_Template Project/Samples/Recorded/Clean [[chain.clean]] 0010 [2026-07-12 200446].wav" size="576080" analyzed="false"/>
+    <entry path="template/NAM_A2_Template Project/Samples/Recorded/Clean [[chain.clean]] 0010 [2026-07-12 200446].wav.asd" size="10358" analyzed="false"/>
+    <entry path="template/NAM_A2_Template Project/Samples/Recorded/Clean [[chain.clean]] 0011 [2026-07-12 204201].wav" size="288080" analyzed="false"/>
+    <entry path="template/NAM_A2_Template Project/Samples/Recorded/Clean [[chain.clean]] 0011 [2026-07-12 204201].wav.asd" size="6858" analyzed="false"/>
+    <entry path="template/NAM_A2_Template Project/Samples/Recorded/Clean [[chain.clean]] 0012 [2026-07-12 220630].wav" size="288080" analyzed="false"/>
+    <entry path="template/NAM_A2_Template Project/Samples/Recorded/Clean [[chain.clean]] 0012 [2026-07-12 220630].wav.asd" size="6854" analyzed="false"/>
+    <entry path="template/NAM_A2_Template Project/Samples/Recorded/Clean [[chain.clean]] 0013 [2026-07-12 220650].wav" size="1440080" analyzed="false"/>
+    <entry path="template/NAM_A2_Template Project/Samples/Recorded/Clean [[chain.clean]] 0013 [2026-07-12 220650].wav.asd" size="20198" analyzed="false"/>
     <entry path="template/NAM_A2_Template Project/Samples/Recorded/Crunch [[chain.crunch]] 0001 [2026-07-12 104048].wav" size="576080" analyzed="false"/>
     <entry path="template/NAM_A2_Template Project/Samples/Recorded/Crunch [[chain.crunch]] 0001 [2026-07-12 104048].wav.asd" size="10362" analyzed="false"/>
-    <entry path="template/NAM_A2_Template Project/Samples/Recorded/Crunch [[chain.crunch]] 0002 [2026-07-12 104050].wav" size="0" analyzed="false"/>
+    <entry path="template/NAM_A2_Template Project/Samples/Recorded/Crunch [[chain.crunch]] 0002 [2026-07-12 172659].wav" size="576080" analyzed="false"/>
+    <entry path="template/NAM_A2_Template Project/Samples/Recorded/Crunch [[chain.crunch]] 0002 [2026-07-12 172659].wav.asd" size="10122" analyzed="false"/>
+    <entry path="template/NAM_A2_Template Project/Samples/Recorded/Shimmer [[chain.shimmer]] 0001 [2026-07-12 172852].wav" size="288080" analyzed="false"/>
+    <entry path="template/NAM_A2_Template Project/Samples/Recorded/Shimmer [[chain.shimmer]] 0001 [2026-07-12 172852].wav.asd" size="6694" analyzed="false"/>
     <entry path="tsconfig.json" size="559" analyzed="true"/>
   </directory>
   <architecture>
-    <overview>NAM A2 is a modular, contract-driven system for controlling a Neural Amp Modeler (NAM) via Ableton Live. The architecture consists of a Node.js hub that mediates between a tablet UI (plain JavaScript, WebSocket), a Max for Live looper/amp device (JavaScript, Max objects), a Python AbletonOSC extension, and a C++ audio sidecar. All inter-component communication is governed by frozen wire-format contracts (binary and JSON) defined in TypeScript and JSON Schema. The system emphasizes idempotent commands, confirmed-echo lifecycle, and state mirroring for robust real-time control.</overview>
-    <tech_stack languages="TypeScript, JavaScript, Python, C++" frameworks="AbletonOSC, Node.js HTTP/WebSocket" libraries="AbletonOSC, LiveAPI, Link Audio"/>
+    <overview>The NAM A2 system is a distributed audio control system consisting of a hub (Node.js) that bridges a tablet UI (plain JS/HTML) to an Ableton Live backend via OSC, with Max for Live devices (js) providing audio processing (neural amp modeling) and looper functionality. The system uses frozen wire contracts (JSON and binary) to enforce protocol stability between components. The hub manages a resolver to map stable IDs to Live indices, a mirror store for state synchronization, and a command lifecycle with retry and quantization. A C++ sidecar streams audio via Ableton Link. The architecture emphasizes absolute, idempotent commands and event-driven state updates.</overview>
+    <tech_stack languages="TypeScript, Python, JavaScript, C++, HTML" frameworks="AbletonOSC, Node.js (http/ws), Max for Live (js)" libraries="Ableton Link (C++), WebRTC (RTCAudioSource), Tone3000 API (OAuth + PKCE), js2max (Max code gen), AbletonOSC (Python)"/>
     <entry_points>
       <file>hub/src/rig/server.ts</file>
-      <file>hub/src/sim/server.ts</file>
-      <file>tablet/index.html</file>
-      <file>harnesses/src/template-scan.ts</file>
+      <file>tablet/app.js</file>
+      <file>sidecar/main.cpp</file>
       <file>devgen/tone3000_bridge.py</file>
     </entry_points>
     <layer name="presentation">
-      <file>tablet/index.html</file>
       <file>tablet/app.js</file>
-      <file>devgen/amp.js</file>
-      <file>devgen/looper.js</file>
+      <file>tablet/index.html</file>
     </layer>
     <layer name="business_logic">
-      <file>hub/src/lifecycle/lifecycle.ts</file>
-      <file>hub/src/resolver/resolver.ts</file>
-      <file>hub/src/mirror/mirror.ts</file>
-      <file>hub/src/codec/spectral-codec.ts</file>
-      <file>hub/src/codec/audio-codec.ts</file>
-      <file>hub/src/math/bands.ts</file>
-      <file>hub/src/math/movement.ts</file>
-      <file>hub/src/sim/fake-live.ts</file>
       <file>hub/src/rig/server.ts</file>
+      <file>hub/src/lifecycle/lifecycle.ts</file>
+      <file>hub/src/mirror/mirror.ts</file>
+      <file>hub/src/resolver/resolver.ts</file>
       <file>engine/extension.py</file>
+      <file>devgen/amp.js</file>
+      <file>devgen/looper.js</file>
+      <file>spikes/tone3000/src/client.ts</file>
+      <file>sidecar/main.cpp</file>
     </layer>
     <layer name="data_access">
-      <file>contracts/types/ws.ts</file>
-      <file>contracts/types/spectral.ts</file>
       <file>contracts/types/ids.ts</file>
-      <file>contracts/types/ai-tools.ts</file>
-      <file>contracts/types/audio-sidecar.ts</file>
+      <file>contracts/types/spectral.ts</file>
+      <file>contracts/types/ws.ts</file>
       <file>contracts/types/osc.ts</file>
-      <file>contracts/types/command-rule.ts</file>
       <file>contracts/types/template.ts</file>
-      <file>contracts/schemas/*</file>
+      <file>contracts/types/ai-tools.ts</file>
+      <file>contracts/types/command-rule.ts</file>
+      <file>contracts/types/audio-sidecar.ts</file>
+      <file>contracts/schemas/ai-tool-call.schema.json</file>
+      <file>contracts/schemas/ws-state.schema.json</file>
+      <file>contracts/schemas/ws-telemetry.schema.json</file>
+      <file>contracts/schemas/spectral-frame.descriptor.json</file>
+      <file>contracts/schemas/audio-sidecar.descriptor.json</file>
     </layer>
     <layer name="utilities">
-      <file>contracts/types/index.ts</file>
       <file>hub/src/dsp.ts</file>
+      <file>hub/src/codec/audio-codec.ts</file>
+      <file>hub/src/codec/spectral-codec.ts</file>
+      <file>hub/src/math/bands.ts</file>
+      <file>hub/src/math/movement.ts</file>
       <file>harnesses/src/osc-helper.ts</file>
+      <file>spikes/tone3000/src/pkce.ts</file>
+      <file>spikes/tone3000/src/oauth.ts</file>
+      <file>spikes/tone3000/src/headless-lan-flow.ts</file>
       <file>devgen/amxd_setnames.py</file>
       <file>devgen/amxd_wire_udpsend.py</file>
-      <file>devgen/amxd_settype.py</file>
-      <file>devgen/amxd_style_amp.py</file>
-      <file>devgen/amxd_wire_amp.py</file>
       <file>devgen/amxd_check_looper.py</file>
       <file>devgen/amxd_style_looper.py</file>
       <file>devgen/amxd_wire_looper.py</file>
-      <file>spikes/tone3000/src/pkce.ts</file>
-      <file>spikes/tone3000/src/oauth.ts</file>
+      <file>devgen/amxd_wire_amp.py</file>
+      <file>devgen/amxd_settype.py</file>
+      <file>devgen/amxd_style_amp.py</file>
+      <file>sidecar-experiment/verify-apc1.ts</file>
+      <file>sidecar-experiment/probe/nam_a2_probe.cpp</file>
     </layer>
     <layer name="configuration">
       <file>package.json</file>
       <file>tsconfig.json</file>
+      <file>models/models.json</file>
       <file>hub/package.json</file>
       <file>hub/tsconfig.json</file>
       <file>harnesses/package.json</file>
       <file>harnesses/tsconfig.json</file>
       <file>spikes/tone3000/package.json</file>
       <file>spikes/tone3000/tsconfig.json</file>
-      <file>models/models.json</file>
-      <file>sidecar/main.cpp</file>
     </layer>
     <dependency_chains>
-      <chain description="Tablet UI connects to hub via WebSocket (Contract 3). Hub receives OSC from Live engine (Contract 2) and sends down commands. Audio sidecar sends PCM over TCP (Contract 5).">
+      <chain description="Tablet → Hub WebSocket → Resolver → OSC → Engine → Live">
         <file>tablet/app.js</file>
         <file>hub/src/rig/server.ts</file>
-        <file>engine/extension.py</file>
-        <file>sidecar/main.cpp</file>
-      </chain>
-      <chain description="Command lifecycle: hub registers command, sends OSC to Live, confirms echo, retries if needed, and sends delta to tablet.">
-        <file>hub/src/lifecycle/lifecycle.ts</file>
         <file>hub/src/resolver/resolver.ts</file>
         <file>engine/extension.py</file>
-        <file>hub/src/mirror/mirror.ts</file>
+        <file>Ableton Live</file>
       </chain>
-      <chain description="AI tool calls (Contract 4) are received by hub, translated to OSC commands, and receipts returned.">
-        <file>contracts/types/ai-tools.ts</file>
-        <file>contracts/types/ai-tool-call.schema.json</file>
+      <chain description="Hub state mirroring: Server reads OSC echoes, updates MirrorStore, pushes deltas via WebSocket">
         <file>hub/src/rig/server.ts</file>
-        <file>engine/extension.py</file>
+        <file>hub/src/mirror/mirror.ts</file>
+        <file>hub/src/codec/spectral-codec.ts</file>
+      </chain>
+      <chain description="Command lifecycle: Hub receives command, registers with Lifecycle, sends OSC, matches echo, updates mirror">
+        <file>hub/src/rig/server.ts</file>
+        <file>hub/src/lifecycle/lifecycle.ts</file>
+        <file>hub/src/mirror/mirror.ts</file>
+        <file>hub/src/resolver/resolver.ts</file>
+      </chain>
+      <chain description="Max device generation: Scripts post-process js2max output to wire audio graph and set parameter names">
+        <file>devgen/amxd_wire_amp.py</file>
+        <file>devgen/amxd_setnames.py</file>
+        <file>devgen/amxd_settype.py</file>
+        <file>devgen/amxd_style_amp.py</file>
       </chain>
     </dependency_chains>
   </architecture>
@@ -255,8 +300,8 @@
     <file path="contracts/types/index.ts" category="utility" lines="33">
       <purpose>One import point for every inter-component contract. The file re-exports all named exports from ids.ts, command-rule.ts, osc.ts, ws.ts, ai-tools.ts, audio-sidecar.ts, spectral.ts, and template.ts. Adding a new contract module requires adding a re-export line. This is the source of truth for TypeScript types on the Node/TS side. The JSON schemas under contracts/schemas mirror the wire formats for other languages. This file defines no new symbols.</purpose>
     </file>
-    <file path="contracts/types/osc.ts" category="contract" lines="629">
-      <purpose>This file contains all OSC message definitions for the hub→engine (DOWN) and engine→hub (UP) communication. DOWN commands are defined as objects with address, build function, origin/tag tags, and CommandSemantics. LISTEN helpers arm property listeners. OscUpEvent is a discriminated union of all upstream events. Shared enums (LooperState, WarpMode, MonitoringState) are const objects with associated types. The looper commands (looperSetState, looperGetState) and the 'looper_state' upstream event were previously marked PROVISIONAL; now they are tagged FREEZE-NOW and their comments confirm the spike is closed (2026-07-05) and the state mapping is verified on the rig. All commands expect already-resolved Live indices. The file imports from ids.ts and command-rule.ts. Key invariants: all command semantics match Contract 8; build functions return proper OscMessage structures.</purpose>
+    <file path="contracts/types/osc.ts" category="contract" lines="635">
+      <purpose>This file contains all OSC message definitions for the hub→engine (DOWN) and engine→hub (UP) communication. DOWN commands are defined as objects with address, build function, origin/tag tags, and CommandSemantics. LISTEN helpers arm property listeners. OscUpEvent is a discriminated union of all upstream events. Shared enums (LooperState, WarpMode, MonitoringState) are const objects with associated types. The looper commands (looperSetState, looperGetState) and the 'looper_state' upstream event are tagged FREEZE-NOW; comments confirm the spike is closed (2026-07-05) and state mapping verified on the rig. A new comment on setTrackSend (2026-07-19) confirms the set/get loop works on both busses (API-REALITY RIG RESULTS 2026-07-12→19). A crucial warning was added to clipIsPlaying: per rig (2026-07-12), Live's Clip has no add_is_playing_listener, so this listener is dead — playing truth flows via trackPlayingSlot instead; the function is retained for historical reference. All commands expect already-resolved Live indices. The file imports from ids.ts and command-rule.ts. Key invariants: all command semantics match Contract 8; build functions return proper OscMessage structures.</purpose>
     </file>
     <file path="contracts/types/spectral.ts" category="contract" lines="118">
       <purpose>This file owns the seam between M4L and the hub for spectral data (Contract 6). The wire format is frozen; any change here must be coordinated with the M4L device and tablet renderer. Key invariants: binCount is exactly 256, magnitudes are normalized 0..1 in the logical view but stored as uint16 on the binary wire, the binary header is fixed at 22 bytes before the variable-length chainTag, and the magic number is 0x53504331. The conversion functions magFromU16/magToU16 are the only place where scaling between float and uint16 occurs; magToU16 clamps input to [0,1] before rounding, which is the correct behavior but a caller passing out-of-range values will not get an error. The binary layout uses little-endian byte order. The file also exports SPECTRAL constants that should be treated as immutable (as const).</purpose>
@@ -273,8 +318,8 @@
         <fn signature="templateScanIsValid()" export="true">Checks if a TemplateScan satisfies the contract to run (correct sentinel version, at least one chain tag, both returns present).</fn>
       </exports>
     </file>
-    <file path="contracts/types/ws.ts" category="contract" lines="251">
-      <purpose>This file is the sole source of truth for the hub-tablet WebSocket protocol. It defines two channels: state (reliable, versioned with monotonic rev) and telemetry (ephemeral, lossy-OK). The MirrorSnapshot interface must include all state the tablet needs to render, with stable IDs (ChainID, SceneID, Slot) rather than indices. MirrorDelta paths are keyed by stable IDs, not array positions; an unknown key triggers resync. Tablet commands are discriminated union types (TabletCommand) each carrying a 'kind' and a semantics field (a convenience mirror; the hub derives retry behavior from kind via TABLET_COMMAND_SEMANTICS table, ignoring the client-sent field). The TABLET_COMMAND_SEMANTICS table is authoritative and maps each kind to IDEMPOTENT or STATEFUL. The protocol version is frozen at WS_PROTOCOL_VERSION = 1; any breaking change must bump this. A footgun: the tablet must not hold authoritative state; it is a rendering client. The duplicate_clip_to command is STATEFUL because the hub must delete an occupied target first (Contract 2 caveat). WebRTC signaling messages (rtc_offer, rtc_answer, rtc_ice) are defined now for Phase 8 but should not be used until then.</purpose>
+    <file path="contracts/types/ws.ts" category="contract" lines="264">
+      <purpose>This file is the sole source of truth for the hub-tablet WebSocket protocol. It defines two channels: state (reliable, versioned with monotonic rev) and telemetry (ephemeral, lossy-OK). The MirrorSnapshot interface must include all state the tablet needs to render, with stable IDs (ChainID, SceneID, Slot) rather than indices. MirrorDelta paths are keyed by stable IDs, not array positions; an unknown key triggers resync. Tablet commands are discriminated union types (TabletCommand) each carrying a 'kind' and a semantics field (a convenience mirror; the hub derives retry behavior from kind via TABLET_COMMAND_SEMANTICS table, ignoring the client-sent field). The TABLET_COMMAND_SEMANTICS table is authoritative and maps each kind to IDEMPOTENT or STATEFUL. The protocol version is frozen at WS_PROTOCOL_VERSION = 1; any breaking change must bump this. A footgun: the tablet must not hold authoritative state; it is a rendering client. The duplicate_clip_to command is STATEFUL because the hub must delete an occupied target first (Contract 2 caveat). WebRTC signaling messages (rtc_offer, rtc_answer, rtc_ice) are defined now for Phase 8 but should not be used until then. Two new commands added: 'stand_down' (absolute 'this chain is NOT live', the inverse of go_live, added 2026-07-19) and 'set_playing' (absolute transport play state, added 2026-07-12, Phase 3). Both are IDEMPOTENT. The tablet must never send a toggle; it reads mirror truth and sends absolute commands.</purpose>
     </file>
     <file path="devgen/amp.js" category="component" lines="885">
       <purpose>This file is the core Max device script. It exports pure functions for Node tests and also contains Max-specific glue. The load state machine is debounced (150ms) to prevent rapid-load crashes. It observes Model, Rescan, Quality parameters via LiveAPI and sets Load OK via a deferred Task (LiveAPI.set forbidden inside notifications). Load truth is observed from neural~ info messages ('loaded'→1, 'error'→0). ReloadManifest bootstraps an empty manifest if none exists. The file also implements a three-level hierarchy (gear/pack/tone) for UI menus, drop-and-Reload adoption of .nam files, duct/unduct crossfade ramp, DI/bypass mode with dry path, and failure coherence reverting to last good model. File uses conditional checks for Max globals. The MODELS_DIR and QUALITY_MSG are tunables. Key footguns: calling LiveAPI.set inside a notification will throw; all menu updates from observer context are deferred via Tasks; setting Model to its current value may not fire observer (special handling in _flushModelSet). The Node export hook exports pure functions for testing.</purpose>
@@ -721,17 +766,17 @@
         <fn signature="assignRoles()" export="false">Assigns device roles for a chain entry by matching name hints and filling inline_fx and open roles.</fn>
       </exports>
     </file>
-    <file path="hub/src/rig/server.ts" category="service" lines="604">
-      <purpose>This file is the core server for the rig. It imports prebuilt modules (MirrorStore, Resolver, CommandLifecycle) and wires them together. Boot sequence: forge engine ping, sentinel check (exits if missing), scan tracks/devices, rebuild Resolver snapshot, build MirrorStore via live reads. It uses an Osc class with ask/tryAsk (tryAsk returns null on timeout, used for resilience). It listens on HTTP (default 8420) and WebSocket for tablet connections. The CommandLifecycle is fed with timeouts (LOOPER_WINDOW_MS, CONFIRM_GET_DELAY_MS). Key invariants: sentinel must match SENTINEL.version or process.exit(1); boot retries engine ping forever; all live reads use observed values, not assumptions; confirmed-echo pattern uses immediate send + delayed GET readback for verification; lifecycle tick every 50ms. Non-obvious behavior: return tracks are not read at boot (invisible to track_names) – sendA/B defaults to 0 and not read; looper layers/speed are provisional (set to 0/1); duplicate_clip_to is pass-through (no occupied-target policy yet). Footguns: CONFIRM_GET_DELAY_MS=120ms is based on harness findings – too short may cause false failures; OSC port 11001 used exclusively (harnesses cannot run simultaneously); the file does not export anything; main() called at module scope; it reads TABLET_DIR relative to import.meta.url (assumes tablet/ sibling directory). It has side effects: starts HTTP server, binds OSC client, sets up interval, calls main(). Also note: the global live snapshot is stored in variable 'live' which is captured in buildMirror closure and used in refresh – after boot it is not updated (tracks are fixed); only mirror data changes via readbacks.</purpose>
+    <file path="hub/src/rig/server.ts" category="service" lines="958">
+      <purpose>This file is the core server for the rig. It imports prebuilt modules (MirrorStore, Resolver, CommandLifecycle) and wires them together. Boot sequence: forge engine ping, sentinel check (exits if missing), scan tracks/devices, rebuild Resolver snapshot, build MirrorSnapshot via live reads. New additions: `ARM_SETTLE_MS` constant (60ms) for arm promotion timing; `physicalInputName()` closure inside `buildMirror` maps observed input routing display names (e.g., 'In 1', '3/4') to Contract-7 physical input names ('guitar', 'mic', 'synth') using `DEFAULT_INPUTS`; `buildMirror` now probes `/live/track/get/send` for send A and B values (records observed or 0 on no-answer), reads monitoring state, and logs input routing details. In `main()`, after resolver rebuild, a RETURNS PROBE block probes `/live/song/get/num_tracks`, `/live/song/get/return_track_names`, and `/live/track/get/name` past the last regular track to discover return track indices. Additional listeners are subscribed per chain: `fired_slot_index`, and per cell: `has_clip`, `is_recording`. The `onMessage` handler now processes `fired_slot_index`, `has_clip`, `is_recording`, and `is_playing` messages, updating the mirror accordingly. When `is_recording` transitions to false, it triggers reads of clip name and length for final identity. Uses `Osc` class with `ask`/`tryAsk` (tryAsk returns null on timeout). Key invariants: sentinel must match `SENTINEL.version` or process.exit(1); boot retries engine ping forever; all live reads use observed values. Non-obvious behavior: return tracks are not read at boot (only probed for discovery); `sendA01`/`sendB01` are now observed rather than defaulting to 0; `fired_slot_index` is lifecycle echo only (not stored in mirror); empty clip slots may error on `start_listen/is_recording` but are harmless. Footguns: `CONFIRM_GET_DELAY_MS=120ms` based on harness findings; OSC port 11001 exclusive; `ARM_SETTLE_MS` not yet used but defined for future arm promotion timing; the file does not export anything; `main()` called at module scope; it reads `TABLET_DIR` relative to `import.meta.url`.</purpose>
       <exports>
         <fn signature="log()" export="false">Logs a message prefixed with '[rig]'.</fn>
         <fn signature="bootScan()" export="false">Pings engine, checks sentinel, scans tracks/devices, returns LiveSnapshot and track names.</fn>
-        <fn signature="buildMirror()" export="false">Reads live state via OSC to build a full MirrorSnapshot for the resolver's chain set.</fn>
-        <fn signature="main()" export="false">Main entry point: binds OSC, boot scans, builds mirror, sets up WebSocket server and command lifecycle.</fn>
+        <fn signature="buildMirror()" export="false">Reads live state via OSC to build a full MirrorSnapshot for the resolver's chain set, now including sends, monitoring state, and input routing name mapping.</fn>
+        <fn signature="main()" export="false">Main entry point: binds OSC, boot scans, builds mirror, adds probes for returns and sends, subscribes to clip-level listeners, sets up WebSocket server and command lifecycle.</fn>
       </exports>
     </file>
-    <file path="hub/src/sim/fake-live.ts" category="simulation" lines="318">
-      <purpose>FakeLive uses MirrorStore to hold state. It creates real setInterval timers for beatTick (50ms) and spectraTick (1/SPECTRAL.fps) when start() is called. handleCommand processes all TabletCommand kinds with delayed confirmation (quantization for fire_clip/launch_scene) and optional failure injection (failRate). Implements ARM_POLICY (one live chain per physical input), looper guard (stops playing clips on Record/Overdub), and duplicate_clip_to empty-target policy. Uses setTimeout for delayed actions. Must call stop() to clear timers/timeouts. Synthetic spectra are generated as Gaussian peaks with noise when chain is audible. Footgun: Uses real timers; tests must clean up. QUANT_BEATS lookup is provisional.</purpose>
+    <file path="hub/src/sim/fake-live.ts" category="simulation" lines="325">
+      <purpose>FakeLive uses MirrorStore to hold state. It creates real setInterval timers for beatTick (50ms) and spectraTick (1/SPECTRAL.fps) when start() is called. handleCommand processes all TabletCommand kinds with delayed confirmation (quantization for fire_clip/launch_scene) and optional failure injection (failRate). Implements ARM_POLICY (one live chain per physical input), looper guard (stops playing clips on Record/Overdub), and duplicate_clip_to empty-target policy. Uses setTimeout for delayed actions. Must call stop() to clear timers/timeouts. Synthetic spectra are generated as Gaussian peaks with noise when chain is audible. Footgun: Uses real timers; tests must clean up. QUANT_BEATS lookup is provisional. Two new commands added: 'stand_down' (absolute inverse of go_live, sets live and armed false) and 'set_playing' (Phase 3 transport, sets isPlaying to given value).</purpose>
       <exports>
         <fn signature="makeCell()" export="false">Create a CellMirror with given slot, hasClip, and name</fn>
         <fn signature="initialSnapshot()" export="false">Build initial MirrorSnapshot with chains, cells, devices, scenes</fn>
@@ -820,28 +865,31 @@
     <file path="spikes/tone3000/tsconfig.json" category="configuration" lines="16">
       <purpose>The config sets `moduleResolution` to `Bundler` (for use with tsx), allows importing `.ts` extensions, includes Node types, and skips lib check for speed. `noEmit` is true because `tsx` runs the code directly. The `lib` includes both ES2022 and DOM (though DOM may not be needed). There are no side effects or runtime behavior.</purpose>
     </file>
-    <file path="tablet/app.js" category="application" lines="285">
-      <purpose>This file is the entire client-side application, loaded as a script in index.html. It uses global state (snap, rev, ws, pendingByCmd Map) and builds DOM entirely from a snapshot. Key invariants: snap must be non-null before buildDom/render is called; rev must increment by exactly 1 for deltas, else resync is triggered. Optimistic hints are cleared on (re)connect. The band math (makeBandMap, collapse) is hand-mirrored from TypeScript reference modules—if those change, this must be updated. Timing: pulseBeat uses short timeout; queued countdown uses setInterval. The toast function uses setTimeout to auto-hide. The WebSocket reconnection loop runs indefinitely on close. DOM events are attached via onclick (no addEventListener abstractions). All commands use absolute target values; no relative nudges.</purpose>
+    <file path="tablet/app.js" category="application" lines="391">
+      <purpose>This file is the entire client-side application, loaded as a script in index.html. It uses global state (snap, rev, ws, pendingByCmd Map, dupMode, dupFrom) and builds DOM entirely from a snapshot. Recent additions: throttleSend() reduces command burst rate for continuous controls (80ms throttle); head.onclick now toggles between go_live and stand_down based on currentChain().live; cell.onclick checks dupMode to delegate to cellTapDup() and handles recording cells (fire_clip always). The loop button (↻) now supports a hold gesture (500ms pointer-down) to send looper_state(0) (Stop) and a tap cycle via pedal-style state machine (0→2→1→3→1). Sends row adds two sliders for reverb/delay sends using throttleSend. Transport buttons (▶⏹) set playing=true/false absolutely. Dup mode: toggling '#dup' enters cell tap mode for duplicate_clip_to; exitDup() cleans up. render() now updates send slider values (unless focused), play/stop button 'on' classes, and loop button inner text/glyph based on looper State value. Invariants: snap must be non-null before buildDom/render; rev must increment by exactly 1 for deltas; dupMode guards against interference with cell taps; hold gesture sets held flag to suppress the click. Timing: throttleSend uses setTimeout for trailing edge; pulseBeat and toast use setTimeout; looper hold uses setTimeout. WebSocket reconnection loop runs indefinitely on close. DOM events are attached via onclick/onpointerdown/onpointerup. All commands use absolute target values.</purpose>
       <exports>
         <fn signature="applyPath()" export="false">Applies a path-value change to the snapshot object, throwing on unknown paths.</fn>
         <fn signature="makeBandMap()" export="false">Generates a mapping of frequency bands (0-47) to bin ranges for spectral collapse.</fn>
         <fn signature="collapse()" export="false">Averages magnitudes across each band range to produce per-band levels.</fn>
-        <fn signature="sendCommand()" export="false">Sends a command over WebSocket with an optimistic hint tracking entry.</fn>
-        <fn signature="onCommandStatus()" export="false">Handles command status messages to update UI (intent, queued, confirmed, failed).</fn>
-        <fn signature="connect()" export="false">Opens WebSocket connection and sets up event handlers for state/telemetry messages.</fn>
+        <fn signature="throttleSend()" export="false">Returns a throttled version of the given function that ensures at most one call per ms milliseconds and guarantees the trailing call.</fn>
+        <fn signature="sendCommand()" export="false">Sends a command over WebSocket with an optimistic hint tracking entry, using command sequence and absolute semantics.</fn>
+        <fn signature="onCommandStatus()" export="false">Handles command status messages to update UI (intent, queued, confirmed, failed) and clears pending hints.</fn>
+        <fn signature="connect()" export="false">Opens WebSocket connection and sets up event handlers for state/telemetry messages, with auto-reconnect on close.</fn>
         <fn signature="send()" export="false">Serializes and sends a JSON message over the WebSocket.</fn>
         <fn signature="resync()" export="false">Sends a resync request to the hub when a delta revision mismatch occurs.</fn>
-        <fn signature="setConn()" export="false">Updates the connection indicator element text and class.</fn>
-        <fn signature="buildDom()" export="false">Builds the entire DOM structure for chains and scenes from the snapshot.</fn>
+        <fn signature="setConn()" export="false">Updates the connection indicator element text and class based on connection status.</fn>
+        <fn signature="buildDom()" export="false">Builds the entire DOM structure for chains, scenes, sends, and transport from the snapshot, attaching event handlers.</fn>
         <fn signature="currentChain()" export="false">Returns the chain object from snap by ID.</fn>
-        <fn signature="render()" export="false">Updates DOM elements to reflect the current snapshot state (mute, volume, clips, etc.).</fn>
+        <fn signature="render()" export="false">Updates DOM elements to reflect current snapshot state (volume, mute, clips, looper, sends, transport, loop button glyph).</fn>
         <fn signature="drawSpectrum()" export="false">Draws a 48-band spectrum visualizer on a canvas with peak hold decay.</fn>
         <fn signature="pulseBeat()" export="false">Triggers a brief beat lamp animation by toggling class and setting a timeout.</fn>
         <fn signature="toast()" export="false">Shows a temporary toast notification for a few seconds.</fn>
+        <fn signature="exitDup()" export="false">Exits duplicate mode, removes highlighting from source cell, and toggles off the dup button.</fn>
+        <fn signature="cellTapDup()" export="false">Handles cell tap during dup mode: picks source (must have clip) or sends duplicate_clip_to command.</fn>
       </exports>
     </file>
-    <file path="tablet/index.html" category="markup" lines="133">
-      <purpose>Static page that loads app.js. Contains a top bar with beat lamp, tempo readout, metronome button, revision display, and connection status. The main content is a div#chains (populated by app.js) and a sticky scenes bar. A toast div is positioned fixed at bottom. All styling is inline in a &lt;style&gt; block, using CSS custom properties for color theming. The page assumes app.js will build all inner elements. No other JavaScript dependencies.</purpose>
+    <file path="tablet/index.html" category="markup" lines="152">
+      <purpose>Static page that loads app.js. Contains a top bar with beat lamp, tempo readout, metronome button, revision display, and connection status. Newly added transport buttons (play, stop) and a duplicate (Dup) button. Main content is a div#chains (populated by app.js) and a sticky scenes bar. CSS additions include styles for .intent (opacity), .failed (shake animation), .dupsrc (dashed outline), enhanced .loopbtn states (.st1,.st2,.st3), sends/sendctl sliders, and grid column widths adjusted from 190px to 240px for right strip. A toast div is positioned fixed at bottom. All styling is inline in a &lt;style&gt; block, using CSS custom properties for color theming. The page assumes app.js will build all inner elements. No other JavaScript dependencies.</purpose>
     </file>
     <file path="tsconfig.json" category="config" lines="25">
       <purpose>Compiles files under contracts/types/**/*.ts. Uses 'noEmit' (type-check only) and allows importing .ts extensions. Strict mode enabled with noUnusedLocals, noUnusedParameters, noImplicitReturns, noFallthroughCasesInSwitch. Declares 'DOM' lib for potential web-related types. Module resolution is Bundler for ESM compatibility.</purpose>
