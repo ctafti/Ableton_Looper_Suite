@@ -311,12 +311,23 @@ function render() {
 }
 
 // ---------- spectra + beat -----------------------------------------------------
+// Display mapping (Phase 4 rig finding 2026-07-21): the WIRE is linear-honest
+// (full-scale sine ~= 1.0), but real DI guitar through the chain peaks around
+// 0.05 — invisible on a linear scale. Map linear magnitude to dB for DISPLAY
+// only: -60 dB .. 0 dB onto 0..1 bar height. Telemetry stays untouched.
+const DB_FLOOR = -60;
+function magToDb01(m) {
+  if (m <= 0.001) return 0;                       // at/below the floor
+  const db = 20 * Math.log10(m);                  // 0.001 -> -60, 1.0 -> 0
+  return Math.max(0, Math.min(1, (db - DB_FLOOR) / -DB_FLOOR));
+}
+
 function drawSpectrum(frame) {
   const chainId = tagToChain.get(frame.chainTag);
   const els = chainId && chainEls.get(chainId);
   if (!els) return;
   const chain = currentChain(chainId);
-  const bands = collapse(frame.magnitudes);
+  const bands = collapse(frame.magnitudes).map(magToDb01);
   const now = frame.tMs;
   const dt = els.lastT ? Math.min(0.2, (now - els.lastT) / 1000) : 0;
   els.lastT = now;
