@@ -106,6 +106,16 @@ export const SPECTRAL_BINARY = {
   bytesPerBin: 2,              // uint16
 } as const;
 
+/**
+ * UDP port the HUB BINDS for the hot M4L->hub SPC1 hop (all chains' devices
+ * send to this one socket; the in-datagram chainTag tells frames apart).
+ * ADDED 2026-07-21 (CHANGELOG'd): the byte format above was frozen from day
+ * one but the hop's ADDRESS never was — 11000/11001 are the engine's OSC
+ * ports (Contract 2 OSC_PORTS) and 11002 is the looper's command-in, so the
+ * spectral hop takes the next port. Additive constant; no wire-format change.
+ */
+export const SPECTRAL_UDP_PORT = 11003;
+
 /** Decode a normalized magnitude (0..1) from its uint16 wire value. */
 export function magFromU16(v: number): number {
   return v / SPECTRAL.magScaleMax;
