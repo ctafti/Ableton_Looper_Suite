@@ -34,7 +34,11 @@
  */
 import { createServer } from 'node:http';
 import { readFileSync, existsSync } from 'node:fs';
+import dgram from 'node:dgram';
 import { WebSocketServer, type WebSocket } from 'ws';
+
+import { decodeSpectralFrame } from '../codec/spectral-codec.ts';
+import { SPECTRAL_UDP_PORT } from '../../../contracts/types/spectral.ts';
 
 import { MirrorStore } from '../mirror/mirror.ts';
 import { Resolver, type LiveSnapshot, type LiveTrackInfo } from '../resolver/resolver.ts';
@@ -825,11 +829,41 @@ async function main() {
         if (scene === undefined) return fail('unknown scene');
         const msg = DOWN.fireScene.build(scene);
         const q = QUANT_BEATS[store.snapshot.globalQuantization] ?? 4;
+        // FINDING 2026-07-21 (scene-launch re-verify): a scene fire triggers
+        // EVERY slot in its column, and an EMPTY slot acts as that track's
+        // stop button — observed: playing chains with no clip in the fired
+        // column echo playing_slot = -2. The old predicate only accepted
+        // playing_slot === scene, so an empty-column launch "failed" (and
+        // blind-resent the fire) while reality succeeded. Fix: predict the
+        // outcome per chain from mirror truth; any chain reaching its
+        // predicted state confirms. Chains that will not change (idle with an
+        // empty column, or already playing the fired column) are excluded —
+        // change-only listeners stay silent for them.
+        const predicted = new Map<number, number>(); // track -> expected playing_slot
+        for (const ch of store.snapshot.chains) {
+          const trk = resolver.resolveChain(ch.id);
+          if (trk === undefined) continue;
+          const hasClipInCol = ch.cells.some((cl) => (cl.slot as number) === (scene as number) && cl.hasClip);
+          const playingSlot = ch.cells.find((cl) => cl.playing)?.slot as number | undefined;
+          if (hasClipInCol && playingSlot !== (scene as number)) predicted.set(trk as number, scene as number);
+          else if (!hasClipInCol && playingSlot !== undefined) predicted.set(trk as number, -2);
+        }
+        if (predicted.size === 0) {
+          // No observable change is coming; mirror truth already matches the
+          // outcome. Send once (re-firing a scene is Live's native retrigger)
+          // and confirm on mirror truth — never wait for an echo that cannot
+          // arrive, and never blind-resend a fire.
+          osc.client.send(msg.address, msg.args);
+          log(`launch_scene ${scene}: no observable change predicted — confirmed on mirror truth`);
+          status(cmd.commandId, 'confirmed');
+          return;
+        }
         return confirmed({
           targetKey: `scene`,
           sendMsgs: [msg as { address: string; args: (number | string)[] }],
-          // any chain reporting the fired slot as playing confirms the launch
-          expect: (m) => m.address === '/live/track/get/playing_slot_index' && Number(m.args[1]) === (scene as number),
+          // any chain reaching its PREDICTED outcome confirms the launch
+          expect: (m) => m.address === '/live/track/get/playing_slot_index' &&
+            predicted.get(Number(m.args[0])) === Number(m.args[1]),
           windowMs: quantWindowMs(positionBeats(), q, store.snapshot.tempoBpm),
           queuedForMs: Math.round(msToNextBoundary(positionBeats(), q, store.snapshot.tempoBpm)),
         });
@@ -920,6 +954,34 @@ async function main() {
     res.writeHead(200, { 'content-type': MIME[ext] ?? 'application/octet-stream', 'cache-control': 'no-store' });
     res.end(readFileSync(file));
   });
+  // --- SPECTRAL RELAY (Phase 4, Contract 6) --------------------------------
+  // Every chain's NAM_A2_Spectral device sends raw SPC1 datagrams to this one
+  // socket; the in-datagram chainTag tells frames apart. The hub's job is
+  // decode-validate + fan out on the telemetry channel — the SAME message
+  // shape the sim emits, so the tablet renderer is transport-agnostic.
+  // Drop-stale stays the TABLET's job per contract (seq in the payload);
+  // telemetry is lossy-OK, so decode failures are counted, not fatal.
+  const spectralSock = dgram.createSocket('udp4');
+  const spectraSeen = new Set<string>();
+  let spectralBad = 0;
+  spectralSock.on('message', (buf) => {
+    let frame;
+    try {
+      frame = decodeSpectralFrame(buf);
+    } catch (e) {
+      spectralBad++;
+      if (spectralBad === 1 || spectralBad % 100 === 0) log(`spectral: ${spectralBad} undecodable datagram(s) — latest: ${(e as Error).message}`);
+      return;
+    }
+    if (!spectraSeen.has(frame.chainTag)) {
+      spectraSeen.add(frame.chainTag);
+      log(`spectral: first frame from "${frame.chainTag}" (seq ${frame.seq}, ${buf.length} bytes)`);
+    }
+    broadcast({ channel: 'telemetry', type: 'spectra', payload: frame });
+  });
+  spectralSock.on('error', (e) => log(`spectral: socket error: ${e.message}`));
+  spectralSock.bind(SPECTRAL_UDP_PORT, '127.0.0.1', () => log(`spectral relay bound (udp ${SPECTRAL_UDP_PORT})`));
+
   const wss = new WebSocketServer({ server: http });
   wss.on('connection', (ws) => {
     sockets.add(ws);
