@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<codebase generated="2026-07-20T21:49:55" files="77" provider="DeepSeek">
-  <directory total="156" analyzed="77">
+<codebase generated="2026-07-21T22:38:37" files="86" provider="DeepSeek">
+  <directory total="184" analyzed="86">
     <entry path="FIRST-MAC-SESSION.md" size="16552" analyzed="false"/>
     <entry path="README.md" size="10748" analyzed="false"/>
-    <entry path="contracts/CONTRACTS.md" size="15553" analyzed="false"/>
+    <entry path="contracts/CONTRACTS.md" size="17477" analyzed="false"/>
     <entry path="contracts/schemas/ai-tool-call.schema.json" size="2410" analyzed="true"/>
     <entry path="contracts/schemas/audio-sidecar.descriptor.json" size="2311" analyzed="true"/>
     <entry path="contracts/schemas/spectral-frame.descriptor.json" size="1722" analyzed="true"/>
@@ -15,27 +15,33 @@
     <entry path="contracts/types/ids.ts" size="9027" analyzed="true"/>
     <entry path="contracts/types/index.ts" size="1632" analyzed="true"/>
     <entry path="contracts/types/osc.ts" size="32087" analyzed="true"/>
-    <entry path="contracts/types/spectral.ts" size="5368" analyzed="true"/>
-    <entry path="contracts/types/template.ts" size="14821" analyzed="true"/>
+    <entry path="contracts/types/spectral.ts" size="5877" analyzed="true"/>
+    <entry path="contracts/types/template.ts" size="15036" analyzed="true"/>
     <entry path="contracts/types/ws.ts" size="14253" analyzed="true"/>
     <entry path="devgen/NAM_A2_Amp.amxd" size="56800" analyzed="false"/>
     <entry path="devgen/NAM_A2_Amp.prewire.amxd" size="25684" analyzed="false"/>
     <entry path="devgen/NAM_A2_Amp.wired1.amxd" size="27976" analyzed="false"/>
     <entry path="devgen/NAM_A2_Looper.amxd" size="51795" analyzed="false"/>
+    <entry path="devgen/NAM_A2_Spectral.amxd" size="18422" analyzed="false"/>
     <entry path="devgen/amp.amxd" size="50542" analyzed="false"/>
     <entry path="devgen/amp.js" size="38839" analyzed="true"/>
     <entry path="devgen/amxd_check_looper.py" size="11136" analyzed="true"/>
+    <entry path="devgen/amxd_check_spectral.py" size="7262" analyzed="true"/>
     <entry path="devgen/amxd_setnames.py" size="5432" analyzed="true"/>
     <entry path="devgen/amxd_settype.py" size="3676" analyzed="true"/>
     <entry path="devgen/amxd_style_amp.py" size="10809" analyzed="true"/>
     <entry path="devgen/amxd_style_looper.py" size="9224" analyzed="true"/>
     <entry path="devgen/amxd_wire_amp.py" size="9681" analyzed="true"/>
     <entry path="devgen/amxd_wire_looper.py" size="18434" analyzed="true"/>
+    <entry path="devgen/amxd_wire_spectral.py" size="9628" analyzed="true"/>
     <entry path="devgen/amxd_wire_udpsend.py" size="5724" analyzed="true"/>
     <entry path="devgen/build_looper.sh" size="1426" analyzed="false"/>
+    <entry path="devgen/build_spectral.sh" size="1832" analyzed="false"/>
     <entry path="devgen/looper.amxd" size="32237" analyzed="false"/>
     <entry path="devgen/looper.js" size="25029" analyzed="true"/>
     <entry path="devgen/reference/NAM_A2_Looper.v1.amxd" size="11918" analyzed="false"/>
+    <entry path="devgen/spectral-sender.cjs" size="6104" analyzed="true"/>
+    <entry path="devgen/spectral.js" size="10558" analyzed="true"/>
     <entry path="devgen/tone3000_bridge.py" size="19860" analyzed="true"/>
     <entry path="engine/README.md" size="3634" analyzed="false"/>
     <entry path="engine/extension.py" size="21752" analyzed="true"/>
@@ -44,12 +50,15 @@
     <entry path="harnesses/README.md" size="3009" analyzed="false"/>
     <entry path="harnesses/package-lock.json" size="246" analyzed="false"/>
     <entry path="harnesses/package.json" size="701" analyzed="true"/>
+    <entry path="harnesses/spectral-sender.js" size="5367" analyzed="true"/>
+    <entry path="harnesses/spectral.js" size="8519" analyzed="true"/>
     <entry path="harnesses/src/01-osc-latency.ts" size="3231" analyzed="true"/>
     <entry path="harnesses/src/02-load-item-verify.ts" size="4317" analyzed="true"/>
     <entry path="harnesses/src/03-insert-step-automation.ts" size="6640" analyzed="true"/>
     <entry path="harnesses/src/04-instrumented.ts" size="3565" analyzed="true"/>
     <entry path="harnesses/src/04-looper-state-roundtrip.ts" size="5754" analyzed="true"/>
     <entry path="harnesses/src/05-confirmed-echo-pinger.ts" size="3811" analyzed="true"/>
+    <entry path="harnesses/src/05-spectral-bench.ts" size="5869" analyzed="true"/>
     <entry path="harnesses/src/amp-core.test.mjs" size="9755" analyzed="true"/>
     <entry path="harnesses/src/device-params.ts" size="2563" analyzed="true"/>
     <entry path="harnesses/src/engine-hello.ts" size="1752" analyzed="true"/>
@@ -75,14 +84,14 @@
     <entry path="hub/src/math/movement.ts" size="2436" analyzed="true"/>
     <entry path="hub/src/mirror/mirror.ts" size="5618" analyzed="true"/>
     <entry path="hub/src/resolver/resolver.ts" size="7379" analyzed="true"/>
-    <entry path="hub/src/rig/server.ts" size="51344" analyzed="true"/>
+    <entry path="hub/src/rig/server.ts" size="54907" analyzed="true"/>
     <entry path="hub/src/sim/fake-live.ts" size="15170" analyzed="true"/>
     <entry path="hub/src/sim/server.ts" size="3262" analyzed="true"/>
     <entry path="hub/test/codec.test.ts" size="4645" analyzed="true"/>
     <entry path="hub/test/core.test.ts" size="10433" analyzed="true"/>
     <entry path="hub/test/sim.test.ts" size="6890" analyzed="true"/>
     <entry path="hub/tsconfig.json" size="381" analyzed="true"/>
-    <entry path="make-phase4-bundle.sh" size="1775" analyzed="false"/>
+    <entry path="make-phase4-bundle.sh" size="2201" analyzed="false"/>
     <entry path="models/Amp + Cab/Fender Deluxe Reverb A2/deluxe-reverb.nam" size="665758" analyzed="false"/>
     <entry path="models/Pedal/A grab bag of analog pedals/bard-12-bright.nam" size="297315" analyzed="false"/>
     <entry path="models/Pedal/A grab bag of analog pedals/bard-as-played-nrml-hi-1-30-g-v-11.nam" size="296892" analyzed="false"/>
@@ -103,6 +112,8 @@
     <entry path="sidecar-experiment/verify-apc1.ts" size="2115" analyzed="true"/>
     <entry path="sidecar/CMakeLists.txt" size="908" analyzed="false"/>
     <entry path="sidecar/main.cpp" size="10504" analyzed="true"/>
+    <entry path="spectral-sender.js" size="5367" analyzed="true"/>
+    <entry path="spectral.js" size="8519" analyzed="true"/>
     <entry path="spikes/tone3000/README.md" size="3965" analyzed="false"/>
     <entry path="spikes/tone3000/package-lock.json" size="16026" analyzed="false"/>
     <entry path="spikes/tone3000/package.json" size="493" analyzed="true"/>
@@ -112,26 +123,37 @@
     <entry path="spikes/tone3000/src/oauth.ts" size="4793" analyzed="true"/>
     <entry path="spikes/tone3000/src/pkce.ts" size="2810" analyzed="true"/>
     <entry path="spikes/tone3000/tsconfig.json" size="331" analyzed="true"/>
-    <entry path="tablet/app.js" size="17236" analyzed="true"/>
+    <entry path="tablet/app.js" size="17823" analyzed="true"/>
     <entry path="tablet/index.html" size="7374" analyzed="true"/>
+    <entry path="template/NAM_A2_Template Project/Backup/NAM_A2_Template [2026-07-21 222801].als" size="13566" analyzed="false"/>
+    <entry path="template/NAM_A2_Template Project/Backup/NAM_A2_Template [2026-07-21 222816].als" size="28961" analyzed="false"/>
     <entry path="template/NAM_A2_Template Project/Icon" size="0" analyzed="false"/>
-    <entry path="template/NAM_A2_Template Project/NAM_A2_Template.als" size="13566" analyzed="false"/>
+    <entry path="template/NAM_A2_Template Project/NAM_A2_Template.als" size="26621" analyzed="false"/>
     <entry path="template/NAM_A2_Template Project/Samples/Recorded/Clean [[chain.clean]] 0001 [2026-07-12 103114].wav" size="1152080" analyzed="false"/>
     <entry path="template/NAM_A2_Template Project/Samples/Recorded/Clean [[chain.clean]] 0001 [2026-07-12 103114].wav.asd" size="17106" analyzed="false"/>
     <entry path="template/NAM_A2_Template Project/Samples/Recorded/Clean [[chain.clean]] 0001 [2026-07-20 204017].wav" size="864080" analyzed="false"/>
     <entry path="template/NAM_A2_Template Project/Samples/Recorded/Clean [[chain.clean]] 0001 [2026-07-20 204017].wav.asd" size="13482" analyzed="false"/>
     <entry path="template/NAM_A2_Template Project/Samples/Recorded/Clean [[chain.clean]] 0001 [2026-07-20 205151].wav" size="288080" analyzed="false"/>
     <entry path="template/NAM_A2_Template Project/Samples/Recorded/Clean [[chain.clean]] 0001 [2026-07-20 205151].wav.asd" size="6826" analyzed="false"/>
+    <entry path="template/NAM_A2_Template Project/Samples/Recorded/Clean [[chain.clean]] 0001 [2026-07-21 150922].wav" size="864080" analyzed="false"/>
+    <entry path="template/NAM_A2_Template Project/Samples/Recorded/Clean [[chain.clean]] 0001 [2026-07-21 150922].wav.asd" size="13518" analyzed="false"/>
     <entry path="template/NAM_A2_Template Project/Samples/Recorded/Clean [[chain.clean]] 0002 [2026-07-12 104035].wav" size="1389392" analyzed="false"/>
     <entry path="template/NAM_A2_Template Project/Samples/Recorded/Clean [[chain.clean]] 0002 [2026-07-12 104035].wav.asd" size="20258" analyzed="false"/>
     <entry path="template/NAM_A2_Template Project/Samples/Recorded/Clean [[chain.clean]] 0002 [2026-07-20 204113].wav" size="576080" analyzed="false"/>
     <entry path="template/NAM_A2_Template Project/Samples/Recorded/Clean [[chain.clean]] 0002 [2026-07-20 204113].wav.asd" size="10170" analyzed="false"/>
+    <entry path="template/NAM_A2_Template Project/Samples/Recorded/Clean [[chain.clean]] 0002 [2026-07-21 121019].wav" size="576080" analyzed="false"/>
+    <entry path="template/NAM_A2_Template Project/Samples/Recorded/Clean [[chain.clean]] 0002 [2026-07-21 121019].wav.asd" size="10210" analyzed="false"/>
+    <entry path="template/NAM_A2_Template Project/Samples/Recorded/Clean [[chain.clean]] 0002 [2026-07-21 155542].wav" size="1440080" analyzed="false"/>
+    <entry path="template/NAM_A2_Template Project/Samples/Recorded/Clean [[chain.clean]] 0002 [2026-07-21 155542].wav.asd" size="20106" analyzed="false"/>
     <entry path="template/NAM_A2_Template Project/Samples/Recorded/Clean [[chain.clean]] 0003 [2026-07-12 164618].wav" size="1728080" analyzed="false"/>
     <entry path="template/NAM_A2_Template Project/Samples/Recorded/Clean [[chain.clean]] 0003 [2026-07-12 164618].wav.asd" size="23486" analyzed="false"/>
     <entry path="template/NAM_A2_Template Project/Samples/Recorded/Clean [[chain.clean]] 0003 [2026-07-20 204138].wav" size="576080" analyzed="false"/>
     <entry path="template/NAM_A2_Template Project/Samples/Recorded/Clean [[chain.clean]] 0003 [2026-07-20 204138].wav.asd" size="10154" analyzed="false"/>
+    <entry path="template/NAM_A2_Template Project/Samples/Recorded/Clean [[chain.clean]] 0003 [2026-07-21 221430].wav" size="576080" analyzed="false"/>
+    <entry path="template/NAM_A2_Template Project/Samples/Recorded/Clean [[chain.clean]] 0003 [2026-07-21 221430].wav.asd" size="10202" analyzed="false"/>
     <entry path="template/NAM_A2_Template Project/Samples/Recorded/Clean [[chain.clean]] 0004 [2026-07-12 164646].wav" size="576080" analyzed="false"/>
     <entry path="template/NAM_A2_Template Project/Samples/Recorded/Clean [[chain.clean]] 0004 [2026-07-12 164646].wav.asd" size="10146" analyzed="false"/>
+    <entry path="template/NAM_A2_Template Project/Samples/Recorded/Clean [[chain.clean]] 0004 [2026-07-21 223148].wav" size="0" analyzed="false"/>
     <entry path="template/NAM_A2_Template Project/Samples/Recorded/Clean [[chain.clean]] 0005 [2026-07-12 164728].wav" size="576080" analyzed="false"/>
     <entry path="template/NAM_A2_Template Project/Samples/Recorded/Clean [[chain.clean]] 0005 [2026-07-12 164728].wav.asd" size="10094" analyzed="false"/>
     <entry path="template/NAM_A2_Template Project/Samples/Recorded/Clean [[chain.clean]] 0006 [2026-07-12 164804].wav" size="864080" analyzed="false"/>
@@ -152,18 +174,25 @@
     <entry path="template/NAM_A2_Template Project/Samples/Recorded/Clean [[chain.clean]] 0013 [2026-07-12 220650].wav.asd" size="20198" analyzed="false"/>
     <entry path="template/NAM_A2_Template Project/Samples/Recorded/Crunch [[chain.crunch]] 0001 [2026-07-12 104048].wav" size="576080" analyzed="false"/>
     <entry path="template/NAM_A2_Template Project/Samples/Recorded/Crunch [[chain.crunch]] 0001 [2026-07-12 104048].wav.asd" size="10362" analyzed="false"/>
+    <entry path="template/NAM_A2_Template Project/Samples/Recorded/Crunch [[chain.crunch]] 0001 [2026-07-21 121235].wav" size="288080" analyzed="false"/>
+    <entry path="template/NAM_A2_Template Project/Samples/Recorded/Crunch [[chain.crunch]] 0001 [2026-07-21 121235].wav.asd" size="6814" analyzed="false"/>
+    <entry path="template/NAM_A2_Template Project/Samples/Recorded/Crunch [[chain.crunch]] 0001 [2026-07-21 153101].wav" size="864080" analyzed="false"/>
+    <entry path="template/NAM_A2_Template Project/Samples/Recorded/Crunch [[chain.crunch]] 0001 [2026-07-21 153101].wav.asd" size="13546" analyzed="false"/>
     <entry path="template/NAM_A2_Template Project/Samples/Recorded/Crunch [[chain.crunch]] 0002 [2026-07-12 172659].wav" size="576080" analyzed="false"/>
     <entry path="template/NAM_A2_Template Project/Samples/Recorded/Crunch [[chain.crunch]] 0002 [2026-07-12 172659].wav.asd" size="10122" analyzed="false"/>
+    <entry path="template/NAM_A2_Template Project/Samples/Recorded/Crunch [[chain.crunch]] 0002 [2026-07-21 162921].wav" size="837200" analyzed="false"/>
+    <entry path="template/NAM_A2_Template Project/Samples/Recorded/Crunch [[chain.crunch]] 0002 [2026-07-21 162921].wav.asd" size="13306" analyzed="false"/>
     <entry path="template/NAM_A2_Template Project/Samples/Recorded/Shimmer [[chain.shimmer]] 0001 [2026-07-12 172852].wav" size="288080" analyzed="false"/>
     <entry path="template/NAM_A2_Template Project/Samples/Recorded/Shimmer [[chain.shimmer]] 0001 [2026-07-12 172852].wav.asd" size="6694" analyzed="false"/>
     <entry path="tsconfig.json" size="559" analyzed="true"/>
   </directory>
   <architecture>
-    <overview>The NAM A2 system is a distributed audio control system consisting of a hub (Node.js) that bridges a tablet UI (plain JS/HTML) to an Ableton Live backend via OSC, with Max for Live devices (js) providing audio processing (neural amp modeling) and looper functionality. The system uses frozen wire contracts (JSON and binary) to enforce protocol stability between components. The hub manages a resolver to map stable IDs to Live indices, a mirror store for state synchronization, and a command lifecycle with retry and quantization. A C++ sidecar streams audio via Ableton Link. The architecture emphasizes absolute, idempotent commands and event-driven state updates.</overview>
-    <tech_stack languages="TypeScript, Python, JavaScript, C++, HTML" frameworks="AbletonOSC, Node.js (http/ws), Max for Live (js)" libraries="Ableton Link (C++), WebRTC (RTCAudioSource), Tone3000 API (OAuth + PKCE), js2max (Max code gen), AbletonOSC (Python)"/>
+    <overview>The NAM A2 system is a distributed live-performance rig controller connecting Ableton Live (via Max for Live devices), a Node.js hub, and a browser-based tablet UI. The architecture is centered on several frozen contracts (wire formats, ID schemes, command semantics) that decouple components: a TypeScript contracts layer defines shared types for OSC, WebSocket, binary audio/spectral protocols; the hub mediates between the tablet and Live, translating stable ChainIDs to raw Live indices, managing command lifecycle with echo confirmation and retry, and broadcasting state deltas and telemetry. The tablet is a plain-JS single-page app that consumes WebSocket snapshots/deltas and sends absolute commands. Additional components include a Python engine extension (AbletonOSC), Max for Live device scripts (looper, amp, spectral analyzer), a C++ audio sidecar for Ableton Link, and Python devgen scripts for building and verifying .amxd devices.</overview>
+    <tech_stack languages="TypeScript, Python, C++, JavaScript (Max for Live), JSON Schema" frameworks="AbletonOSC (Python), Node.js (vanilla), WebSocket (native)" libraries="dgram (Node.js UDP), crypto (Node.js PKCE), Link Audio (C++), Max for Live API (js2max, LiveAPI, v8)"/>
     <entry_points>
       <file>hub/src/rig/server.ts</file>
-      <file>tablet/app.js</file>
+      <file>tablet/index.html</file>
+      <file>hub/src/sim/server.ts</file>
       <file>sidecar/main.cpp</file>
       <file>devgen/tone3000_bridge.py</file>
     </entry_points>
@@ -172,87 +201,65 @@
       <file>tablet/index.html</file>
     </layer>
     <layer name="business_logic">
-      <file>hub/src/rig/server.ts</file>
       <file>hub/src/lifecycle/lifecycle.ts</file>
       <file>hub/src/mirror/mirror.ts</file>
       <file>hub/src/resolver/resolver.ts</file>
-      <file>engine/extension.py</file>
       <file>devgen/amp.js</file>
       <file>devgen/looper.js</file>
-      <file>spikes/tone3000/src/client.ts</file>
-      <file>sidecar/main.cpp</file>
+      <file>engine/extension.py</file>
     </layer>
     <layer name="data_access">
-      <file>contracts/types/ids.ts</file>
-      <file>contracts/types/spectral.ts</file>
-      <file>contracts/types/ws.ts</file>
-      <file>contracts/types/osc.ts</file>
-      <file>contracts/types/template.ts</file>
-      <file>contracts/types/ai-tools.ts</file>
-      <file>contracts/types/command-rule.ts</file>
-      <file>contracts/types/audio-sidecar.ts</file>
-      <file>contracts/schemas/ai-tool-call.schema.json</file>
-      <file>contracts/schemas/ws-state.schema.json</file>
-      <file>contracts/schemas/ws-telemetry.schema.json</file>
-      <file>contracts/schemas/spectral-frame.descriptor.json</file>
-      <file>contracts/schemas/audio-sidecar.descriptor.json</file>
+      <file>hub/src/rig/server.ts</file>
+      <file>hub/src/codec/spectral-codec.ts</file>
+      <file>hub/src/codec/audio-codec.ts</file>
+      <file>spectral-sender.js</file>
+      <file>sidecar/main.cpp</file>
     </layer>
     <layer name="utilities">
       <file>hub/src/dsp.ts</file>
-      <file>hub/src/codec/audio-codec.ts</file>
-      <file>hub/src/codec/spectral-codec.ts</file>
       <file>hub/src/math/bands.ts</file>
       <file>hub/src/math/movement.ts</file>
       <file>harnesses/src/osc-helper.ts</file>
       <file>spikes/tone3000/src/pkce.ts</file>
       <file>spikes/tone3000/src/oauth.ts</file>
-      <file>spikes/tone3000/src/headless-lan-flow.ts</file>
-      <file>devgen/amxd_setnames.py</file>
-      <file>devgen/amxd_wire_udpsend.py</file>
-      <file>devgen/amxd_check_looper.py</file>
-      <file>devgen/amxd_style_looper.py</file>
-      <file>devgen/amxd_wire_looper.py</file>
-      <file>devgen/amxd_wire_amp.py</file>
-      <file>devgen/amxd_settype.py</file>
-      <file>devgen/amxd_style_amp.py</file>
-      <file>sidecar-experiment/verify-apc1.ts</file>
-      <file>sidecar-experiment/probe/nam_a2_probe.cpp</file>
+      <file>spikes/tone3000/src/client.ts</file>
     </layer>
     <layer name="configuration">
+      <file>contracts/schemas/*.json</file>
       <file>package.json</file>
       <file>tsconfig.json</file>
-      <file>models/models.json</file>
       <file>hub/package.json</file>
       <file>hub/tsconfig.json</file>
       <file>harnesses/package.json</file>
       <file>harnesses/tsconfig.json</file>
       <file>spikes/tone3000/package.json</file>
       <file>spikes/tone3000/tsconfig.json</file>
+      <file>models/models.json</file>
     </layer>
     <dependency_chains>
-      <chain description="Tablet → Hub WebSocket → Resolver → OSC → Engine → Live">
+      <chain description="Tablet UI to Live: tablet sends WS command -&gt; hub receives -&gt; resolver translates to OSC -&gt; engine extension executes -&gt; OSC echo -&gt; hub matches lifecycle -&gt; mirror updates -&gt; delta pushed to tablet">
         <file>tablet/app.js</file>
         <file>hub/src/rig/server.ts</file>
         <file>hub/src/resolver/resolver.ts</file>
         <file>engine/extension.py</file>
-        <file>Ableton Live</file>
-      </chain>
-      <chain description="Hub state mirroring: Server reads OSC echoes, updates MirrorStore, pushes deltas via WebSocket">
-        <file>hub/src/rig/server.ts</file>
-        <file>hub/src/mirror/mirror.ts</file>
-        <file>hub/src/codec/spectral-codec.ts</file>
-      </chain>
-      <chain description="Command lifecycle: Hub receives command, registers with Lifecycle, sends OSC, matches echo, updates mirror">
-        <file>hub/src/rig/server.ts</file>
         <file>hub/src/lifecycle/lifecycle.ts</file>
         <file>hub/src/mirror/mirror.ts</file>
-        <file>hub/src/resolver/resolver.ts</file>
       </chain>
-      <chain description="Max device generation: Scripts post-process js2max output to wire audio graph and set parameter names">
-        <file>devgen/amxd_wire_amp.py</file>
-        <file>devgen/amxd_setnames.py</file>
-        <file>devgen/amxd_settype.py</file>
-        <file>devgen/amxd_style_amp.py</file>
+      <chain description="Spectral telemetry: Max device (spectral.js) -&gt; v8 sender (spectral-sender.js) -&gt; UDP -&gt; hub decodes (spectral-codec) -&gt; WS telemetry -&gt; tablet">
+        <file>devgen/spectral.js</file>
+        <file>spectral-sender.js</file>
+        <file>hub/src/codec/spectral-codec.ts</file>
+        <file>hub/src/rig/server.ts</file>
+        <file>tablet/app.js</file>
+      </chain>
+      <chain description="Audio sidecar: C++ sidecar (main.cpp) -&gt; TCP/APC1 -&gt; hub codec (audio-codec.ts) -&gt; WebRTC frame (future)">
+        <file>sidecar/main.cpp</file>
+        <file>hub/src/codec/audio-codec.ts</file>
+      </chain>
+      <chain description="Template validation: hub boots -&gt; OSC ping/template scan -&gt; contract types check -&gt; boot abort on mismatch">
+        <file>hub/src/rig/server.ts</file>
+        <file>contracts/types/template.ts</file>
+        <file>harnesses/src/template-scan.ts</file>
       </chain>
     </dependency_chains>
   </architecture>
@@ -303,19 +310,19 @@
     <file path="contracts/types/osc.ts" category="contract" lines="635">
       <purpose>This file contains all OSC message definitions for the hub→engine (DOWN) and engine→hub (UP) communication. DOWN commands are defined as objects with address, build function, origin/tag tags, and CommandSemantics. LISTEN helpers arm property listeners. OscUpEvent is a discriminated union of all upstream events. Shared enums (LooperState, WarpMode, MonitoringState) are const objects with associated types. The looper commands (looperSetState, looperGetState) and the 'looper_state' upstream event are tagged FREEZE-NOW; comments confirm the spike is closed (2026-07-05) and state mapping verified on the rig. A new comment on setTrackSend (2026-07-19) confirms the set/get loop works on both busses (API-REALITY RIG RESULTS 2026-07-12→19). A crucial warning was added to clipIsPlaying: per rig (2026-07-12), Live's Clip has no add_is_playing_listener, so this listener is dead — playing truth flows via trackPlayingSlot instead; the function is retained for historical reference. All commands expect already-resolved Live indices. The file imports from ids.ts and command-rule.ts. Key invariants: all command semantics match Contract 8; build functions return proper OscMessage structures.</purpose>
     </file>
-    <file path="contracts/types/spectral.ts" category="contract" lines="118">
-      <purpose>This file owns the seam between M4L and the hub for spectral data (Contract 6). The wire format is frozen; any change here must be coordinated with the M4L device and tablet renderer. Key invariants: binCount is exactly 256, magnitudes are normalized 0..1 in the logical view but stored as uint16 on the binary wire, the binary header is fixed at 22 bytes before the variable-length chainTag, and the magic number is 0x53504331. The conversion functions magFromU16/magToU16 are the only place where scaling between float and uint16 occurs; magToU16 clamps input to [0,1] before rounding, which is the correct behavior but a caller passing out-of-range values will not get an error. The binary layout uses little-endian byte order. The file also exports SPECTRAL constants that should be treated as immutable (as const).</purpose>
+    <file path="contracts/types/spectral.ts" category="contract" lines="128">
+      <purpose>This file owns the seam between M4L and the hub for spectral data (Contract 6). The wire format is frozen; any change here must be coordinated with the M4L device and tablet renderer. Key invariants: binCount is exactly 256, magnitudes are normalized 0..1 in the logical view but stored as uint16 on the binary wire, the binary header is fixed at 22 bytes before the variable-length chainTag, and the magic number is 0x53504331. The conversion functions magFromU16/magToU16 are the only place where scaling between float and uint16 occurs; magToU16 clamps input to [0,1] before rounding, which is the correct behavior but a caller passing out-of-range values will not get an error. The binary layout uses little-endian byte order. The file also exports SPECTRAL constants that should be treated as immutable (as const). Additionally, the file exports SPECTRAL_UDP_PORT (11003), the UDP port the hub binds to receive spectral telemetry from all M4L devices. This port follows the OSC port numbering (11000-11002 for other contracts) and is additive — changing it does not affect the wire format.</purpose>
       <exports>
         <fn signature="magFromU16()" export="true">Decodes a normalized magnitude (0..1) from its uint16 wire value.</fn>
         <fn signature="magToU16()" export="true">Encodes a normalized magnitude (0..1) to its uint16 wire value (clamped).</fn>
       </exports>
     </file>
-    <file path="contracts/types/template.ts" category="contract" lines="317">
-      <purpose>This file is the backbone of template identity (Contract 7). It owns the boot sentinel (a named cue point) used to recognize the template and parse its version. It defines the naming convention for chain tracks: a track is a chain track iff its name contains [[tag]], extracted via chainTagFromTrackName. The CHAIN_DEVICE_ORDER array is frozen and must reflect the actual device order on every chain track; any reordering would break resolver mappings. The CHAIN_DEVICE_PRESENCE specifies which devices are required vs optional (inline_fx is optional). The ARM_POLICY constant documents hub behavior (one live chain per input, arm-follows-record, looper record stops chain clips). The templateScanIsValid function must return true for the hub to proceed; it requires the exact sentinel version and both return tracks present. The AMP_PARAMS and ToneManifest define the amp device interface and append-only tone manifest. A key footgun: the tone manifest is append-only; entries never change index, and deletions are tombstoned via file:null. The parseSentinelVersion function only checks prefix and a trailing v#; the version must match exactly.</purpose>
+    <file path="contracts/types/template.ts" category="contract" lines="320">
+      <purpose>This file is the backbone of template identity (Contract 7). It owns the boot sentinel (a named cue point) used to recognize the template and parse its version; as of v2 the sentinel name is 'NAM_A2_TEMPLATE v2' and version is 2. It defines the naming convention for chain tracks: a track is a chain track iff its name contains [[tag]], extracted via chainTagFromTrackName. The CHAIN_DEVICE_ORDER array is frozen and must reflect the actual device order on every chain track; any reordering would break resolver mappings. The CHAIN_DEVICE_PRESENCE now specifies EQ Eight and NAM_A2_Spectral (Spectral) as required, inline_fx remains optional. The ARM_POLICY constant documents hub behavior (one live chain per input, arm-follows-record, looper record stops chain clips). The templateScanIsValid function must return true for the hub to proceed; it now expects version 2 and both return tracks present. The AMP_PARAMS and ToneManifest define the amp device interface and append-only tone manifest. Key footgun: the tone manifest is append-only; entries never change index, deletions are tombstoned via file:null. The parseSentinelVersion function only checks prefix and a trailing v#; the version must match exactly.</purpose>
       <exports>
         <fn signature="parseSentinelVersion()" export="true">Parses a cue-point name into a version number or null if not our sentinel.</fn>
         <fn signature="chainTagFromTrackName()" export="true">Extracts the chain tag from a track name or returns null if not a chain track.</fn>
-        <fn signature="templateScanIsValid()" export="true">Checks if a TemplateScan satisfies the contract to run (correct sentinel version, at least one chain tag, both returns present).</fn>
+        <fn signature="templateScanIsValid()" export="true">Checks if a TemplateScan satisfies the contract to run (correct sentinel version v2, at least one chain tag, both returns present).</fn>
       </exports>
     </file>
     <file path="contracts/types/ws.ts" category="contract" lines="264">
@@ -379,6 +386,19 @@
         <fn signature="main()" export="false">Parse arguments, run all checks, print results, and exit with appropriate code.</fn>
       </exports>
     </file>
+    <file path="devgen/amxd_check_spectral.py" category="utility" lines="170">
+      <purpose>Loads a .amxd patcher file, parses its JSON, and runs a battery of checks (F1–A6) to assert invariants: zero Live parameters, correct plugin~-&gt;plugout~ cords, presence and wiring of spectral analysis objects (buffer~, fft~, poke~, etc.), Hann window chain (if not --no-window), v8 feed, sender node.script, and devicewidth. Exits nonzero on first failure; prints a green checkmark per passing test. Assumes the patcher is well-formed and built from js2max + amxd_wire_spectral. The global FAILED list accumulates failures, and main() raises SystemExit with details if any check fails.</purpose>
+      <depends_on>amxd_setnames</depends_on>
+      <exports>
+        <fn signature="check(name, cond, detail)" export="false">Prints a checkmark or cross and appends the name to FAILED if the condition is false; used for all verification steps.</fn>
+        <fn signature="patcher_of(path)" export="false">Loads a .amxd file, extracts the patcher JSON from its binary mx@c payload, and returns the 'patcher' dictionary.</fn>
+        <fn signature="index(pat)" export="false">Parses the patcher's boxes, lines, and Live parameters into three dictionaries: boxes by id, lines as tuples, and parameter_longname-&gt;id mapping.</fn>
+        <fn signature="first(boxes, prefix)" export="false">Returns the id of the first box whose text attribute starts with the given prefix, or None.</fn>
+        <fn signature="exact(boxes, text)" export="false">Returns the id of the first box whose text attribute exactly matches the given string, or None.</fn>
+        <fn signature="has_cord(lines, s, so, d, di)" export="false">Returns True if there is a patchline from source (s, so) to destination (d, di) in the lines set.</fn>
+        <fn signature="main()" export="false">Entry point: parses arguments, runs all structural checks (F1..A6) and exits 0 if all pass, otherwise raises SystemExit with the list of failed checks.</fn>
+      </exports>
+    </file>
     <file path="devgen/amxd_setnames.py" category="utility" lines="143">
       <purpose>Reads the .amxd binary file, parses the 'ampf' container to find the 'ptch' chunk containing the 'mx@c' container, extracts the JSON patcher, and for each box relocates any 'parameter_*' keys from saved_object_attributes to saved_attribute_attributes.valueof (optionally forcing parameter_type=1 via --int). It then updates the mx@c header's dir_off and the dlst directory's sz32 field to reflect the new blob size, and writes the result back (either overwriting or to a new file). The script only works on unfrozen generator output (mx@c container); frozen devices raise an error. It assumes the container layout as reverse-engineered from js2max@1.1.2; changes to that format may break the script.</purpose>
       <exports>
@@ -436,6 +456,17 @@
         <fn signature="find_param(boxes, longname)" export="false">Return the id of the box containing a Live parameter with the given longname.</fn>
         <fn signature="wire(patcher_text)" export="false">Inject all DSP and UI components into the patcher JSON, returning the modified patcher, maximum id used, and a summary message.</fn>
         <fn signature="main()" export="false">Parse arguments, load source, call wire, and write the output .amxd file.</fn>
+      </exports>
+    </file>
+    <file path="devgen/amxd_wire_spectral.py" category="utility" lines="238">
+      <purpose>Modifies a .amxd file's patcher JSON to add spectral analysis boxes (buffer~, fft~, squarers, etc.), Hann window chain (unless --no-window), v8 feed (loadbang-&gt;setbuf message, live.thisdevice), and node.script sender. Idempotent: if a buffer~ ---spec box already exists, returns early. Does not touch the dry plugin~-&gt;plugout~ cords or add any Live parameters. Uses fixed coordinate positions and a counter to generate unique box ids. Replaces the patcher's devicewidth. Must be run after js2max. Raises SystemExit if required objects (plugin~, plugout~, v8) are missing.</purpose>
+      <depends_on>amxd_setnames</depends_on>
+      <exports>
+        <fn signature="find_by_text(boxes, text)" export="false">Returns the id of the first box whose text equals the given string, or None.</fn>
+        <fn signature="find_by_prefix(boxes, prefix)" export="false">Returns the id of the first box whose text starts with the given prefix, or None.</fn>
+        <fn signature="next_id(boxes)" export="false">Returns the highest numeric suffix among box ids starting with 'obj-' plus 1.</fn>
+        <fn signature="wire(patcher_text, window, script_path)" export="false">Core function: adds the analysis graph, v8 feed, and sender to the patcher JSON; returns (patcher, 1, message) on success or (patcher, 0, message) if already present.</fn>
+        <fn signature="main()" export="false">Entry point: parses arguments (including --no-window, --script-path), loads the .amxd file, calls wire(), serializes the modified patcher, and writes the new .amxd file.</fn>
       </exports>
     </file>
     <file path="devgen/amxd_wire_udpsend.py" category="utility" lines="172">
@@ -505,6 +536,27 @@
         <fn signature="updateUi()" export="true">Sends UI messages on outlet 3 (leds, status, position, undo/redo indicators).</fn>
         <fn signature="flashStatus()" export="true">Temporarily forces status text to current state name, then resets after delay.</fn>
         <fn signature="unflash()" export="true">Restores status to stateName after flash.</fn>
+      </exports>
+    </file>
+    <file path="devgen/spectral-sender.cjs" category="service" lines="128">
+      <purpose>Forces CommonJS via .cjs extension to avoid ESM conflicts. Registers a catch-all handler on max-api that normalizes variable argument signatures, extracts tag and 256 floats, constructs a binary SPC1 datagram (little-endian header + tag bytes + uint16 magnitudes), and sends it via UDP. Includes robust error handling (uncaughtException, unhandledRejection), diagnostic console logging, and a sequencer (seqs map) per chain tag. Exposes buildDatagram and constants for unit testing outside Max.</purpose>
+      <exports>
+        <fn signature="buildDatagram()" export="true">Constructs an SPC1 binary datagram: writes magic, version, flags, bin count, sequence number, timestamp, tag length+bytes, and 256 uint16 magnitudes.</fn>
+      </exports>
+    </file>
+    <file path="devgen/spectral.js" category="service" lines="239">
+      <purpose>Runs inside Max's v8/JSCore as a js object. Functions are called by Max messages: bang (on load), setbuf, sr, gain, retag. It uses LiveAPI to observe the track name and parse [[tag]] pattern (Contract 7). Creates a unique runtime buffer~ per instance (fallback to shared ---spec if scripting fails). Sets a repeating Task to peek the FFT magnitude buffer, collapse 0..16 kHz into 256 linear bins, normalize 0..1, and emit 'frame &lt;tag&gt; &lt;256 floats&gt;' out outlet 0. Critical invariants: no Live parameters, dry passthrough untouched. Node test hook exports constants for cross-checking.</purpose>
+      <exports>
+        <fn signature="bang()" export="false">Entry point triggered by live.thisdevice: calls setupTag, setupBuffer, and startTick.</fn>
+        <fn signature="setupBuffer()" export="false">Creates a unique runtime buffer~ with random suffix, retargets the poke~ (varname spec_poke) via patcher scripting, falls back to shared ---spec on failure.</fn>
+        <fn signature="setbuf()" export="false">Sets the buffer~ name from the ---substituted loadbang message and creates a v8 Buffer object.</fn>
+        <fn signature="sr()" export="false">Sets the sample rate in Hz (from message).</fn>
+        <fn signature="gain()" export="false">Sets the normalization gain factor (from message).</fn>
+        <fn signature="retag()" export="false">Forces a re-resolution of the chain tag by calling setupTag.</fn>
+        <fn signature="setupTag()" export="false">Parses the device's LiveAPI path to get track index, observes track name for changes, and updates chainTag.</fn>
+        <fn signature="onTrackName()" export="false">Callback for track name changes: extracts [[tag]] from the name and updates chainTag.</fn>
+        <fn signature="startTick()" export="false">Starts the 30 fps repeating Task if not already running.</fn>
+        <fn signature="tick()" export="false">Peeks the buffer, collapses FFT bins to 256 linear bins, normalizes, and emits 'frame' message via outlet.</fn>
       </exports>
     </file>
     <file path="devgen/tone3000_bridge.py" category="service" lines="485">
@@ -577,6 +629,26 @@
     <file path="harnesses/package.json" category="config" lines="19">
       <purpose>This package is private and uses ES modules. It declares five test harness scripts (latency, load-item, automation, looper, pinger) that run via node --experimental-strip-types. Each script corresponds to a TypeScript source file in src/. There is also a typecheck script using tsc. The package name is 'nam-a2-harnesses'. The node engine requirement is &gt;=20. Modifying this file: adding a new script requires an entry in the scripts object and a corresponding src/ file. The experimental flag may change with Node versions; update accordingly.</purpose>
     </file>
+    <file path="harnesses/spectral-sender.js" category="service" lines="118">
+      <purpose>Identical to spectral-sender.js. Runs inside Node for Max; uses max-api, dgram socket, crash hooks, catch-all handler. See spectral-sender.js for full details.</purpose>
+      <exports>
+        <fn signature="buildDatagram()" export="true">Builds one SPC1 datagram from tag, seqNo, tMs, and mags array; throws if mags length is not BIN_COUNT.</fn>
+      </exports>
+    </file>
+    <file path="harnesses/spectral.js" category="component" lines="197">
+      <purpose>Identical to spectral.js. See spectral.js for full details.</purpose>
+      <exports>
+        <fn signature="bang()" export="false">Called on device load; sets up chain tag and starts the tick task.</fn>
+        <fn signature="setbuf()" export="false">Sets the buffer name and creates a Buffer object for peeking FFT magnitudes.</fn>
+        <fn signature="sr()" export="false">Updates the sample rate (srHz) if given a positive value.</fn>
+        <fn signature="gain()" export="false">Updates the normalization gain factor (normGain) if given a positive value.</fn>
+        <fn signature="retag()" export="false">Forces re-evaluation of the chain tag by calling setupTag.</fn>
+        <fn signature="setupTag()" export="false">Retrieves the device's track index via LiveAPI and sets up a LiveAPI observer on the track name property.</fn>
+        <fn signature="onTrackName()" export="false">Callback for track name changes; parses the name with TAG_PATTERN and updates chainTag.</fn>
+        <fn signature="startTick()" export="false">Creates a repeating Task that calls tick at FPS interval (if not already running).</fn>
+        <fn signature="tick()" export="false">Peeks the buffer, collapses FFT bins to 256 linear magnitudes, normalizes, and outputs a frame message via outlet.</fn>
+      </exports>
+    </file>
     <file path="harnesses/src/01-osc-latency.ts" category="test" lines="84">
       <purpose>Owns the latency measurement for the whole system (arch §6.2). Uses `OscClient` from `osc-helper.ts` and a fixed query (`/live/song/get/tempo`) which is always available in AbletonOSC and has no side effects. Key invariants: the ping is sent `N` times with a `PER_PING_TIMEOUT_MS` window; replies that time out are counted but not included in latency statistics. A 20 ms sleep between pings prevents UDP drops due to burst (arch §12). If no replies are received, it calls `rigHint()` to guide the user. The `percentile` function is a local helper, not exported. The script terminates via `process.exit(0)` or `process.exit(1)` on error, which will kill the Node process. Footgun: running without a rig will time out every ping and print a message but exit cleanly; the script does not hang indefinitely.</purpose>
       <exports>
@@ -621,6 +693,12 @@
         <fn signature="parseArgs()" export="false">Parses a comma-separated string of numbers from an environment variable, falling back to a provided default array.</fn>
         <fn signature="main()" export="false">Arms a listener, registers an expectation, sends the command, awaits confirmation, and prints the round-trip time or failure message.</fn>
         <fn signature="sleep()" export="false">Returns a promise that resolves after the given number of milliseconds (simple setTimeout wrapper).</fn>
+      </exports>
+    </file>
+    <file path="harnesses/src/05-spectral-bench.ts" category="utility" lines="134">
+      <purpose>This script runs as a standalone Node process (requires --experimental-strip-types). It binds a UDP socket on the spectral port, receives datagrams for DURATION_MS (default 6000 ms), and for each datagram decodes it using `decodeSpectralFrame` from `../../hub/src/codec/spectral-codec.ts`. It also attempts to load a golden fixture file (`spectral-frame.spc1.bin`) to verify decoder compatibility. Per chain tag, it tracks seq monotonicity (reports gaps and regressions), timestamps from both sender tMs and arrival times for jitter/fps calculation, magnitude min/max, and non-zero frame count. The first datagram's header bytes are printed verbatim. At the end, it prints per-chain stats and exits 0 only if frames arrived and no decode/range failures or seq regressions occurred. A critical footgun: the script listens on port 11003 which conflicts with the hub's telemetry relay; they cannot run simultaneously. It also assumes the device is actively sending audio (non-silent frames); silence is a note, not a failure. The DURATION_MS environment variable controls how long it listens.</purpose>
+      <exports>
+        <fn signature="stats()" export="false">Computes mean, min, max of an array of numbers and returns a formatted string (ms/fps), or 'n/a' if fewer than 2 elements.</fn>
       </exports>
     </file>
     <file path="harnesses/src/amp-core.test.mjs" category="test" lines="193">
@@ -766,13 +844,13 @@
         <fn signature="assignRoles()" export="false">Assigns device roles for a chain entry by matching name hints and filling inline_fx and open roles.</fn>
       </exports>
     </file>
-    <file path="hub/src/rig/server.ts" category="service" lines="958">
-      <purpose>This file is the core server for the rig. It imports prebuilt modules (MirrorStore, Resolver, CommandLifecycle) and wires them together. Boot sequence: forge engine ping, sentinel check (exits if missing), scan tracks/devices, rebuild Resolver snapshot, build MirrorSnapshot via live reads. New additions: `ARM_SETTLE_MS` constant (60ms) for arm promotion timing; `physicalInputName()` closure inside `buildMirror` maps observed input routing display names (e.g., 'In 1', '3/4') to Contract-7 physical input names ('guitar', 'mic', 'synth') using `DEFAULT_INPUTS`; `buildMirror` now probes `/live/track/get/send` for send A and B values (records observed or 0 on no-answer), reads monitoring state, and logs input routing details. In `main()`, after resolver rebuild, a RETURNS PROBE block probes `/live/song/get/num_tracks`, `/live/song/get/return_track_names`, and `/live/track/get/name` past the last regular track to discover return track indices. Additional listeners are subscribed per chain: `fired_slot_index`, and per cell: `has_clip`, `is_recording`. The `onMessage` handler now processes `fired_slot_index`, `has_clip`, `is_recording`, and `is_playing` messages, updating the mirror accordingly. When `is_recording` transitions to false, it triggers reads of clip name and length for final identity. Uses `Osc` class with `ask`/`tryAsk` (tryAsk returns null on timeout). Key invariants: sentinel must match `SENTINEL.version` or process.exit(1); boot retries engine ping forever; all live reads use observed values. Non-obvious behavior: return tracks are not read at boot (only probed for discovery); `sendA01`/`sendB01` are now observed rather than defaulting to 0; `fired_slot_index` is lifecycle echo only (not stored in mirror); empty clip slots may error on `start_listen/is_recording` but are harmless. Footguns: `CONFIRM_GET_DELAY_MS=120ms` based on harness findings; OSC port 11001 exclusive; `ARM_SETTLE_MS` not yet used but defined for future arm promotion timing; the file does not export anything; `main()` called at module scope; it reads `TABLET_DIR` relative to `import.meta.url`.</purpose>
+    <file path="hub/src/rig/server.ts" category="service" lines="1020">
+      <purpose>This file is the core server for the rig. It imports prebuilt modules (MirrorStore, Resolver, CommandLifecycle) and wires them together. Boot sequence: forge engine ping, sentinel check (exits if missing), scan tracks/devices, rebuild Resolver snapshot, build MirrorSnapshot via live reads. Key additions in this diff: `ARM_SETTLE_MS` (60ms, defined but unused); `physicalInputName()` closure maps observed input routing names to Contract-7 physical input names; `buildMirror` now probes sends A/B and monitors input routing. The `main()` function now includes a returns probe (discovery, not stored) and subscribes to per-cell `has_clip`, `is_recording`. The `onMessage` handler processes `fired_slot_index`, `has_clip`, `is_recording`, `is_playing`. Scene launch logic changed: uses per-chain prediction from mirror truth to define expected outcome; if no observable change, fires the command and immediately confirms (avoids blind resends). A new spectral relay section creates a UDP socket (`dgram`) bound to `SPECTRAL_UDP_PORT` (from contracts), listens for binary datagrams, decodes them via `decodeSpectralFrame`, logs first frame per chainTag, and broadcasts decoded frame as `{channel:'telemetry', type:'spectra', payload:frame}`. Decode errors are counted and logged every 100 occurrences. Socket errors are logged. This relay makes the hub transport-agnostic for spectrum telemetry. Invariants: `Osc` class with `ask`/`tryAsk`; sentinel version mismatch exits process; boot retries engine ping forever; all live reads use observed values; spectral relay is lossy-OK. Footguns: `CONFIRM_GET_DELAY_MS=120ms` based on harness; OSC port 11001 exclusive; file does not export; `main()` called at module scope; reads `TABLET_DIR` relative to `import.meta.url`.</purpose>
       <exports>
         <fn signature="log()" export="false">Logs a message prefixed with '[rig]'.</fn>
         <fn signature="bootScan()" export="false">Pings engine, checks sentinel, scans tracks/devices, returns LiveSnapshot and track names.</fn>
         <fn signature="buildMirror()" export="false">Reads live state via OSC to build a full MirrorSnapshot for the resolver's chain set, now including sends, monitoring state, and input routing name mapping.</fn>
-        <fn signature="main()" export="false">Main entry point: binds OSC, boot scans, builds mirror, adds probes for returns and sends, subscribes to clip-level listeners, sets up WebSocket server and command lifecycle.</fn>
+        <fn signature="main()" export="false">Main entry point: binds OSC, boot scans, builds mirror, adds probes for returns and sends, subscribes to clip-level listeners, sets up WebSocket server, command lifecycle, changes scene launch confirm to use per-chain prediction, and adds a UDP spectral relay that decodes and broadcasts SPC1 frames as telemetry.</fn>
       </exports>
     </file>
     <file path="hub/src/sim/fake-live.ts" category="simulation" lines="325">
@@ -823,6 +901,26 @@
     <file path="sidecar/main.cpp" category="service" lines="265">
       <purpose>This C++ executable is the 'one hard part' quarantined at the system edge: it connects to Ableton Link, waits for a channel matching a name pattern (case-insensitive substring match via env NAM_CHANNEL, default 'main'), and forwards every received audio buffer to the hub (TCP loopback). It uses non-blocking reconnect logic: if the hub is down, packets are dropped and a DISCONTINUITY flag is set on the first packet after reconnect. The APC1 header is written in native little-endian (assumed for Apple Silicon/x86). Key invariants: (1) Audio buffers are forwarded verbatim (the hub reslices to 10ms); (2) The sequence number increments per packet; (3) A missing Link channel causes indefinite wait without crash; (4) --selftest prints a golden header hex for cross-language validation; (5) --fake mode generates sine tones for hub testing without hardware; (6) The HubLink class uses a mutex for non-blocking sends (lock-free would be better but not critical for loopback). The file is compiled with either actual Link headers or a SELFTEST_ONLY flag that disables Link-dependent code. It assumes POSIX sockets and uses sleep-based polling for the main loop.</purpose>
     </file>
+    <file path="spectral-sender.js" category="service" lines="118">
+      <purpose>This file runs inside Node for Max and relies on the `max-api` package. It installs process-level crash hooks and a catch-all message handler (MESSAGE_TYPES.ALL) to avoid selector-matching issues. The handler expects messages of the form `frame &lt;chainTag&gt; &lt;256 floats&gt;` and builds the SPC1 datagram with a 22-byte fixed header, variable-length UTF-8 chain tag, and 256 uint16 magnitudes. Sequence numbers are tracked per chainTag using a Map. If run outside Max, `max-api` require fails gracefully, and the script exports `buildDatagram` and constants for unit testing. A critical footgun: the handler normalizes both possible `max-api` ALL signatures (`(selector, ...args)` or `(...args)`) by stripping the selector when present; this logic must be preserved if `max-api` behavior changes. The UDP socket is created once at startup and reused for all sends. The script logs first frame and periodic counts via maxApi.post. It does not handle socket errors.</purpose>
+      <exports>
+        <fn signature="buildDatagram()" export="true">Builds one SPC1 datagram from tag, seqNo, tMs, and mags array; throws if mags length is not BIN_COUNT.</fn>
+      </exports>
+    </file>
+    <file path="spectral.js" category="component" lines="197">
+      <purpose>This script runs in Max v8 (JavaScript) and expects global objects like LiveAPI, Buffer, Task. It uses a LiveAPI observer on the device's track name to extract the chain tag (parsed via `TAG_PATTERN`). The tag is included in every emitted frame to avoid boot-race issues. The FFT analysis is done externally by the device's signal graph; this script peeks into a `buffer~` at 30 fps using `buf.peek()`. It collapses 0–16 kHz FFT bins into 256 linear bins by averaging, applies a normalization gain (default 4/FFT_N to compensate for Hann window and FFT size), and clamps to 0..1. The tick is driven by a `Task` with interval = 1000/30 ms. Must be placed last on the chain (post-EQ). Key invariants: buffer and chainTag must both exist before emitting; the device path is assumed to be directly on a track (not inside a rack – a future change would require canonical_parent walk). The `setbuf` function uses `new Buffer(name)` which must match the actual buffer~ name in the patcher. LiveAPI property observer on 'name' delivers an immediate callback which sets chainTag. If the track name lacks a [[tag]], chainTag becomes null and frames are suppressed. The script also exports constants for testing.</purpose>
+      <exports>
+        <fn signature="bang()" export="false">Called on device load; sets up chain tag and starts the tick task.</fn>
+        <fn signature="setbuf()" export="false">Sets the buffer name and creates a Buffer object for peeking FFT magnitudes.</fn>
+        <fn signature="sr()" export="false">Updates the sample rate (srHz) if given a positive value.</fn>
+        <fn signature="gain()" export="false">Updates the normalization gain factor (normGain) if given a positive value.</fn>
+        <fn signature="retag()" export="false">Forces re-evaluation of the chain tag by calling setupTag.</fn>
+        <fn signature="setupTag()" export="false">Retrieves the device's track index via LiveAPI and sets up a LiveAPI observer on the track name property.</fn>
+        <fn signature="onTrackName()" export="false">Callback for track name changes; parses the name with TAG_PATTERN and updates chainTag.</fn>
+        <fn signature="startTick()" export="false">Creates a repeating Task that calls tick at FPS interval (if not already running).</fn>
+        <fn signature="tick()" export="false">Peeks the buffer, collapses FFT bins to 256 linear magnitudes, normalizes, and outputs a frame message via outlet.</fn>
+      </exports>
+    </file>
     <file path="spikes/tone3000/package.json" category="configuration" lines="21">
       <purpose>This is a static npm manifest (JSON) that defines the spike's name, version, and entry scripts. The `type` field is `module` so TypeScript files are treated as ESM. The scripts `pkce`, `authorize-url`, `fetch-a2` are convenience commands using `tsx` (a TypeScript executor). No production dependencies, only dev tooling. The `private: true` flag prevents accidental publishing. There are no runtime side effects.</purpose>
     </file>
@@ -865,8 +963,8 @@
     <file path="spikes/tone3000/tsconfig.json" category="configuration" lines="16">
       <purpose>The config sets `moduleResolution` to `Bundler` (for use with tsx), allows importing `.ts` extensions, includes Node types, and skips lib check for speed. `noEmit` is true because `tsx` runs the code directly. The `lib` includes both ES2022 and DOM (though DOM may not be needed). There are no side effects or runtime behavior.</purpose>
     </file>
-    <file path="tablet/app.js" category="application" lines="391">
-      <purpose>This file is the entire client-side application, loaded as a script in index.html. It uses global state (snap, rev, ws, pendingByCmd Map, dupMode, dupFrom) and builds DOM entirely from a snapshot. Recent additions: throttleSend() reduces command burst rate for continuous controls (80ms throttle); head.onclick now toggles between go_live and stand_down based on currentChain().live; cell.onclick checks dupMode to delegate to cellTapDup() and handles recording cells (fire_clip always). The loop button (↻) now supports a hold gesture (500ms pointer-down) to send looper_state(0) (Stop) and a tap cycle via pedal-style state machine (0→2→1→3→1). Sends row adds two sliders for reverb/delay sends using throttleSend. Transport buttons (▶⏹) set playing=true/false absolutely. Dup mode: toggling '#dup' enters cell tap mode for duplicate_clip_to; exitDup() cleans up. render() now updates send slider values (unless focused), play/stop button 'on' classes, and loop button inner text/glyph based on looper State value. Invariants: snap must be non-null before buildDom/render; rev must increment by exactly 1 for deltas; dupMode guards against interference with cell taps; hold gesture sets held flag to suppress the click. Timing: throttleSend uses setTimeout for trailing edge; pulseBeat and toast use setTimeout; looper hold uses setTimeout. WebSocket reconnection loop runs indefinitely on close. DOM events are attached via onclick/onpointerdown/onpointerup. All commands use absolute target values.</purpose>
+    <file path="tablet/app.js" category="application" lines="402">
+      <purpose>This file is the entire client-side application, loaded as a script in index.html. It uses global state (snap, rev, ws, pendingByCmd Map, dupMode, dupFrom) and builds DOM entirely from a snapshot. Recent additions: throttleSend() reduces command burst rate for continuous controls (80ms throttle); head.onclick now toggles between go_live and stand_down based on currentChain().live; cell.onclick checks dupMode to delegate to cellTapDup() and handles recording cells (fire_clip always). The loop button (↻) now supports a hold gesture (500ms pointer-down) to send looper_state(0) (Stop) and a tap cycle via pedal-style state machine (0→2→1→3→1). Sends row adds two sliders for reverb/delay sends using throttleSend. Transport buttons (▶⏹) set playing=true/false absolutely. Dup mode: toggling '#dup' enters cell tap mode for duplicate_clip_to; exitDup() cleans up. render() now updates send slider values (unless focused), play/stop button 'on' classes, and loop button inner text/glyph based on looper State value. Spectra rendering now applies a dB mapping (magToDb01, floor -60 dB) to make low-level DI guitar signals visible on a linear canvas. Invariants: snap must be non-null before buildDom/render; rev must increment by exactly 1 for deltas; dupMode guards against interference with cell taps; hold gesture sets held flag to suppress the click. Timing: throttleSend uses setTimeout for trailing edge; pulseBeat and toast use setTimeout; looper hold uses setTimeout. WebSocket reconnection loop runs indefinitely on close. DOM events are attached via onclick/onpointerdown/onpointerup. All commands use absolute target values.</purpose>
       <exports>
         <fn signature="applyPath()" export="false">Applies a path-value change to the snapshot object, throwing on unknown paths.</fn>
         <fn signature="makeBandMap()" export="false">Generates a mapping of frequency bands (0-47) to bin ranges for spectral collapse.</fn>
@@ -881,7 +979,8 @@
         <fn signature="buildDom()" export="false">Builds the entire DOM structure for chains, scenes, sends, and transport from the snapshot, attaching event handlers.</fn>
         <fn signature="currentChain()" export="false">Returns the chain object from snap by ID.</fn>
         <fn signature="render()" export="false">Updates DOM elements to reflect current snapshot state (volume, mute, clips, looper, sends, transport, loop button glyph).</fn>
-        <fn signature="drawSpectrum()" export="false">Draws a 48-band spectrum visualizer on a canvas with peak hold decay.</fn>
+        <fn signature="magToDb01()" export="false">Maps linear magnitude to a 0-1 value using dB scale (floor -60 dB) for display purposes only.</fn>
+        <fn signature="drawSpectrum()" export="false">Draws a 48-band spectrum visualizer on a canvas with peak hold decay, now applying dB mapping to band levels.</fn>
         <fn signature="pulseBeat()" export="false">Triggers a brief beat lamp animation by toggling class and setting a timeout.</fn>
         <fn signature="toast()" export="false">Shows a temporary toast notification for a few seconds.</fn>
         <fn signature="exitDup()" export="false">Exits duplicate mode, removes highlighting from source cell, and toggles off the dup button.</fn>
