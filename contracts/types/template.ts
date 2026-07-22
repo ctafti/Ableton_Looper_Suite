@@ -50,9 +50,12 @@ export const SENTINEL = {
   /** cue-point name prefix the boot detector looks for. */
   prefix: 'NAM_A2_TEMPLATE',
   /** full canonical name to place in the shipped .als (prefix + space + v#). */
-  name: 'NAM_A2_TEMPLATE v1',
-  /** template structural version this contract describes. */
-  version: 1,
+  name: 'NAM_A2_TEMPLATE v2',
+  /** template structural version this contract describes.
+   *  v2 (2026-07-21): the eq + spectral fixtures declared required by
+   *  CHAIN_DEVICE_PRESENCE are now ACTUALLY PRESENT on every chain (EQ Eight
+   *  + NAM_A2_Spectral, Phase 4). Structure otherwise unchanged. */
+  version: 2,
   /**
    * SECONDARY signal (belt-and-suspenders, optional): a marker/return track may
    * also carry this exact name. The cue point is the PRIMARY, authoritative
