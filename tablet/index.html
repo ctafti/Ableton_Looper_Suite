@@ -59,19 +59,19 @@ What it proves end-to-end through real seams:
   /* chain rows */
   .chain {
     display: grid; grid-template-columns: 150px 1fr 240px; gap: 10px;
-    align-items: stretch; padding: 8px 12px; border-bottom: 1px solid #0b0906;
+    align-items: stretch; padding: 5px 12px; border-bottom: 1px solid #0b0906; /* slim rev */
     background: var(--panel);
   }
   .chain.live { box-shadow: inset 4px 0 0 var(--chaincolor), inset 0 0 24px rgba(232,163,61,.08); }
   .head { display: flex; flex-direction: column; gap: 4px; justify-content: center; cursor: pointer; }
-  .head .name { font-size: 18px; letter-spacing: 1px; color: var(--chaincolor); text-transform: uppercase; }
+  .head .name { font-size: 16px; letter-spacing: 1px; color: var(--chaincolor); text-transform: uppercase; align-self: flex-start; width: fit-content; max-width: 100%; }
   .head .input { font-size: 11px; letter-spacing: 2px; color: var(--amber-dim); text-transform: uppercase; }
   .head .livebadge { font-size: 10px; letter-spacing: 2px; color: var(--amber); display: none; }
   .chain.live .livebadge { display: block; }
 
   .cells { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; }
   .cell {
-    position: relative; border-radius: 5px; border: 1px solid #0b0906; min-height: 64px;
+    position: relative; border-radius: 5px; border: 1px solid #0b0906; min-height: 53px; /* slim rev 2026-07-24 (~17%) */
     background: #1a1510; cursor: pointer; overflow: hidden;
     display: flex; align-items: flex-end; padding: 4px 6px;
     font-size: 12px; color: #7d735f;
@@ -88,8 +88,46 @@ What it proves end-to-end through real seams:
   .cell.failed { animation: shake .3s; border-color: var(--fail); }
   .cell.dupsrc { outline: 2px dashed var(--amber); outline-offset: -2px; }
   @keyframes shake { 25% { transform: translateX(-3px);} 75% { transform: translateX(3px);} }
+  .cell .cym { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+  .cell { touch-action: pan-y; } /* vertical scroll survives; the 300ms hold arms the drag */
+  .dragghost { position: fixed; z-index: 90; border-radius: 8px; border: 1px solid var(--amber); box-shadow: 0 6px 18px rgba(0,0,0,.6); opacity: .92; pointer-events: none; }
+  .cell.dragtarget { outline: 2px solid var(--amber); outline-offset: -2px; }
+  .cell.dupsrc { opacity: .55; }
+  .tonechip { align-self: flex-start; font-size: 14px; color: var(--amber-dim); cursor: pointer; padding: 2px 6px; }
+  .tonechip:active { color: var(--amber); }
+  .chaindel { align-self: flex-start; font-size: 12px; color: #4d443a; cursor: pointer; padding: 2px 6px; }
+  .chaindel:active { color: var(--fail); }
+  .addchain {
+    padding: 12px; text-align: center; color: var(--amber-dim); cursor: pointer;
+    border-bottom: 1px solid #0b0906; letter-spacing: 3px; font-size: 14px; background: var(--panel);
+  }
+  .addchain:active { color: var(--amber); }
+  .addchain.adding { color: var(--amber); animation: addpulse 1.2s ease-in-out infinite; cursor: default; }
+  @keyframes addpulse { 50% { opacity: .35; } }
+  .pickwrap { position: fixed; inset: 0; background: rgba(0,0,0,.6); z-index: 50; display: flex; align-items: center; justify-content: center; }
+  .pickpanel { background: var(--panel); border: 1px solid #0b0906; border-radius: 8px; padding: 16px; min-width: 280px; max-height: 70vh; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; }
+  .picktitle { color: var(--amber); letter-spacing: 2px; font-size: 13px; margin-bottom: 4px; }
+  .pickbtn { padding: 10px; background: #241d13; color: var(--silk); border: 1px solid #0b0906; border-radius: 5px; font-size: 13px; letter-spacing: 1px; cursor: pointer; }
+  .pickbtn:active { background: #322818; }
+  .pickbtn.cancel { color: #7d735f; }
+  .picknote { color: #7d735f; font-size: 11px; text-align: center; }
+  .pickhead { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
+  .pickback { background: none; border: 1px solid #0b0906; border-radius: 8px; color: var(--amber); font-size: 22px; width: 40px; height: 40px; cursor: pointer; }
+  .pickgrid { display: flex; gap: 12px; justify-content: center; padding: 6px 0; }
+  .pickbig {
+    width: 104px; height: 104px; border-radius: 14px; border: 1px solid #0b0906; cursor: pointer;
+    background: linear-gradient(180deg, #2a2216, #1c1710);
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.05), 0 2px 6px rgba(0,0,0,.4);
+  }
+  .pickbig:active { background: linear-gradient(180deg, #322818, #241d13); }
+  .pickbig .glyph { font-size: 34px; color: var(--amber); line-height: 1; }
+  .pickbig .cap { font-size: 12px; letter-spacing: 2px; color: var(--silk); }
+  .pickbig.dim .glyph, .pickbig.dim .cap { opacity: .4; }
+  .picklist { display: flex; flex-direction: column; gap: 8px; max-height: 50vh; overflow-y: auto; }
+  .pickbtn { min-height: 46px; }
   .cell .loopbtn {
-    position: absolute; top: 0; right: 0; min-width: 40px; height: 55%;
+    position: absolute; top: 0; right: 0; min-width: 40px; height: 55%; z-index: 2;
     display: flex; align-items: center; justify-content: center;
     color: #6b5f4b; font-size: 22px; line-height: 1; border-radius: 0 5px 0 6px;
   }
@@ -103,7 +141,7 @@ What it proves end-to-end through real seams:
   .strip { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
   .strip input[type=range] { min-width: 0; }
   canvas.spec {
-    width: 100%; height: 44px; background: #10150f; border: 1px solid #000;
+    width: 100%; height: 37px; background: #10150f; border: 1px solid #000; /* slim rev */
     border-radius: 3px; box-shadow: inset 0 2px 8px rgba(0,0,0,.8);
   }
   .mixer { display: flex; align-items: center; gap: 8px; }
@@ -157,7 +195,7 @@ What it proves end-to-end through real seams:
     <button class="silk" id="play">▶</button>
     <button class="silk" id="stop">■</button>
     <button class="silk" id="metro">Metro</button>
-    <button class="silk" id="dup">Dup</button>
+
     <span class="readout" id="rev">rev —</span>
     <span id="conn">connecting…</span>
   </div>
