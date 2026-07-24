@@ -11,18 +11,27 @@ needed — nothing to relocate):
 
 WHAT IT INJECTS (arch §3 / Contract 6; v8 does no audio — the graph is dumb):
 
-  1. ANALYSIS CHAIN (mono tap; the dry plugin~ -> plugout~ cords are untouched):
-       plugin~ L+R -> [*~ 0.5] mono sum
-       -> [*~] window multiply <- [receive~ ---win]
-       -> [fft~ 4096 4096 0]
+  1. ANALYSIS CHAINS — 4x OVERLAPPED (rev 2026-07-22, work-item-4 verdict:
+     the ~11.7 Hz no-overlap refresh read laggy under real playing).
+     FOUR phase-staggered instances, offsets 0/1024/2048/3072 (fft~'s third
+     arg — the classic pre-pfft~ overlap technique), ALL poking the SAME
+     buffer, so every bin refreshes every 1024 samples (~21 ms, ~47 Hz)
+     instead of every 4096 (~85 ms). Window stays 4096 -> resolution
+     unchanged; poke~ overwrites (never sums) -> normalization unchanged;
+     emission stays 30 fps SPC1 -> zero wire movement. Per instance j:
+       plugin~ L+R -> [*~ 0.5] mono sum (shared)
+       -> [*~] window multiply <- [receive~ ---win{j}]
+       -> [fft~ 4096 4096 {j*1024}]
        fft~ sync -> [/~ 4096.] -> [cos~] -> [*~ -0.5] -> [+~ 0.5]
-                 -> [send~ ---win]                    (Hann; send~/receive~
+                 -> [send~ ---win{j}]                 (Hann; send~/receive~
                                                        breaks the DSP cycle at
                                                        one vector's offset)
        fft~ re -> [*~ re] \\
        fft~ im -> [*~ im] -> [+~] -> [sqrt~] -> [poke~ ---spec] value
        fft~ sync ------------------------------> [poke~ ---spec] index
-       [buffer~ ---spec 100]                     (100 ms @ 48 k >= 4096 samps)
+     shared: [buffer~ ---spec 100]                (100 ms @ 48 k >= 4096 samps)
+     Instance 0 keeps the legacy names (---win, varname spec_poke); instances
+     1-3 use ---win1..3 and spec_poke1..3 (v8 retargets all four at load).
      `---` is Max for Live's per-instance unique-name prefix, so every chain's
      device owns a private buffer (VERIFY-ON-RIG: identical spectra on two
      chains would mean the substitution failed).
@@ -123,48 +132,54 @@ def wire(patcher_text, window=True, script_path="spectral-sender.js"):
     link(plugin, 0, monoin, 0)
     link(plugin, 1, monoin, 0)                     # cords into one inlet sum
 
-    fft_in_src, fft_in_out = monoin, 0
-    if window:
-        winmul = add("*~", 2, 1, 700, 150)
-        wrecv = add("receive~ ---win", 0, 1, 860, 120, 130)
-        link(monoin, 0, winmul, 0)
-        link(wrecv, 0, winmul, 1)
-        fft_in_src, fft_in_out = winmul, 0
+    OVERLAP = 4                                    # rev 2026-07-22: 4x overlap
+    HOP = 4096 // OVERLAP                          # 1024 samples ~= 21 ms @ 48 k
+    for j in range(OVERLAP):
+        suffix = "" if j == 0 else str(j)          # instance 0 keeps legacy names
+        col = 700 + j * 320                        # lay instances out in columns
 
-    fft = add("fft~ 4096 4096 0", 2, 3, 700, 200, 140)
-    link(fft_in_src, fft_in_out, fft, 0)
+        fft_in_src, fft_in_out = monoin, 0
+        if window:
+            winmul = add("*~", 2, 1, col, 150)
+            wrecv = add("receive~ ---win%s" % suffix, 0, 1, col + 160, 120, 130)
+            link(monoin, 0, winmul, 0)
+            link(wrecv, 0, winmul, 1)
+            fft_in_src, fft_in_out = winmul, 0
 
-    if window:
-        wdiv = add("/~ 4096.", 2, 1, 940, 250)
-        wcos = add("cos~", 2, 1, 940, 290)
-        wneg = add("*~ -0.5", 2, 1, 940, 330)
-        woff = add("+~ 0.5", 2, 1, 940, 370)
-        wsend = add("send~ ---win", 1, 0, 940, 410, 130)
-        link(fft, 2, wdiv, 0)
-        link(wdiv, 0, wcos, 0)
-        link(wcos, 0, wneg, 0)
-        link(wneg, 0, woff, 0)
-        link(woff, 0, wsend, 0)
+        fft = add("fft~ 4096 4096 %d" % (j * HOP), 2, 3, col, 200, 150)
+        link(fft_in_src, fft_in_out, fft, 0)
 
-    sqre = add("*~", 2, 1, 660, 260)
-    sqim = add("*~", 2, 1, 790, 260)
-    link(fft, 0, sqre, 0)
-    link(fft, 0, sqre, 1)
-    link(fft, 1, sqim, 0)
-    link(fft, 1, sqim, 1)
-    magsum = add("+~", 2, 1, 700, 310)
-    link(sqre, 0, magsum, 0)
-    link(sqim, 0, magsum, 1)
-    root = add("sqrt~", 1, 1, 700, 350)
-    link(magsum, 0, root, 0)
-    poke = add("poke~ ---spec", 3, 0, 700, 400, 130)
-    # RIG FINDING 2026-07-21: `---` does NOT namespace in js2max-generated
-    # devices (two-instance collision observed) — v8 self-namespaces at load:
-    # creates a runtime buffer~ with a unique name and retargets this poke~
-    # via its `set` message. The varname is how v8 finds it.
-    next(b["box"] for b in boxes if b["box"]["id"] == poke)["varname"] = "spec_poke"
-    link(root, 0, poke, 0)
-    link(fft, 2, poke, 1)                          # sync index -> write index
+        if window:
+            wdiv = add("/~ 4096.", 2, 1, col + 240, 250)
+            wcos = add("cos~", 2, 1, col + 240, 290)
+            wneg = add("*~ -0.5", 2, 1, col + 240, 330)
+            woff = add("+~ 0.5", 2, 1, col + 240, 370)
+            wsend = add("send~ ---win%s" % suffix, 1, 0, col + 240, 410, 130)
+            link(fft, 2, wdiv, 0)
+            link(wdiv, 0, wcos, 0)
+            link(wcos, 0, wneg, 0)
+            link(wneg, 0, woff, 0)
+            link(woff, 0, wsend, 0)
+
+        sqre = add("*~", 2, 1, col - 40, 260)
+        sqim = add("*~", 2, 1, col + 90, 260)
+        link(fft, 0, sqre, 0)
+        link(fft, 0, sqre, 1)
+        link(fft, 1, sqim, 0)
+        link(fft, 1, sqim, 1)
+        magsum = add("+~", 2, 1, col, 310)
+        link(sqre, 0, magsum, 0)
+        link(sqim, 0, magsum, 1)
+        root = add("sqrt~", 1, 1, col, 350)
+        link(magsum, 0, root, 0)
+        poke = add("poke~ ---spec", 3, 0, col, 400, 130)
+        # RIG FINDING 2026-07-21: `---` does NOT namespace in js2max-generated
+        # devices (two-instance collision observed) — v8 self-namespaces at
+        # load: creates a runtime buffer~ with a unique name and retargets
+        # EVERY poke~ via `set`. The varnames are how v8 finds them.
+        next(b["box"] for b in boxes if b["box"]["id"] == poke)["varname"] = "spec_poke%s" % suffix
+        link(root, 0, poke, 0)
+        link(fft, 2, poke, 1)                      # sync index -> write index
 
     # ---- 2. v8 FEED ---------------------------------------------------------
     lb = add("loadbang", 1, 1, 460, 40, 70)
