@@ -53,8 +53,8 @@ async function main() {
       .filter(Boolean)
       .join(', ') || 'NONE'}`);
     if (chainTags.length >= 1) ok(`${chainTags.length} chain tag(s) parsed`);
-    else bad('no [[tag]] chain tracks found');
-    const expected = ['chain.clean', 'chain.crunch', 'chain.shimmer'];
+    else bad('no [TN]-marked chain tracks found');
+    const expected = ['T1', 'T2', 'T3']; // [TN] scheme, P5-e 2026-07-23
     for (const t of expected) {
       if (chainTags.includes(t)) ok(`tag present: ${t}`);
       else bad(`missing expected tag: ${t}`);
@@ -83,7 +83,7 @@ async function main() {
       const dev = await ask(c, '/live/track/get/devices/name', [i]);
       console.log(`/live/track/get/devices/name ${i} raw: ${JSON.stringify(dev.args)}`);
       const devNames = dev.args.slice(1).map(String); // arg0 echoes track index
-      if (tags[i] === 'chain.clean') {
+      if (tags[i] === 'T1') {
         if (devNames.some((n) => /nam|gateway/i.test(n))) ok(`[${i}] amp matched by ROLE_MATCHERS: ${devNames[0] ?? '?'}`);
         else bad(`[${i}] no device matches amp matcher /nam|gateway/i — got ${JSON.stringify(devNames)}`);
         if (devNames.some((n) => /looper/i.test(n))) ok(`[${i}] looper matched by ROLE_MATCHERS`);
