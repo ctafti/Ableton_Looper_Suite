@@ -8,15 +8,15 @@ NAM_A2_Spectral.amxd (Phase 4). Asserts, without Live:
         implicit "Device On" exists — no parameter_longname anywhere).
     F2. The dry passthrough cords plugin~ -> plugout~ (L and R) are untouched.
 
-  ANALYSIS graph (arch §3 / Contract 6):
-    A1. Core objects present: buffer~ ---spec, fft~ 4096 4096 0, poke~ ---spec,
-        the mono sum, the two squarers, +~, sqrt~.
-    A2. Signal path cords: plugin~ L+R -> mono sum; (windowed) input -> fft~;
-        re/im -> squarers -> +~ -> sqrt~ -> poke~ value; fft~ sync -> poke~
-        index.
-    A3. Hann window chain (unless built --no-window): fft~ sync -> /~ 4096. ->
-        cos~ -> *~ -0.5 -> +~ 0.5 -> send~ ---win; receive~ ---win -> window
-        multiply -> fft~.
+  ANALYSIS graph (arch §3 / Contract 6 · rev 2026-07-22 = 4x OVERLAP):
+    A1. Core objects: buffer~ ---spec, mono sum, and FOUR phase-staggered
+        fft~ 4096 4096 {0,1024,2048,3072} instances.
+    A2. Per instance: re/im -> squarers -> +~ -> sqrt~ -> poke~ value; that
+        fft~'s sync -> its poke~ index; poke~ varnames spec_poke{,1,2,3}
+        (v8 retargets ALL of them at load). Plus plugin~ L+R -> mono sum.
+    A3. Per instance Hann chain (unless --no-window): sync -> /~ 4096. ->
+        cos~ -> *~ -0.5 -> +~ 0.5 -> send~ ---win{j}; receive~ ---win{j} ->
+        that instance's window multiply -> its fft~.
     A4. v8 feed: loadbang -> "setbuf ---spec" message -> v8; live.thisdevice
         -> v8.
     A5. Sender: node.script spectral-sender.js @autostart 1 present; v8
@@ -91,54 +91,68 @@ def main():
     check("F2 dry passthrough L", plugin and plugout and has_cord(lines, plugin, 0, plugout, 0))
     check("F2 dry passthrough R", plugin and plugout and has_cord(lines, plugin, 1, plugout, 1))
 
-    print("analysis graph:")
+    print("analysis graph (4x overlap, rev 2026-07-22):")
     buf = first(boxes, "buffer~ ---spec")
-    fft = exact(boxes, "fft~ 4096 4096 0")
-    poke = first(boxes, "poke~ ---spec")
     monoin = exact(boxes, "*~ 0.5")
-    root = exact(boxes, "sqrt~")
-    magsum = exact(boxes, "+~")
-    check("A1 core objects present",
-          all(x is not None for x in (buf, fft, poke, monoin, root, magsum)),
-          "missing %r" % [n for n, x in [("buffer~ ---spec", buf), ("fft~", fft),
-                                         ("poke~ ---spec", poke), ("*~ 0.5", monoin),
-                                         ("sqrt~", root), ("+~", magsum)] if x is None])
+    check("A1 buffer~ ---spec + mono sum present", buf is not None and monoin is not None)
     check("A2 plugin~ L+R -> mono sum",
-          has_cord(lines, plugin, 0, monoin, 0) and has_cord(lines, plugin, 1, monoin, 0))
-    # squarers: two plain *~ boxes each self-multiplying an fft~ outlet
-    sqre = next((bid for bid, bx in boxes.items() if bx.get("text") == "*~"
-                 and has_cord(lines, fft, 0, bid, 0) and has_cord(lines, fft, 0, bid, 1)), None)
-    sqim = next((bid for bid, bx in boxes.items() if bx.get("text") == "*~"
-                 and has_cord(lines, fft, 1, bid, 0) and has_cord(lines, fft, 1, bid, 1)), None)
-    check("A2 re/im squarers wired", sqre is not None and sqim is not None)
-    check("A2 squares -> +~ -> sqrt~ -> poke~ value",
-          sqre and sqim
-          and has_cord(lines, sqre, 0, magsum, 0) and has_cord(lines, sqim, 0, magsum, 1)
-          and has_cord(lines, magsum, 0, root, 0) and has_cord(lines, root, 0, poke, 0))
-    check("A2 fft~ sync -> poke~ index", has_cord(lines, fft, 2, poke, 1))
-    check("A2 poke~ carries varname spec_poke (v8 self-namespacing hook)",
-          poke is not None and boxes[poke].get("varname") == "spec_poke")
+          monoin and has_cord(lines, plugin, 0, monoin, 0) and has_cord(lines, plugin, 1, monoin, 0))
 
-    if window:
-        winmul = next((bid for bid, bx in boxes.items() if bx.get("text") == "*~"
-                       and has_cord(lines, monoin, 0, bid, 0)
-                       and has_cord(lines, bid, 0, fft, 0)), None)
-        wdiv = exact(boxes, "/~ 4096.")
-        wcos = exact(boxes, "cos~")
-        wneg = exact(boxes, "*~ -0.5")
-        woff = exact(boxes, "+~ 0.5")
-        wsend = first(boxes, "send~ ---win")
-        wrecv = first(boxes, "receive~ ---win")
-        check("A3 window chain objects",
-              all(x is not None for x in (winmul, wdiv, wcos, wneg, woff, wsend, wrecv)))
-        check("A3 sync -> Hann -> send~",
-              wdiv and wcos and wneg and woff and wsend
-              and has_cord(lines, fft, 2, wdiv, 0) and has_cord(lines, wdiv, 0, wcos, 0)
-              and has_cord(lines, wcos, 0, wneg, 0) and has_cord(lines, wneg, 0, woff, 0)
-              and has_cord(lines, woff, 0, wsend, 0))
-        check("A3 receive~ -> window multiply", wrecv and winmul and has_cord(lines, wrecv, 0, winmul, 1))
-    else:
-        check("A3 windowless: mono sum -> fft~ direct", has_cord(lines, monoin, 0, fft, 0))
+    def follow(src_id, src_out, text=None, maxclass=None):
+        """First box the (src,out) cord lands on, optionally filtered."""
+        for (s, so, d, di) in lines:
+            if s == src_id and so == src_out:
+                bx = boxes.get(d, {})
+                if text is not None and bx.get("text") != text:
+                    continue
+                if maxclass is not None and bx.get("maxclass") != maxclass:
+                    continue
+                return d
+        return None
+
+    OFFSETS = (0, 1024, 2048, 3072)
+    for j, off in enumerate(OFFSETS):
+        sfx = "" if j == 0 else str(j)
+        fft = exact(boxes, "fft~ 4096 4096 %d" % off)
+        check("A1 fft~ 4096 4096 %d present" % off, fft is not None)
+        if fft is None:
+            continue
+        sqre = next((bid for bid, bx in boxes.items() if bx.get("text") == "*~"
+                     and has_cord(lines, fft, 0, bid, 0) and has_cord(lines, fft, 0, bid, 1)), None)
+        sqim = next((bid for bid, bx in boxes.items() if bx.get("text") == "*~"
+                     and has_cord(lines, fft, 1, bid, 0) and has_cord(lines, fft, 1, bid, 1)), None)
+        magsum = sqre and follow(sqre, 0, text="+~")
+        root = magsum and follow(magsum, 0, text="sqrt~")
+        poke = root and follow(root, 0)
+        check("A2[%d] squarers -> +~ -> sqrt~ -> poke~ value" % off,
+              sqre and sqim and magsum and root and poke
+              and str(boxes[poke].get("text", "")).startswith("poke~ ---spec")
+              and has_cord(lines, sqim, 0, magsum, 1))
+        check("A2[%d] own sync -> own poke~ index" % off,
+              poke is not None and has_cord(lines, fft, 2, poke, 1))
+        check("A2[%d] poke~ varname spec_poke%s (v8 retarget hook)" % (off, sfx),
+              poke is not None and boxes[poke].get("varname") == "spec_poke%s" % sfx)
+
+        if window:
+            winmul = next((bid for bid, bx in boxes.items() if bx.get("text") == "*~"
+                           and has_cord(lines, monoin, 0, bid, 0)
+                           and has_cord(lines, bid, 0, fft, 0)), None)
+            wdiv = follow(fft, 2, text="/~ 4096.")
+            wcos = wdiv and follow(wdiv, 0, text="cos~")
+            wneg = wcos and follow(wcos, 0, text="*~ -0.5")
+            woff = wneg and follow(wneg, 0, text="+~ 0.5")
+            wsend = woff and follow(woff, 0)
+            wrecv = next((bid for bid, bx in boxes.items()
+                          if bx.get("text") == "receive~ ---win%s" % sfx), None)
+            check("A3[%d] sync -> Hann -> send~ ---win%s" % (off, sfx),
+                  wdiv and wcos and wneg and woff and wsend
+                  and boxes[wsend].get("text") == "send~ ---win%s" % sfx)
+            check("A3[%d] receive~ ---win%s -> window multiply -> fft~" % (off, sfx),
+                  wrecv is not None and winmul is not None
+                  and has_cord(lines, wrecv, 0, winmul, 1))
+        else:
+            check("A3[%d] windowless: mono sum -> fft~ direct" % off,
+                  has_cord(lines, monoin, 0, fft, 0))
 
     v8 = exact(boxes, "v8")
     thisdev = exact(boxes, "live.thisdevice")
