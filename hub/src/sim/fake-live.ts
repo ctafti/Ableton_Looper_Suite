@@ -49,6 +49,28 @@ const CHAIN_DEFS = [
 ];
 const SLOTS = 6;
 
+/** EQ Eight surface = OBSERVED reality (probes 06/07, 2026-07-22): 4 globals +
+ *  8 bands x (Filter On / Filter Type / Frequency / Gain / Q) on the A channel.
+ *  Values/ranges verbatim from the rig: Frequency/Q normalized 0..1
+ *  (Hz = 10*2200^v, Q = 0.1*180^v), Gain raw dB ±15, Type enum 0..7.
+ *  Template defaults: bands 1-4 on (Low Shelf 30 Hz / Bell 200 / Bell 1k /
+ *  High Shelf 5k), bands 5-8 off. B channel omitted (Stereo mode; never mirrored). */
+function makeEqParams(): { name: string; value: number; min: number; max: number; quantized: boolean }[] {
+  const p = (name: string, value: number, min: number, max: number) => ({ name, value, min, max, quantized: false });
+  const TYPE = [2, 3, 3, 5, 3, 3, 3, 6];
+  const FREQ = [0.142747, 0.389248, 0.598368, 0.807489, 0.299184, 0.897553, 0.807489, 0.973926];
+  const ON = [1, 1, 1, 1, 0, 0, 0, 0];
+  const out = [p('Device On', 1, 0, 1), p('Output', 0, -12, 12), p('Scale', 1, -2, 2), p('Adaptive Q', 1, 0, 1)];
+  for (let b = 1; b <= 8; b++) {
+    out.push(p(`${b} Filter On A`, ON[b - 1], 0, 1));
+    out.push(p(`${b} Filter Type A`, TYPE[b - 1], 0, 7));
+    out.push(p(`${b} Frequency A`, FREQ[b - 1], 0, 1));
+    out.push(p(`${b} Gain A`, 0, -15, 15));
+    out.push(p(`${b} Q A`, 0.376666, 0, 1));
+  }
+  return out;
+}
+
 function makeCell(slot: number, hasClip: boolean, name: string | null): CellMirror {
   return { slot: Slot(slot), hasClip, name, lengthBeats: hasClip ? 8 : null, playing: false, recording: false, isLooper: false };
 }
@@ -80,7 +102,7 @@ function initialSnapshot(tempoBpm: number, quantIndex: number): MirrorSnapshot {
         { name: 'Load OK', value: 1, min: 0, max: 1, quantized: true },
       ] },
       { role: 'looper', name: 'NAM_A2_Looper', params: [{ name: 'State', value: 0, min: 0, max: 3, quantized: true }, { name: 'Speed', value: 1, min: 0.25, max: 4, quantized: false }] },
-      { role: 'eq', name: 'EQ Eight', params: [{ name: '3 Frequency A', value: 0.5, min: 0, max: 1, quantized: false }, { name: '3 Gain A', value: 0.5, min: 0, max: 1, quantized: false }] },
+      { role: 'eq', name: 'EQ Eight', params: makeEqParams() },
     ],
   }));
   return {
