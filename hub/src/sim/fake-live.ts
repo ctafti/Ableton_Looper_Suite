@@ -42,10 +42,10 @@ export interface SimOptions {
 type Send = (msg: StateMessage | TelemetryMessage) => void;
 
 const CHAIN_DEFS = [
-  { tag: 'chain.clean', name: 'Clean', color: '#C9A227', input: 'guitar' },
-  { tag: 'chain.crunch', name: 'Crunch', color: '#C77D4A', input: 'guitar' },
-  { tag: 'chain.shimmer', name: 'Shimmer', color: '#7FA6A3', input: 'guitar' },
-  { tag: 'chain.vox', name: 'Vox', color: '#9B7FA6', input: 'mic' },
+  { tag: 'T1', name: 'Clean', color: '#C9A227', input: 'guitar' },
+  { tag: 'T2', name: 'Crunch', color: '#C77D4A', input: 'guitar' },
+  { tag: 'T3', name: 'Shimmer', color: '#7FA6A3', input: 'guitar' },
+  { tag: 'T4', name: 'Vox', color: '#9B7FA6', input: 'mic' },
 ];
 const SLOTS = 6;
 
@@ -258,6 +258,9 @@ export class FakeLive {
           this.push(this.store.setChainField(cmd.chain as string, 'live', false));
           this.push(this.store.setChainField(cmd.chain as string, 'armed', false));
         });
+      case 'rename_chain': // __provisional (owner-requested 2026-07-23): label only, marker is hub-owned
+        return confirmNow(() => this.push(this.store.setChainField(cmd.chain as string, 'name',
+          cmd.name.replace(/\s*(?:\[\[[^\]]*\]\]|\[T\d+\])\s*/g, ' ').replace(/\s+/g, ' ').trim() || 'Chain')));
       case 'set_tempo':
         return confirmNow(() => this.push(this.store.setTop('tempoBpm', cmd.bpm)));
       case 'set_metronome':
