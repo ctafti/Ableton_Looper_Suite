@@ -121,24 +121,45 @@ def wire(patcher_text, info_outlet):
     ln = add("line~", 2, 2, 220, 320)
     lm = add("loadmess 1.", 1, 1, 360, 300, 80)
 
-    # audio chain
+    # audio chain — LEFT
     link(plugin, 0, in_g, 0)
     link(in_g, 0, neural, 0)
     link(neural, 0, out_g, 0)
     link(out_g, 0, xfade, 0)
     link(xfade, 0, plugout, 0)
-    link(xfade, 0, plugout, 1)
-    # trims
+    # audio chain — RIGHT (STEREO REV 2026-07-24, owner GO: each input channel
+    # feeds its OWN neural~ running the SAME model; previously the right input
+    # was DISCARDED and the left copy went to both outputs). Trims/crossfade
+    # dials are shared — one set of controls, two engines.
+    neural_b = add("neural~", 1, max(2, info_outlet + 1), 40, 420, 120)
+    in_g_b = add("*~", 2, 1, 40, 380)
+    out_g_b = add("*~", 2, 1, 40, 470)
+    xfade_b = add("*~", 2, 1, 40, 520)
+    link(plugin, 1, in_g_b, 0)
+    link(in_g_b, 0, neural_b, 0)
+    link(neural_b, 0, out_g_b, 0)
+    link(out_g_b, 0, xfade_b, 0)
+    link(xfade_b, 0, plugout, 1)
+    # trims (SHARED dbtoa feeds both legs' gain stages)
     link(in_trim, 0, in_db, 0)
     link(in_db, 0, in_g, 1)
+    link(in_db, 0, in_g_b, 1)
     link(out_trim, 0, out_db, 0)
     link(out_db, 0, out_g, 1)
-    # control
+    link(out_db, 0, out_g_b, 1)
+    # control (shared crossfade line~; v8 load/prewarm/clear/quality mirrored to
+    # BOTH engines; the STATE MACHINE listens to the LEFT engine only — same
+    # model, same file, so receipts from one engine speak for both; the right
+    # engine's info goes to a print for visibility, never into the machine)
     link(ln, 0, xfade, 1)
+    link(ln, 0, xfade_b, 1)
     link(lm, 0, ln, 0)
     link(v8, 0, neural, 0)
+    link(v8, 0, neural_b, 0)
     link(v8, 1, ln, 0)
     link(neural, info_outlet, v8, 0)
+    pr_b = add("print ampR", 1, 0, 220, 470, 80)
+    link(neural_b, info_outlet, pr_b, 0)
 
     # tone-name display: v8 out 3 -> [prepend set] -> a named comment the styler
     # will place on the faceplate. Created here so the cord exists pre-styling.
@@ -154,27 +175,9 @@ def wire(patcher_text, info_outlet):
     link(v8, 3, prep, 0)
     link(prep, 0, disp_id, 0)
 
-    # Browse button (plain textbutton — NOT a live.* param; the frozen six stay
-    # frozen) -> a message that opens the TONE3000 bridge in the default browser.
-    # The DEVICE does no networking; it just launches a URL (REV 2026-07-05c).
-    counter[0] += 1
-    btn_id = "obj-%d" % counter[0]
-    boxes.append({"box": {
-        "id": btn_id, "maxclass": "live.text", "varname": "amp_browse_btn",
-        "mode": 1, "text": "Browse", "texton": "Browse",
-        "numinlets": 1, "numoutlets": 2, "outlettype": ["", ""],
-        "patching_rect": [500.0, 230.0, 80.0, 18.0],
-        "saved_attribute_attributes": {"valueof": {"parameter_enable": 0}},
-    }})
-    counter[0] += 1
-    msg_id = "obj-%d" % counter[0]
-    boxes.append({"box": {
-        "id": msg_id, "maxclass": "message",
-        "text": "; max launchbrowser http://localhost:7333",
-        "numinlets": 2, "numoutlets": 1, "outlettype": [""],
-        "patching_rect": [500.0, 260.0, 260.0, 22.0],
-    }})
-    link(btn_id, 0, msg_id, 0)
+    # (Browse button REMOVED 2026-07-24, owner: it launchbrowser'd the TONE3000
+    # bridge on EVERY device load — one browser tab per added chain. Browsing
+    # lives in the tablet's tone picker now.)
 
     # THREE dropdowns (umenus — UI-only, NOT live.* params), mirroring TONE3000's
     # taxonomy: GEAR (v8 out 4; slot 0 = DI) -> PACK (out 8) -> TONE (out 5).
@@ -196,6 +199,24 @@ def wire(patcher_text, info_outlet):
     add_menu("amp_pack_menu", 8, "pack", 260)
     add_menu("amp_tone_menu", 5, "tone", 330)
 
+    # DI live param (REV 2026-07-24, owner GO): the hub-facing 0/1 switch for
+    # the previously UI-only DI mode. amp.js observes it by name ('DI') and
+    # writes it back as a RECEIPT whenever DI is entered/left by any path
+    # (menu, load-failure fallback, fresh-boot settle) — param truth = mode
+    # truth. Wire-added, so it carries its own valueof names (setnames already
+    # ran).
+    counter[0] += 1
+    di_id = "obj-%d" % counter[0]
+    boxes.append({"box": {
+        "id": di_id, "maxclass": "live.toggle", "varname": "amp_di_toggle",
+        "numinlets": 1, "numoutlets": 1, "outlettype": [""],
+        "patching_rect": [500.0, 230.0, 24.0, 24.0],
+        "saved_attribute_attributes": {"valueof": {
+            "parameter_longname": "DI", "parameter_shortname": "DI",
+            "parameter_enable": 1, "parameter_type": 1, "parameter_mmax": 1,
+        }},
+    }})
+
     # DI dry path: guitar -> Volume gain -> gate -> out. The Volume stage is fed
     # by the SAME dbtoa as the wet Output Trim, so "Volume" works identically in
     # DI (0 dB = unity = clean bypass). Gate line~ on v8 outlet 6; Gain dial is
@@ -210,7 +231,15 @@ def wire(patcher_text, info_outlet):
     link(dry_ln, 0, dry_g, 1)
     link(dry_lm, 0, dry_ln, 0)
     link(dry_g, 0, plugout, 0)
-    link(dry_g, 0, plugout, 1)
+    # STEREO DI (rev 2026-07-24): the right input gets its OWN dry leg (shared
+    # Volume dbtoa + shared gate line~) — DI is now true stereo end to end.
+    dry_vol_b = add("*~", 2, 1, 400, 220)
+    dry_g_b = add("*~", 2, 1, 400, 260)
+    link(plugin, 1, dry_vol_b, 0)
+    link(out_db, 0, dry_vol_b, 1)
+    link(dry_vol_b, 0, dry_g_b, 0)
+    link(dry_ln, 0, dry_g_b, 1)
+    link(dry_g_b, 0, plugout, 1)
     link(v8, 6, dry_ln, 0)
     link(v8, 7, in_trim, 0)          # 'active 0/1' messages grey/un-grey Gain
 
