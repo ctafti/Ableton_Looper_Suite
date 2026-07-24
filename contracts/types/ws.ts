@@ -228,7 +228,38 @@ export type TabletCommand =
    *  (Contract 8). Down-path = the frozen Contract-2 DOWN.startPlaying /
    *  stopPlaying; confirm = the armed is_playing listener echo or a GET
    *  readback. ADDED 2026-07-12 (additive; CHANGELOG entry recorded). */
-  | ({ readonly kind: 'set_playing'; readonly commandId: string; readonly playing: boolean } & Sem);
+  | ({ readonly kind: 'set_playing'; readonly commandId: string; readonly playing: boolean } & Sem)
+  /** FROZEN 2026-07-24 (introduced provisional 2026-07-23, owner-requested): rename a chain from the tablet (tap the row name). `name` is
+   *  the HUMAN label only — the hub owns the [TN] marker and re-appends it;
+   *  any marker-like tokens in `name` are stripped hub-side. ABSOLUTE name =
+   *  idempotent. Confirm = the track-name listener echo (Contract 7 identity
+   *  is untouched: the tag never changes, only the label). */
+  | ({ readonly kind: 'rename_chain'; readonly commandId: string; readonly chain: ChainID; readonly name: string } & Sem)
+  /** FROZEN 2026-07-24 (Phase 5a work item 1):
+   *  add a chain = duplicate the template chain -> rename with a fresh [TN]
+   *  marker -> re-scan -> per-chain devices adopt -> fresh snapshot. STATEFUL
+   *  (Contract 8: reconcile-then-decide, never blind-retry); confirmed ONLY by
+   *  observed scan truth (the new tag resolving), never by hope. Auto-named
+   *  "Track N [TN]" (owner decision P5-b). `amp` = owner decision P5-a: the
+   *  amp DEVICE is always present; 'tone' loads a stock tone (manifest index
+   *  via the Model param, Load OK receipt), 'di' engages the amp's DI bypass. */
+  | ({ readonly kind: 'add_chain'; readonly commandId: string; readonly amp?: { readonly kind: 'di' } | { readonly kind: 'tone'; readonly model: number }; readonly input?: 'mono' | 'stereo'; readonly name?: string } & Sem)
+  /** FROZEN 2026-07-24 (Phase 5a work item 3): delete a chain's Live track.
+   *  STATEFUL; confirmed by observed track-count/scan truth. HUB GUARDS:
+   *  never the last remaining chain; never a chain that is recording.
+   *  The tablet adds its own confirm step — this destroys a track. */
+  | ({ readonly kind: 'delete_chain'; readonly commandId: string; readonly chain: ChainID } & Sem)
+  /** FROZEN 2026-07-24 (owner decision 2026-07-24, FX-backend research verdict:
+   *  leverage stock Live devices): insert a curated stock effect onto a chain
+   *  via the FROZEN Phase-1 browser path (query -> load_item -> count+name
+   *  readback). STATEFUL; confirmed by observed device-list truth. `fx` is a
+   *  hub-catalog id, not a free query — the curated smart defaults. */
+  | ({ readonly kind: 'add_fx'; readonly commandId: string; readonly chain: ChainID; readonly fx: string } & Sem)
+  /** FROZEN 2026-07-24: toggle a device's "Device On" (parameter 0) by device
+   *  INDEX within the chain's current scanned device list. IDEMPOTENT
+   *  (absolute state); confirm = the parameter readback. Editing beyond
+   *  on/off is deferred (owner: per-device UI + AI instruction later). */
+  | ({ readonly kind: 'set_device_on'; readonly commandId: string; readonly chain: ChainID; readonly device: number; readonly on: boolean } & Sem);
 
 /** Attaches the frozen Contract-8 semantics to each command variant. */
 interface Sem {
@@ -260,4 +291,9 @@ export const TABLET_COMMAND_SEMANTICS: Record<TabletCommand['kind'], CommandSema
   set_tempo: IDEMPOTENT,
   set_metronome: IDEMPOTENT,
   set_playing: IDEMPOTENT,        // absolute transport state (Phase 3, 2026-07-12)
+  rename_chain: IDEMPOTENT,       // absolute label (FROZEN 2026-07-24)
+  add_chain: STATEFUL,            // creates a track (FROZEN 2026-07-24)
+  delete_chain: STATEFUL,         // destroys a track (FROZEN 2026-07-24)
+  add_fx: STATEFUL,               // inserts a stock device (FROZEN 2026-07-24)
+  set_device_on: IDEMPOTENT,      // absolute Device On state (FROZEN 2026-07-24)
 };
