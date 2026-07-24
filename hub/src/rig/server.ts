@@ -373,6 +373,37 @@ async function main() {
   }
   log('listeners armed (tempo, is_playing, beat; per chain: playing_slot, fired_slot; per cell: has_clip, is_recording, is_playing)');
 
+  // --- EQ param listeners (Phase 4 session 2 — the 40-param mirror) ---------
+  // Owner scope (2026-07-21): per chain, the A-channel surface of EQ Eight =
+  // 8x Filter On / Filter Type / Frequency / Gain / Q ("N <part> A").
+  // OBSERVED names from probe 06/07 (2026-07-22): the Q param is literally
+  // "N Q A" (arch §16b's "Resonance" example was the LOM display name, not the
+  // OSC name). /live/device/start_listen/parameter/value is SUPPORTED in our
+  // AbletonOSC build (probe 07: echo on arm + unsolicited echo on set), so EQ
+  // truth is listener-driven — Live-side dot drags flow up like any other
+  // listener echo, and set_param confirms ride the same address.
+  const EQ_A_PARAM_NAMES: string[] = [];
+  for (let b = 1; b <= 8; b++)
+    for (const part of ['Filter On', 'Filter Type', 'Frequency', 'Gain', 'Q'])
+      EQ_A_PARAM_NAMES.push(`${b} ${part} A`);
+  // (track:device:param) -> route for the echo handler
+  const eqParamRoute = new Map<string, { chain: string; param: string }>();
+  for (const chainId of resolver.chainIds()) {
+    const dev = resolver.resolveDevice(chainId, 'eq');
+    if (!dev) { log(`eq listeners: no eq device on ${resolver.tagFor(chainId)} — skipped`); continue; }
+    const [t, d] = [dev.track as number, dev.device as number];
+    const names = live.tracks[t].devices[d].paramNames;
+    let armed = 0;
+    for (const want of EQ_A_PARAM_NAMES) {
+      const p = names.findIndex((n) => n.toLowerCase() === want.toLowerCase());
+      if (p < 0) { log(`eq listeners: "${want}" NOT FOUND on ${resolver.tagFor(chainId)} — recorded, skipped`); continue; }
+      eqParamRoute.set(`${t}:${d}:${p}`, { chain: chainId as string, param: names[p] });
+      osc.client.send('/live/device/start_listen/parameter/value', [t, d, p]);
+      armed++;
+    }
+    log(`eq listeners: ${armed}/40 armed on ${resolver.tagFor(chainId)} (track ${t} device ${d})`);
+  }
+
   // --- UP: every OSC arrival -> lifecycle echo + mirror delta ---------------
   osc.client.onMessage((m) => {
     lifecycle.onEcho(m);
@@ -398,6 +429,20 @@ async function main() {
         lastBeat = Number(m.args[0]);
         lastBeatAt = Date.now();
         broadcast({ channel: 'telemetry', type: 'beat', payload: { beat: lastBeat, tempoBpm: store.snapshot.tempoBpm, tMs: lastBeatAt } });
+        return;
+      }
+      case '/live/device/get/parameter/value': {
+        // Listener echo OR explicit GET readback (both ride this address).
+        // Route by (t, d, p) through the EQ map; change-only into the mirror.
+        const [t, d, p, v] = [Number(m.args[0]), Number(m.args[1]), Number(m.args[2]), Number(m.args[3])];
+        const route = eqParamRoute.get(`${t}:${d}:${p}`);
+        if (!route) return; // not a mirrored param (e.g. an ad-hoc GET confirm elsewhere)
+        const c = store.snapshot.chains.find((x) => (x.id as string) === route.chain);
+        const dev = c?.devices.find((x) => (x.role as string) === 'eq');
+        const pm = dev?.params.find((x) => x.name === route.param);
+        if (!pm || pm.value === v) return; // change-only (arm echoes re-assert boot values)
+        log(`← eq ${route.chain} "${route.param}" = ${v}`);
+        pushDelta(store.setParamValue(route.chain, 'eq', route.param, v));
         return;
       }
       case '/live/track/get/playing_slot_index': {
