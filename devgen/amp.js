@@ -252,7 +252,48 @@ var _menuPack = null;        // which pack the tone umenu currently lists
 var _gears = [];             // [{label, firstIndex}] gear layer (DI at menu slot 0)
 var _gearPacks = [];         // packs within the selected gear
 var _menuGear = null;        // selected gear label
-var _di = false;             // DI/bypass engaged (UI-only state; hub params untouched)
+var _di = false;             // DI/bypass engaged (REV 2026-07-24: mirrored to the 'DI' live param — hub-reachable + receipt)
+var _diApi = null, _diSetTask = null, _pendingDISet = -1;
+/** Write the DI param as a RECEIPT (deferred — sets are forbidden inside
+ *  notifications, same pattern as the deferred Model writes). */
+function _writeDIParam(v) {
+  if (!_diApi) return;
+  _pendingDISet = v;
+  if (typeof Task === 'undefined') { try { _diApi.set('value', v); } catch (e) {} _pendingDISet = -1; return; }
+  if (!_diSetTask) _diSetTask = new Task(_fireDISet);
+  _diSetTask.cancel();
+  _diSetTask.schedule(30);
+}
+function _fireDISet() {
+  var v = _pendingDISet; _pendingDISet = -1;
+  if (v < 0 || !_diApi) return;
+  try { if (Number(_diApi.get('value')) !== v) _diApi.set('value', v); } catch (e) {}
+}
+/** DI param observer: the hub's switch. 1 -> enter DI. 0 -> leave DI and bring
+ *  the (still warm) model back; with nothing to return to, DI stands and the
+ *  param is written back to 1 — the param never lies about the mode. */
+function _onDIValue(args) {
+  var v = _valueFromArgs(args);
+  if (isNaN(v)) return;
+  if (v >= 0.5) { if (!_di) _enterDI(); return; }
+  if (!_di) return;
+  if (_lastGood !== null || _lastModel !== null) {
+    _exitDI();
+    if (typeof outlet !== 'undefined') outlet(OUT_XFADE, [1, UNDUCK_MS]); // model stayed loaded/warm
+    _syncMenuTo(_lastGood !== null ? _lastGood : _lastModel);
+    _setNameForModel();
+  } else {
+    _post('DI off requested but no model to return to — staying in DI');
+    _writeDIParam(1);
+  }
+}
+function _setNameForModel() {
+  var idx = _lastGood !== null ? _lastGood : _lastModel;
+  if (_manifest && idx !== null) {
+    var r = resolveEntry(_manifest, idx);
+    if (r.ok) { _setName(r.entry.name); return; }
+  }
+}
 var _lastGood = null;        // last index that reached 'loaded' (failure revert target)
 var _loadTask = null, _loadTarget = -1; // DEBOUNCE: rapid Model changes (dial
 // sweeps, hub automation) collapse to ONE neural~ load after 150 ms of quiet.
@@ -287,7 +328,7 @@ function init() {
 function setupApis() {
   if (typeof LiveAPI === 'undefined') return;
   try {
-    _clearWatch('model'); _clearWatch('rescan'); _clearWatch('quality');
+    _clearWatch('model'); _clearWatch('rescan'); _clearWatch('quality'); _clearWatch('di');
     _loadOkApi = null;
     var dev = new LiveAPI(null, 'this_device');
     var params = dev.get('parameters');            // ["id", n, "id", m, ...]
@@ -317,6 +358,12 @@ function setupApis() {
     if (ids['model'] != null) _modelApi = new LiveAPI(null, 'id ' + ids['model']);
     if (ids['load ok'] != null) _loadOkApi = new LiveAPI(null, 'id ' + ids['load ok']);
     else _post("no 'Load OK' param found to write the receipt into");
+    if (ids['di'] != null) {
+      _watch.di = new LiveAPI(_onDIValue, 'id ' + ids['di']);
+      _watch.di.property = 'value';
+      _diApi = new LiveAPI(null, 'id ' + ids['di']);
+      _writeDIParam(_di ? 1 : 0); // receipt reflects boot truth immediately
+    } else _post("no 'DI' param found — hub DI unavailable (pre-rev device?)");
     _post('observers set:', Object.keys(ids).join(', '));
   } catch (e) { _post('setupApis failed:', String(e && e.message || e)); }
 }
@@ -520,11 +567,13 @@ function _enterDI() {
     outlet(OUT_GAINUI, ['active', 0]);   // grey out Gain: only Volume acts in DI
   }
   _setName('DI - direct input');
+  _writeDIParam(1); // receipt: param truth = mode truth (hub reads it back)
   _post('DI engaged (bypass)');
 }
 function _exitDI() {
   if (!_di) return;
   _di = false;
+  _writeDIParam(0); // receipt
   if (typeof outlet !== 'undefined') {
     outlet(OUT_DRY, [0, DUCK_MS]);       // dry down
     outlet(OUT_GAINUI, ['active', 1]);   // Gain back in play
