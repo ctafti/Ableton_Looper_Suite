@@ -11,7 +11,7 @@
  *     (dry passthrough plugin~ -> plugout~ is untouched; we only tap)
  *   this v8 (control rate only):
  *     - resolves the chain tag by reading its OWN track's name and parsing the
- *       Contract-7 [[tag]] (CHAIN_TAG.pattern verbatim). Duplication-proof by
+ *       Contract-7 [TN] marker (CHAIN_TAG.pattern verbatim; P5-e). Duplication-proof by
  *       construction: whatever the track is named, the device reports.
  *       Observes the name property so a rename re-tags live. (Owner decision b,
  *       2026-07-21.)
@@ -66,8 +66,9 @@ var OUT_BINS = 256;
 var F_HIGH_HZ = 16000;
 var FPS = 30;
 
-// Contract 7 CHAIN_TAG.pattern, verbatim (template.ts).
-var TAG_PATTERN = /\[\[([a-zA-Z0-9._-]+)\]\]/;
+// Contract 7 CHAIN_TAG.pattern, verbatim (template.ts; REV 2026-07-23 P5-e:
+// [TN] marker scheme — captured tag includes the T, e.g. "T1").
+var TAG_PATTERN = /\[(T\d+)\]/;
 
 var srHz = 48000;            // rig standard (48 kHz enforced — API-REALITY)
 // Normalization: |X[k]| for a full-scale sine ~= A*N/2; Hann coherent gain is
@@ -192,7 +193,7 @@ function onTrackName(args) { // ["name", "<track name>"]
   for (var i = 1; i < args.length; i++) name += (i > 1 ? ' ' : '') + args[i];
   var m = String(name).match(TAG_PATTERN);
   if (!m) {
-    post('NAM_A2_Spectral: no [[tag]] in track name "' + name + '" — not sending\n');
+    post('NAM_A2_Spectral: no [TN] marker in track name "' + name + '" — not sending\n');
     chainTag = null;
     return;
   }
