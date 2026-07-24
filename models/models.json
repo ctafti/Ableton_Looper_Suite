@@ -66,6 +66,30 @@
             "file": "Pedal/A grab bag of analog pedals/mira-as-i-usually-set-it-around-12.nam",
             "name": "mira-as-i-usually-set-it-around-12",
             "toneId": null
+        },
+        {
+            "index": 11,
+            "file": "Amp + Cab/RR AC30 TB/rr-ac30-nrm-160.nam",
+            "name": "rr-ac30-nrm-160",
+            "toneId": null
+        },
+        {
+            "index": 12,
+            "file": "Amp + Cab/RR AC30 TB/rr-ac30-nrm-57.nam",
+            "name": "rr-ac30-nrm-57",
+            "toneId": null
+        },
+        {
+            "index": 13,
+            "file": "Amp + Cab/RR AC30 TB/rr-ac30-tb-421.nam",
+            "name": "rr-ac30-tb-421",
+            "toneId": null
+        },
+        {
+            "index": 14,
+            "file": "Amp + Cab/1968 Marshall Super Lead 12 000 Series Drive A2/mrsh-sl68-i-drive-bri-cab.nam",
+            "name": "mrsh-sl68-i-drive-bri-cab",
+            "toneId": null
         }
     ]
 }
