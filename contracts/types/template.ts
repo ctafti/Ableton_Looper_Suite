@@ -80,17 +80,20 @@ export function parseSentinelVersion(cueName: string): number | null {
  * to mint the stable ChainID (Contract 1) and to key spectral telemetry
  * (Contract 6 chainTag). Track names are read via `/live/song/get/track_names`.
  *
- * Naming convention (FROZEN): a track is a chain track iff its name contains a
- * tag of the form `[[tag]]`, e.g. "Clean [[chain.clean]]". Everything outside
- * the brackets is a human-friendly label you can style freely; the bracketed
- * tag is the stable machine key. This keeps display names editable without
- * breaking identity.
+ * Naming convention (FROZEN; REV 2026-07-23, owner decision P5-e — CHANGELOG'd):
+ * a track is a chain track iff its name contains a low-profile marker of the
+ * form `[TN]` (uppercase T + digits), e.g. "Clean [T1]". Everything outside
+ * the marker is a human-friendly label you can style freely; the marker is the
+ * stable machine key — rename-proof, reboot-proof, duplication-story unchanged.
+ * (Replaces the original `[[tag]]` double-bracket scheme, which read as
+ * machinery inside Live; pure rename-tracking was considered and REJECTED —
+ * identity would not survive offline edits.)
  */
 export const CHAIN_TAG = {
-  /** regex capturing the tag inside double brackets. */
-  pattern: /\[\[([a-zA-Z0-9._-]+)\]\]/,
+  /** regex capturing the [TN] marker (the captured group INCLUDES the T). */
+  pattern: /\[(T\d+)\]/,
   /** example of a well-formed chain track name. */
-  example: 'Clean [[chain.clean]]',
+  example: 'Clean [T1]',
 } as const;
 
 /** Extract the chain tag from a track name, or null if it isn't a chain track. */
@@ -286,6 +289,11 @@ export const AMP_PARAMS = {
   outputTrimDb: 'Output Trim',
   /** NeuralAudio A2 quality scaling 0..1 (1 = A2-Full). Per-chain CPU knob. */
   quality: 'Quality',
+  /** DI bypass 0/1 (REV 2026-07-24, owner GO): enters/leaves the previously
+   *  UI-only DI mode. The DEVICE writes this back as a receipt on EVERY mode
+   *  change (menu, load-failure fallback, fresh-boot settle) — param truth =
+   *  mode truth, so the hub can both command and trust it. */
+  di: 'DI',
 } as const;
 
 /**
