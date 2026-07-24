@@ -33,7 +33,8 @@
  *    occupied-target policy is Phase 3 transport/lifecycle thickening.
  */
 import { createServer } from 'node:http';
-import { readFileSync, existsSync } from 'node:fs';
+import { spawn } from 'node:child_process';
+import { readFileSync, existsSync, statSync } from 'node:fs';
 import dgram from 'node:dgram';
 import { WebSocketServer, type WebSocket } from 'ws';
 
@@ -132,6 +133,14 @@ async function bootScan(osc: Osc): Promise<{ live: LiveSnapshot; trackNames: str
   // 3) tracks -> devices -> param names (the resolver's LiveSnapshot)
   const namesReply = await osc.ask('/live/song/get/track_names');
   const trackNames = namesReply.args.map(String);
+  const live = await scanTracks(osc, trackNames);
+  return { live, trackNames };
+}
+
+/** The track/device/param structure scan — shared by boot AND the Phase-5a
+ *  structural re-scan (add_chain/delete_chain). Always reads fresh truth. */
+async function scanTracks(osc: Osc, knownNames?: string[]): Promise<LiveSnapshot> {
+  const trackNames = knownNames ?? (await osc.ask('/live/song/get/track_names')).args.map(String);
   const tracks: LiveTrackInfo[] = [];
   for (let t = 0; t < trackNames.length; t++) {
     const devReply = await osc.ask('/live/track/get/devices/name', [t]);
@@ -146,10 +155,10 @@ async function bootScan(osc: Osc): Promise<{ live: LiveSnapshot; trackNames: str
   const scenesReply = await osc.tryAsk('/live/song/get/num_scenes');
   const numScenes = scenesReply ? Number(scenesReply.args[0]) : SLOTS;
   log(`scanned ${tracks.length} tracks, ${numScenes} scenes`);
-  return { live: { tracks, numScenes }, trackNames };
+  return { tracks, numScenes };
 }
 
-async function buildMirror(osc: Osc, resolver: Resolver, live: LiveSnapshot): Promise<MirrorSnapshot> {
+async function buildMirror(osc: Osc, resolver: Resolver, live: LiveSnapshot, reuse?: ReadonlyMap<string, ChainMirror>): Promise<MirrorSnapshot> {
   /** Map an OBSERVED input-routing display name (e.g. "In 1", "1", "3/4",
    *  "Ext. In 3/4") to the Contract-7 physical-input NAME ('guitar' | 'mic' |
    *  'synth') via DEFAULT_INPUTS channel numbers. Honest fallback = the raw
@@ -180,6 +189,11 @@ async function buildMirror(osc: Osc, resolver: Resolver, live: LiveSnapshot): Pr
 
   const chains: ChainMirror[] = [];
   for (const chainId of resolver.chainIds()) {
+    // INCREMENTAL (perf, owner report 2026-07-24: adds took seconds to show):
+    // surviving chains' mirrors are delta-maintained truth — reuse them and
+    // only ASK Live about chains we don't already know (the new one).
+    const cached = reuse?.get(chainId as string);
+    if (cached) { chains.push(cached); continue; }
     const track = resolver.resolveChain(chainId)! as number;
     const info = live.tracks[track];
     const volume01 = await num('/live/track/get/volume', [track], 0.85);
@@ -247,7 +261,7 @@ async function buildMirror(osc: Osc, resolver: Resolver, live: LiveSnapshot): Pr
 
     chains.push({
       id: chainId,
-      name: info.name.replace(/\s*\[\[.*\]\]\s*/, ''),
+      name: info.name.replace(/\s*(?:\[\[.*\]\]|\[T\d+\])\s*/, ''),
       color: `#${(colorInt >>> 0).toString(16).padStart(6, '0')}`,
       toneId: null,
       volume01, panMinus1to1,
@@ -276,7 +290,7 @@ async function main() {
   log(`OSC bound (send ${OSC_HOST}:11000, recv 11001)`);
 
   const resolver = new Resolver();
-  const { live } = await bootScan(osc);
+  let live = (await bootScan(osc)).live; // MUTABLE: structural ops re-scan and replace it
   resolver.rebuildFromSnapshot(live);
   log(`resolver: chains = ${resolver.chainIds().map((c) => resolver.tagFor(c)).join(', ')}`);
 
@@ -309,6 +323,15 @@ async function main() {
     for (const ws of sockets) if (ws.readyState === ws.OPEN) ws.send(s);
   };
   const pushDelta = (msg: StateMessage) => broadcast(msg);
+  /** Poll an observed predicate until true or deadline (structural ops). */
+  async function pollFor(check: () => Promise<boolean>, timeoutMs: number): Promise<boolean> {
+    const deadline = Date.now() + timeoutMs;
+    while (Date.now() < deadline) {
+      if (await check()) return true;
+      await new Promise((r) => setTimeout(r, 150));
+    }
+    return false;
+  }
   const status = (commandId: string, phase: CommandStatus['phase'], extra: Partial<CommandStatus> = {}) => {
     log(`  status ${commandId}: ${phase}${extra.queuedForMs !== undefined ? ` (queued ${extra.queuedForMs}ms)` : ''}${extra.reason ? ` — ${extra.reason}` : ''}`);
     broadcast({ channel: 'state', type: 'command_status', rev: store.revision, payload: { commandId, phase, ...extra } });
@@ -337,8 +360,8 @@ async function main() {
   );
   setInterval(() => lifecycle.tick(), 50);
 
-  async function refresh(): Promise<void> {
-    const next = await buildMirror(osc, resolver, live);
+  async function refresh(reuse?: ReadonlyMap<string, ChainMirror>): Promise<void> {
+    const next = await buildMirror(osc, resolver, live, reuse);
     store.replace(next);
     broadcast(store.snapshotMessage());
   }
@@ -352,7 +375,9 @@ async function main() {
   osc.client.send(LISTEN.tempo().address, []);
   osc.client.send(LISTEN.isPlaying().address, []);
   osc.client.send(LISTEN.beat().address, []);
-  for (const chainId of resolver.chainIds()) {
+  /** Arm the per-chain clip/track listeners. Idempotent (change-only echoes)
+   *  — safe to re-run for every chain after a structural re-scan. */
+  const armChainListeners = (chainId: ReturnType<Resolver['chainIds']>[number]) => {
     const t = resolver.resolveChain(chainId)! as number;
     osc.client.send('/live/track/start_listen/playing_slot_index', [t]);
     // Phase 3 (work item 3): clip/recording truth as change-only deltas.
@@ -370,7 +395,8 @@ async function main() {
       // Contract 2 LISTEN.clipIsPlaying gets a ⚠️ REALITY note at merge).
       // Playing truth flows via playing_slot_index instead.
     }
-  }
+  };
+  for (const chainId of resolver.chainIds()) armChainListeners(chainId);
   log('listeners armed (tempo, is_playing, beat; per chain: playing_slot, fired_slot; per cell: has_clip, is_recording, is_playing)');
 
   // --- EQ param listeners (Phase 4 session 2 — the 40-param mirror) ---------
@@ -386,23 +412,191 @@ async function main() {
   for (let b = 1; b <= 8; b++)
     for (const part of ['Filter On', 'Filter Type', 'Frequency', 'Gain', 'Q'])
       EQ_A_PARAM_NAMES.push(`${b} ${part} A`);
-  // (track:device:param) -> route for the echo handler
+  // (track:device:param) -> route for the echo handler. REBUILT WHOLE on every
+  // structural re-scan — track indices shift on add/delete, so append-only
+  // routes would go stale (the raw-index trap sneaking back in).
   const eqParamRoute = new Map<string, { chain: string; param: string }>();
-  for (const chainId of resolver.chainIds()) {
-    const dev = resolver.resolveDevice(chainId, 'eq');
-    if (!dev) { log(`eq listeners: no eq device on ${resolver.tagFor(chainId)} — skipped`); continue; }
-    const [t, d] = [dev.track as number, dev.device as number];
-    const names = live.tracks[t].devices[d].paramNames;
-    let armed = 0;
-    for (const want of EQ_A_PARAM_NAMES) {
-      const p = names.findIndex((n) => n.toLowerCase() === want.toLowerCase());
-      if (p < 0) { log(`eq listeners: "${want}" NOT FOUND on ${resolver.tagFor(chainId)} — recorded, skipped`); continue; }
-      eqParamRoute.set(`${t}:${d}:${p}`, { chain: chainId as string, param: names[p] });
-      osc.client.send('/live/device/start_listen/parameter/value', [t, d, p]);
-      armed++;
+  const armEqListeners = async (affected?: (t: number) => boolean) => {
+    // REV 2026-07-24c: the route MAP is always rebuilt whole (cheap, truth),
+    // but start_listen SENDS are TRIMMED to affected tracks and PACED — an
+    // unpaced 200-send arm burst clogs AbletonOSC's queue exactly like the
+    // teardown burst did, starving the next command's asks.
+    eqParamRoute.clear();
+    const sends: { t: number; d: number; p: number }[] = [];
+    for (const chainId of resolver.chainIds()) {
+      const dev = resolver.resolveDevice(chainId, 'eq');
+      if (!dev) { log(`eq listeners: no eq device on ${resolver.tagFor(chainId)} — skipped`); continue; }
+      const [t, d] = [dev.track as number, dev.device as number];
+      const names = live.tracks[t].devices[d].paramNames;
+      let armed = 0;
+      for (const want of EQ_A_PARAM_NAMES) {
+        const p = names.findIndex((n) => n.toLowerCase() === want.toLowerCase());
+        if (p < 0) { log(`eq listeners: "${want}" NOT FOUND on ${resolver.tagFor(chainId)} — recorded, skipped`); continue; }
+        eqParamRoute.set(`${t}:${d}:${p}`, { chain: chainId as string, param: names[p] });
+        if (!affected || affected(t)) sends.push({ t, d, p });
+        armed++;
+      }
+      log(`eq listeners: ${armed}/40 routed on ${resolver.tagFor(chainId)} (track ${t} device ${d})${affected && !affected(t) ? ' — already armed, no re-send' : ''}`);
     }
-    log(`eq listeners: ${armed}/40 armed on ${resolver.tagFor(chainId)} (track ${t} device ${d})`);
+    for (let i = 0; i < sends.length; i += 25) {
+      for (const x of sends.slice(i, i + 25)) osc.client.send('/live/device/start_listen/parameter/value', [x.t, x.d, x.p]);
+      if (i + 25 < sends.length) await new Promise((r) => setTimeout(r, 60));
+    }
+  };
+  await armEqListeners();
+
+  // --- SELF-HEALING [TN] MARKERS (P5-e sub-item; owner GO 2026-07-23) -------
+  // The FIRST hub-initiated write of a track name, which is why it needed an
+  // explicit owner go. Scope is strictly: a tracked chain track whose observed
+  // name has LOST its [TN] marker (casual rename in Live) gets the SAME name
+  // back with the marker restored — change-only, logged loudly, rate-limited
+  // against anything fighting the name. Name listeners are stock (probe 08).
+  const armNameListeners = () => {
+    for (const chainId of resolver.chainIds()) {
+      osc.client.send('/live/track/start_listen/name', [resolver.resolveChain(chainId) as number]);
+    }
+    log(`name listeners armed on ${resolver.chainIds().length} chain tracks (self-healing [TN] markers)`);
+  };
+  armNameListeners();
+
+  // --- STRUCTURAL RE-SCAN (Phase 5a: add_chain / delete_chain) --------------
+  // One logical stateful op = mutate Live -> re-scan fresh truth -> resolver
+  // rebuild (same tag => same ChainID) -> mirror rebuild + snapshot broadcast
+  // -> re-arm everything (idempotent; index-keyed routes rebuilt whole).
+  let restructuring = false; // structural-op mutex — one at a time, ever
+  /** Tags claimed by MORE THAN ONE track (poisoned Set — resolver behavior is
+   *  undefined). Detected at every scan; structural ops refuse until clean. */
+  let tagConflicts: string[] = [];
+  const detectTagConflicts = () => {
+    const seen = new Map<string, number[]>();
+    live.tracks.forEach((tr, i) => {
+      const m = tr.name.match(/\[(T\d+)\]/);
+      if (m) seen.set(m[1], [...(seen.get(m[1]) ?? []), i]);
+    });
+    tagConflicts = [...seen.entries()].filter(([, idxs]) => idxs.length > 1).map(([tg]) => tg);
+    for (const [tg, idxs] of seen) {
+      if (idxs.length > 1)
+        log(`⚠️ TAG CONFLICT: [${tg}] claimed by tracks ${idxs.join(', ')} (${idxs.map((i) => `"${live.tracks[i].name}"`).join(', ')}) — resolver behavior UNDEFINED; add/delete BLOCKED until you delete the extras in Live and re-scan (restart or add/delete after cleanup)`);
+    }
+  };
+  detectTagConflicts();
+  async function restructure(hint?: { kind: 'add' | 'delete' | 'devices'; track: number }): Promise<void> {
+    // REV 2026-07-24c (rig receipts: every structural op "failed" while Live
+    // succeeded). Root cause: ~275 stop_listen messages fired in one burst —
+    // 200 of them EQ stops — many at just-deleted indices; AbletonOSC works
+    // the queue serially, so our OWN scan asks queued behind the flood and
+    // timed out, leaving a stale mirror and cascading misfires. Order is now
+    // SCAN FIRST (quiet wire), then a TRIMMED, PACED teardown (only indices
+    // that actually shifted), then rebuild, then trimmed re-arm. Any error
+    // triggers one settle-and-full-rescan retry so the hub can never stay
+    // poisoned.
+    const oldCount = live.tracks.length;
+    const pacedSend = async (msgs: { address: string; args: (number | string)[] }[]) => {
+      for (let i = 0; i < msgs.length; i += 25) {
+        for (const m of msgs.slice(i, i + 25)) osc.client.send(m.address, m.args);
+        if (i + 25 < msgs.length) await new Promise((r) => setTimeout(r, 60));
+      }
+    };
+    const attempt = async (useHint: typeof hint): Promise<void> => {
+      // ---- 1) SCAN FIRST, on a quiet wire ----
+      let next: LiveSnapshot | null = null;
+      if (useHint?.kind === 'devices') {
+        const devReply = await osc.ask('/live/track/get/devices/name', [useHint.track]);
+        const devNames = devReply.args.slice(1).map(String);
+        const devices = [];
+        for (let d = 0; d < devNames.length; d++) {
+          const pReply = await osc.ask('/live/device/get/parameters/name', [useHint.track, d]);
+          devices.push({ name: devNames[d], paramNames: pReply.args.slice(2).map(String) });
+        }
+        const tracks = [...live.tracks];
+        tracks[useHint.track] = { ...tracks[useHint.track], devices };
+        next = { tracks, numScenes: live.numScenes };
+        log(`devices-scan: track ${useHint.track} now [${devNames.join(' | ')}]`);
+      } else if (useHint) {
+        const names = (await osc.ask('/live/song/get/track_names')).args.map(String);
+        const expected = useHint.kind === 'add' ? oldCount + 1 : oldCount - 1;
+        if (names.length === expected) {
+          const tracks = [...live.tracks];
+          if (useHint.kind === 'add') {
+            const devReply = await osc.ask('/live/track/get/devices/name', [useHint.track]);
+            const devNames = devReply.args.slice(1).map(String);
+            const devices = [];
+            for (let d = 0; d < devNames.length; d++) {
+              const pReply = await osc.ask('/live/device/get/parameters/name', [useHint.track, d]);
+              devices.push({ name: devNames[d], paramNames: pReply.args.slice(2).map(String) });
+            }
+            tracks.splice(useHint.track, 0, { name: names[useHint.track], devices });
+          } else tracks.splice(useHint.track, 1);
+          for (let i = 0; i < tracks.length; i++) tracks[i] = { ...tracks[i], name: names[i] };
+          next = { tracks, numScenes: live.numScenes };
+          log(`splice-scan: ${useHint.kind} at track ${useHint.track} (${names.length} tracks)`);
+        } else log(`splice-scan expectation missed (${names.length} names vs ${expected}) — full scan`);
+      }
+      const fresh = next ?? await scanTracks(osc);
+
+      // ---- 2) TRIMMED, PACED teardown (only what shifted or vanished) ----
+      const firstShifted = useHint && useHint.kind !== 'devices' ? useHint.track : 0;
+      const teardown: { address: string; args: (number | string)[] }[] = [];
+      if (!useHint || useHint.kind !== 'devices') {
+        for (let t = firstShifted; t < oldCount; t++) {
+          teardown.push({ address: '/live/track/stop_listen/name', args: [t] });
+          teardown.push({ address: '/live/track/stop_listen/playing_slot_index', args: [t] });
+          teardown.push({ address: '/live/track/stop_listen/fired_slot_index', args: [t] });
+          for (let sl = 0; sl < SLOTS; sl++) {
+            teardown.push({ address: '/live/clip_slot/stop_listen/has_clip', args: [t, sl] });
+            teardown.push({ address: '/live/clip/stop_listen/is_recording', args: [t, sl] });
+          }
+        }
+      }
+      const affectedEq = (t: number) => (useHint?.kind === 'devices' ? t === useHint.track : t >= firstShifted);
+      for (const key of eqParamRoute.keys()) {
+        const [t, d, pp] = key.split(':').map(Number);
+        if (affectedEq(t)) teardown.push({ address: '/live/device/stop_listen/parameter/value', args: [t, d, pp] });
+      }
+      await pacedSend(teardown);
+      log(`restructure: ${teardown.length} stale listeners stopped (paced; tracks ${firstShifted}..${oldCount - 1})`);
+
+      // ---- 3) rebuild from the fresh truth ----
+      live = fresh;
+      resolver.rebuildFromSnapshot(live);
+      lastRepairAt.clear();
+      detectTagConflicts();
+      log(`resolver (re-scan): chains = ${resolver.chainIds().map((c) => resolver.tagFor(c)).join(', ')}`);
+      const reuse = new Map(store.snapshot.chains.map((c) => [c.id as string, c]));
+      if (useHint?.kind === 'devices') {
+        const changed = resolver.chainIds().find((cid) => (resolver.resolveChain(cid) as number) === useHint.track);
+        if (changed) reuse.delete(changed as string); // rebuild ONLY the changed chain's mirror
+      }
+      await refresh(reuse); // survivors reused; only unknown chains are asked
+
+      // ---- 4) re-arm, TRIMMED to affected tracks (unaffected listeners are
+      // still valid Live-side — their indices never moved) ----
+      const armAffected = (t: number) => !useHint || (useHint.kind === 'devices' ? t === useHint.track : t >= firstShifted);
+      for (const chainId of resolver.chainIds()) {
+        const t = resolver.resolveChain(chainId)! as number;
+        if (armAffected(t)) armChainListeners(chainId);
+      }
+      await armEqListeners(armAffected);
+      armNameListeners();
+    };
+    try {
+      await attempt(hint);
+    } catch (e) {
+      log(`RESTRUCTURE HICCUP: ${e instanceof Error ? e.message : e} — settling 2.5s, then FULL rescan (the hub must never stay stale)`);
+      await new Promise((r) => setTimeout(r, 2500));
+      await attempt(undefined); // full scan, full teardown, full re-arm
+    }
   }
+  const lastRepairAt = new Map<number, number>(); // track -> ts of last repair (runaway guard)
+  // CORROBORATION (2026-07-24b — rig receipts show echoes attributed to WRONG
+  // indices after restructures): a marker-less echo is only a SUGGESTION; the
+  // hub re-reads that index's name directly and repairs only when the fresh
+  // read matches the claim. Mis-attributed echoes fail corroboration cold.
+  const pendingCorrob = new Map<number, { claimed: string; at: number }>();
+  let lastLiveError: { text: string; count: number; timer?: ReturnType<typeof setTimeout> } = { text: '', count: 0 };
+  const ANY_TAG_TOKEN = /\s*(?:\[\[[^\]]*\]\]|\[T\d+\])\s*/g; // old + new schemes
+  const repairName = (current: string, tag: string): string =>
+    `${current.replace(ANY_TAG_TOKEN, ' ').replace(/\s+/g, ' ').trim()} [${tag}]`;
 
   // --- UP: every OSC arrival -> lifecycle echo + mirror delta ---------------
   osc.client.onMessage((m) => {
@@ -569,9 +763,82 @@ async function main() {
         }
         return;
       }
-      case '/live/error':
-        log(`LIVE ERROR: ${m.args.join(' ')}`); // golden rule: verbatim, visible
+      case '/live/track/get/name': {
+        // Listener echo (self-healing markers, P5-e sub-item). Two cases:
+        const t = Number(m.args[0]);
+        const name = String(m.args[1] ?? '');
+        // BUGFIX 2026-07-24b (rig log receipt: self-heal stomped a fresh [T4]
+        // to [T2] MID-ADD): during a structural op the resolver is stale by
+        // definition — echo attribution is untrustworthy. Self-healing SLEEPS
+        // until the re-scan lands.
+        if (restructuring) return;
+        const chain = chainOf(t);
+        if (!chain) return; // not a tracked chain track
+        const tag = resolver.tagFor(chain)!;
+        if (name.includes(`[${tag}]`)) {
+          // (a) marker intact -> benign rename: mirror the display name only
+          const display = name.replace(/\s*(?:\[\[.*\]\]|\[T\d+\])\s*/, '');
+          const c = store.snapshot.chains.find((x) => x.id === chain);
+          if (c && c.name !== display) {
+            log(`rename observed on [${tag}]: "${name}" -> display "${display}"`);
+            pushDelta(store.setChainField(chain as string, 'name', display));
+          }
+          return;
+        }
+        // (b') CASCADE BREAKER (bugfix 2026-07-24): if the observed name carries
+        // SOME OTHER live chain's marker, this echo is almost certainly
+        // mis-attributed (stale listener / shifted index) — repairing would
+        // rename the WRONG track and cascade. Never repair; log loudly.
+        const foreign = name.match(/\[(T\d+)\]/);
+        if (foreign) {
+          // GENERALIZED (2026-07-24b): a name carrying ANY [TN] marker never
+          // needs marker RESTORATION — a wrong marker is re-tagging territory,
+          // and the hub never rewrites tags on its own. Refuse + loud log.
+          log(`SELF-HEAL REFUSED on track ${t}: name "${name}" carries marker [${foreign[1]}] but this track resolves as [${tag}] — mis-attributed echo or manual re-tag; NOT touching it (investigate)`);
+          return;
+        }
+        // (b) marker LOST. Corroborate before repairing (see pendingCorrob).
+        const pend = pendingCorrob.get(t);
+        if (!pend || Date.now() - pend.at > 2500) {
+          pendingCorrob.set(t, { claimed: name, at: Date.now() });
+          osc.client.send('/live/track/get/name', [t]); // fresh read re-enters here
+          return;
+        }
+        pendingCorrob.delete(t);
+        if (pend.claimed !== name) {
+          log(`SELF-HEAL REFUSED on track ${t}: echo claimed "${pend.claimed}" but a direct read says "${name}" — mis-attributed echo; NOT touching it`);
+          return;
+        }
+        // corroborated marker loss -> repair (change-only, loud, guarded)
+        const now = Date.now();
+        if (now - (lastRepairAt.get(t) ?? 0) < 1500) {
+          log(`SELF-HEAL SUPPRESSED on track ${t}: repaired <1.5s ago and the marker is gone again ("${name}") — something is fighting the name; investigate before it loops`);
+          return;
+        }
+        lastRepairAt.set(t, now);
+        const repaired = repairName(name, tag);
+        log(`SELF-HEAL: track ${t} lost its [${tag}] marker (renamed to "${name}") — restoring: "${repaired}"`);
+        osc.client.send('/live/track/set/name', [t, repaired]);
+        // The set triggers its own listener echo -> case (a) mirrors the name.
         return;
+      }
+      case '/live/error': {
+        // Golden rule: verbatim + visible — but DEDUPED (owner: boot spammed
+        // 80+ identical lines). Repeats collapse into a count line.
+        const text = m.args.join(' ');
+        if (text === lastLiveError.text) { lastLiveError.count++; }
+        else {
+          if (lastLiveError.count > 1) log(`LIVE ERROR: (previous line x${lastLiveError.count})`);
+          lastLiveError = { text, count: 1 };
+          log(`LIVE ERROR: ${text}`);
+        }
+        clearTimeout(lastLiveError.timer);
+        lastLiveError.timer = setTimeout(() => {
+          if (lastLiveError.count > 1) log(`LIVE ERROR: (previous line x${lastLiveError.count})`);
+          lastLiveError = { text: '', count: 0 };
+        }, 2000);
+        return;
+      }
     }
   });
 
@@ -736,7 +1003,14 @@ async function main() {
         // own device clock, so ■ must silence them whether or not Live's song
         // transport itself needed stopping. Per-looper: skip those already
         // Stopped so an idempotent re-stop is still a quiet no-op.
+        // OWNER POLICY REV 2026-07-24: the main ■ ALSO stops every clip (stock
+        // stop_all_clips), so the slate is clean — the next fired clip plays
+        // alone. Clip-stop truth flows up via the playing_slot listeners; the
+        // command's own confirm stays the is_playing echo. Sent regardless of
+        // the transport truth-guard, same rationale as the looper sweep.
         if (!cmd.playing) {
+          log('STOP-ALL: stop_all_clips (main stop — owner policy 2026-07-24)');
+          osc.client.send(DOWN.stopAllClips.build().address, []);
           for (const chainId of resolver.chainIds()) {
             const l = store.snapshot.chains.find((c) => c.id === chainId)?.looper;
             if (!l || l.state === LooperState.Stop) continue;
@@ -769,6 +1043,305 @@ async function main() {
           sendMsgs: [setMsg as { address: string; args: (number | string)[] }],
           confirmGet: { address: getAddr as string, args: [t] },
           expect: (m) => m.address === getAddr && Number(m.args[0]) === t && near(Number(m.args[1]), want as number),
+        });
+      }
+      case 'add_chain': {
+        // __provisional STATEFUL structural op (Phase 5a work item 1; owner
+        // decisions P5-a/b). One LOGICAL command: duplicate the template chain
+        // -> rename with the next fresh [TN] -> strip carried clips -> re-scan
+        // -> devices adopt -> snapshot. Confirmed ONLY by observed scan truth.
+        if (restructuring) return fail('a structural change is already in flight');
+        if (tagConflicts.length > 0) return fail(`tag conflict on [${tagConflicts.join(', ')}] — delete the duplicate-tagged tracks in Live first`);
+        restructuring = true;
+        status(cmd.commandId, 'sent');
+        (async () => {
+          try {
+            const srcChain = resolver.chainIds()[0]; // the template chain (first row)
+            const srcTrack = resolver.resolveChain(srcChain)! as number;
+            const names0 = (await osc.ask('/live/song/get/track_names')).args.map(String);
+            let maxN = 0;
+            for (const n of names0) { const m = n.match(/\[T(\d+)\]/); if (m) maxN = Math.max(maxN, Number(m[1])); }
+            const newTag = `T${maxN + 1}`;
+            // P5-b auto-name, REV 2026-07-24 (owner): tone adds carry a NAME
+            // HINT from the picker (pack name if the pack had one capture,
+            // else the capture name). Sanitized like rename_chain — the [TN]
+            // marker stays hub-owned. No hint (DI) -> generic "Track N".
+            const hinted = (cmd.name ?? '').replace(/\s*(?:\[\[[^\]]*\]\]|\[T\d+\])\s*/g, ' ').replace(/\s+/g, ' ').trim();
+            const newName = `${hinted || `Track ${maxN + 1}`} [${newTag}]`;
+            log(`ADD_CHAIN: duplicating track ${srcTrack} ("${names0[srcTrack]}") -> "${newName}"`);
+
+            osc.client.send('/live/song/duplicate_track', [srcTrack]);
+            const grew = await pollFor(async () => {
+              const r = await osc.tryAsk('/live/song/get/num_tracks');
+              return r !== null && Number(r.args[0]) === names0.length + 1;
+            }, 6000);
+            if (!grew) throw new Error('duplicate_track not observed (num_tracks unchanged) — nothing renamed, reconcile in Live');
+
+            // Landing check (probe 08, 2026-07-23: duplicate lands at src+1 with
+            // the IDENTICAL name). Verify by readback before renaming ANYTHING.
+            const dupIdx = srcTrack + 1;
+            const landed = await osc.tryAsk('/live/track/get/name', [dupIdx]);
+            const landedName = landed ? String(landed.args[1]) : null;
+            if (landedName !== names0[srcTrack])
+              throw new Error(`duplicate landing mismatch: track ${dupIdx} reads "${landedName}" (expected "${names0[srcTrack]}") — NOT renaming; delete the duplicate by hand and report`);
+
+            osc.client.send('/live/track/set/name', [dupIdx, newName]);
+            const named = await pollFor(async () => {
+              const r = await osc.tryAsk('/live/track/get/name', [dupIdx]);
+              return r !== null && String(r.args[1]) === newName;
+            }, 3000);
+            if (!named) throw new Error('rename readback failed');
+            log(`ADD_CHAIN: renamed -> "${newName}" (readback ok)`);
+
+            // Carried clips: a NEW chain starts EMPTY (the duplicate clones the
+            // source's clips — probe 08). Delete observed-occupied slots, verified.
+            for (let sl = 0; sl < SLOTS; sl++) {
+              const hc = await osc.tryAsk('/live/clip_slot/get/has_clip', [dupIdx, sl]);
+              if (hc && Number(hc.args[2]) !== 0) {
+                const del = DOWN.deleteClip.build(dupIdx as never, sl as never);
+                osc.client.send(del.address, del.args as (number | string)[]);
+                log(`ADD_CHAIN: cleared carried clip at slot ${sl}`);
+              }
+            }
+
+            // Input routing (picker mono/stereo, arch §17). OBSERVE-FIRST: pick
+            // from Live's OWN advertised routing list, set, readback-confirm.
+            // Any miss is logged honestly and the inherited routing stands.
+            if (cmd.input) {
+              const av = await osc.tryAsk('/live/track/get/available_input_routing_channels', [dupIdx]);
+              if (!av) log(`ADD_CHAIN: available_input_routing_channels did not answer — routing left inherited (recorded)`);
+              else {
+                const options = av.args.slice(1).map(String);
+                log(`ADD_CHAIN: available input routings: ${JSON.stringify(options)}`);
+                const isPair = (o: string) => /\d+\s*\/\s*\d+/.test(o);
+                const pick = cmd.input === 'stereo' ? options.find(isPair) : options.find((o) => /\b1\b/.test(o) && !isPair(o)) ?? options.find((o) => !isPair(o));
+                if (!pick) log(`ADD_CHAIN: no ${cmd.input} routing among options — left inherited (recorded)`);
+                else {
+                  osc.client.send('/live/track/set/input_routing_channel', [dupIdx, pick]);
+                  const routed = await pollFor(async () => {
+                    const r = await osc.tryAsk('/live/track/get/input_routing_channel', [dupIdx]);
+                    return r !== null && String(r.args[r.args.length - 1]) === pick;
+                  }, 3000);
+                  log(`ADD_CHAIN: input routing "${pick}" (${cmd.input}) ${routed ? 'readback ok' : 'NOT confirmed by readback (recorded)'}`);
+                }
+              }
+            }
+
+            await restructure({ kind: 'add', track: dupIdx });
+            const newChain = resolver.chainForTag(newTag);
+            if (!newChain) throw new Error(`re-scan did not resolve [${newTag}] — investigate before retrying`);
+            log(`ADD_CHAIN: [${newTag}] resolved as ${newChain} — confirmed by scan truth`);
+
+            // Amp option (P5-a): the device is ALWAYS present (it rode the
+            // duplicate). 'tone' -> Model param + Load OK receipt, logged.
+            if (cmd.amp?.kind === 'tone') {
+              const ref = resolver.resolveParam({ chain: newChain, device: 'amp', param: 'Model' });
+              if (ref) {
+                const msg = DOWN.setDeviceParameter.build(ref.track, ref.device, ref.parameter, cmd.amp.model);
+                osc.client.send(msg.address, msg.args as (number | string)[]);
+                const okRef = resolver.resolveParam({ chain: newChain, device: 'amp', param: 'Load OK' });
+                if (okRef) {
+                  const loaded = await pollFor(async () => {
+                    const r = await osc.tryAsk('/live/device/get/parameter/value', [okRef.track as number, okRef.device as number, okRef.parameter as number]);
+                    return r !== null && Number(r.args[3]) === 1;
+                  }, 5000);
+                  log(`ADD_CHAIN: tone ${cmd.amp.model} -> Load OK ${loaded ? 'OBSERVED' : 'NOT observed in 5s (recorded)'}`);
+                } else log('ADD_CHAIN: no Load OK param resolved — tone receipt unavailable (recorded)');
+              } else log('ADD_CHAIN: no Model param resolved on the new amp — tone NOT loaded (recorded)');
+            } else if (cmd.amp?.kind === 'di') {
+              // P5-a "no amp" = DI, REAL since the 2026-07-24 amp rev: set the
+              // DI param and read the device's receipt back. On a pre-rev
+              // device the param won't resolve — logged honestly.
+              const diRef = resolver.resolveParam({ chain: newChain, device: 'amp', param: 'DI' });
+              if (!diRef) log('ADD_CHAIN: DI requested but no DI param on this amp (pre-rev device? rebuild via devgen/build_amp.sh) — left at device default');
+              else {
+                const msg = DOWN.setDeviceParameter.build(diRef.track, diRef.device, diRef.parameter, 1);
+                osc.client.send(msg.address, msg.args as (number | string)[]);
+                const engaged = await pollFor(async () => {
+                  const r = await osc.tryAsk('/live/device/get/parameter/value', [diRef.track as number, diRef.device as number, diRef.parameter as number]);
+                  return r !== null && Number(r.args[3]) === 1;
+                }, 4000);
+                log(`ADD_CHAIN: DI ${engaged ? 'engaged (receipt readback ok)' : 'NOT confirmed by receipt in 4s (recorded — check the device)'}`);
+              }
+            }
+            status(cmd.commandId, 'confirmed');
+          } catch (e) {
+            log(`ADD_CHAIN FAILED: ${e instanceof Error ? e.message : e}`);
+            status(cmd.commandId, 'failed', { reason: e instanceof Error ? e.message : 'add_chain failed' });
+          } finally { restructuring = false; }
+        })();
+        return;
+      }
+      case 'delete_chain': {
+        // __provisional STATEFUL structural op (Phase 5a work item 3).
+        // GUARDS (brief): never the last remaining chain; never one recording.
+        if (restructuring) return fail('a structural change is already in flight');
+        if (tagConflicts.length > 0) return fail(`tag conflict on [${tagConflicts.join(', ')}] — delete the duplicate-tagged tracks in Live first`);
+        const chainMirror = store.snapshot.chains.find((c) => c.id === cmd.chain);
+        if (!chainMirror) return fail('unknown chain');
+        if (store.snapshot.chains.length <= 1) return fail('cannot delete the last chain');
+        if (chainMirror.cells.some((cl) => cl.recording)) return fail('chain is recording — stop it first');
+        const track = resolver.resolveChain(cmd.chain);
+        if (track === undefined) return fail('unknown chain');
+        const tag = resolver.tagFor(cmd.chain)!;
+        restructuring = true;
+        status(cmd.commandId, 'sent');
+        (async () => {
+          try {
+            const t = track as number;
+            // NEVER delete blind: the track at this index must still carry OUR tag.
+            let nm = await osc.tryAsk('/live/track/get/name', [t]);
+            if (!nm) { await new Promise((r) => setTimeout(r, 900)); nm = await osc.tryAsk('/live/track/get/name', [t]); } // busy-wire retry
+            const nmS = nm ? String(nm.args[1]) : '';
+            if (!nmS.includes(`[${tag}]`))
+              throw new Error(`track ${t} reads "${nmS}" (expected marker [${tag}]) — refusing to delete`);
+            const count0 = Number((await osc.ask('/live/song/get/num_tracks')).args[0]);
+            log(`DELETE_CHAIN: deleting track ${t} ("${nmS}", [${tag}])`);
+            osc.client.send('/live/song/delete_track', [t]);
+            const shrank = await pollFor(async () => {
+              const r = await osc.tryAsk('/live/song/get/num_tracks');
+              return r !== null && Number(r.args[0]) === count0 - 1;
+            }, 6000);
+            if (!shrank) throw new Error('delete_track not observed (num_tracks unchanged) — reconcile in Live');
+            await restructure({ kind: 'delete', track: t });
+            if (resolver.chainForTag(tag)) throw new Error(`[${tag}] still resolves after delete — investigate`);
+            log(`DELETE_CHAIN: [${tag}] gone — confirmed by scan truth`);
+            status(cmd.commandId, 'confirmed');
+          } catch (e) {
+            log(`DELETE_CHAIN FAILED: ${e instanceof Error ? e.message : e}`);
+            status(cmd.commandId, 'failed', { reason: e instanceof Error ? e.message : 'delete_chain failed' });
+          } finally { restructuring = false; }
+        })();
+        return;
+      }
+      case 'add_fx': {
+        // __provisional STATEFUL (owner 2026-07-24): curated stock FX via the
+        // FROZEN Phase-1 browser path. Confirmed by observed device-list truth
+        // (count +1, name matches). Position is wherever load_item puts it —
+        // recorded verbatim; probe 10 refines placement later.
+        if (restructuring) return fail('a structural change is already in flight');
+        const fx = FX_CATALOG.find((f) => f.id === cmd.fx);
+        if (!fx) return fail('unknown fx id');
+        const track = resolver.resolveChain(cmd.chain);
+        if (track === undefined) return fail('unknown chain');
+        restructuring = true;
+        status(cmd.commandId, 'sent');
+        (async () => {
+          try {
+            const t = track as number;
+            const before = live.tracks[t].devices.map((d) => d.name);
+            // FINDING 2026-07-24: the reply ADDRESS was never pinned in Phase 1 —
+            // get-uri matched ANY browser* address on purpose. Do the same, and
+            // pull the URI out of the flat [name, uri, ...] args by shape.
+            const browserQueryOnce = async (query: string, timeoutMs: number): Promise<string | undefined> => {
+              const q = DOWN.browserQuery.build(query, 3);
+              osc.client.send(q.address, q.args as (number | string)[]);
+              try {
+                const r = await osc.client.waitFor((m) => m.address.includes('browser') && !m.address.includes('rescan'), timeoutMs);
+                const strings = r.args.filter((a): a is string => typeof a === 'string');
+                const found = strings.find((x) => x.includes('#') || x.startsWith('query:'));
+                if (!found) log(`ADD_FX: browser reply on ${r.address} had no URI-shaped arg: [${r.args.join(', ')}]`);
+                return found;
+              } catch { return undefined; }
+            };
+            let uri = fxUriCache.get(fx.id) ?? await browserQueryOnce(fx.query, 5000);
+            if (!uri) {
+              // cold index self-heal: rescan, WAIT FOR ITS REPLY (first build
+              // walks the whole browser — several seconds), retry ONCE.
+              log(`ADD_FX: query "${fx.query}" empty — browser index cold; rescanning (can take a while) + retrying`);
+              const rs = DOWN.browserRescan.build();
+              osc.client.send(rs.address, rs.args as (number | string)[]);
+              try { await osc.client.waitFor((m) => m.address.includes('browser') && m.address.includes('rescan'), 20000); } catch { /* proceed to retry anyway */ }
+              uri = await browserQueryOnce(fx.query, 8000);
+            }
+            if (uri) fxUriCache.set(fx.id, uri);
+            if (!uri) throw new Error(`browser query "${fx.query}" returned no URI even after a rescan — paste the rig log lines around this`);
+            log(`ADD_FX: ${fx.label} -> ${cmd.chain} (uri ${uri})`);
+            const loadMsg = DOWN.browserLoadItem.build(t as never, uri);
+            osc.client.send(loadMsg.address, loadMsg.args as (number | string)[]);
+            const grew = await pollFor(async () => {
+              const r = await osc.tryAsk('/live/track/get/devices/name', [t]);
+              return r !== null && r.args.slice(1).length === before.length + 1;
+            }, 8000);
+            if (!grew) throw new Error('load_item not observed (device count unchanged)');
+            // SPECTRAL RECYCLE (probe 10, 2026-07-24: load_item APPENDS — after
+            // the spectral tap, so the new FX would be invisible to the
+            // spectrum/cymatics). The spectral device is OURS and STATELESS
+            // (zero params, reads the track name), so: delete it, reload it —
+            // it returns to the true end and the FX sits in the post-EQ slot.
+            // Stateful fixtures (amp/looper/EQ) are NEVER recycled.
+            const namesNow = (await osc.ask('/live/track/get/devices/name', [t])).args.slice(1).map(String);
+            const specIdx = namesNow.findIndex((n) => /nam_a2_spectral/i.test(n));
+            if (specIdx >= 0 && specIdx < namesNow.length - 1) {
+              const specUri = fxUriCache.get('__spectral') ?? await browserQueryOnce('NAM_A2_Spectral', 6000);
+              if (!specUri) log('ADD_FX: spectral URI not in the browser index — FX stays appended AFTER the analyzer (audible, invisible to the spectrum; recorded)');
+              else {
+                fxUriCache.set('__spectral', specUri);
+                log(`ADD_FX: recycling spectral (idx ${specIdx}) so the FX sits before the analyzer`);
+                osc.client.send('/live/track/delete_device', [t, specIdx]);
+                const shrank = await pollFor(async () => {
+                  const r = await osc.tryAsk('/live/track/get/devices/name', [t]);
+                  return r !== null && r.args.slice(1).length === namesNow.length - 1;
+                }, 6000);
+                if (!shrank) log('ADD_FX: spectral delete not observed — FX stays appended (recorded)');
+                else {
+                  const lm = DOWN.browserLoadItem.build(t as never, specUri);
+                  osc.client.send(lm.address, lm.args as (number | string)[]);
+                  const back = await pollFor(async () => {
+                    const r = await osc.tryAsk('/live/track/get/devices/name', [t]);
+                    const ns = r ? r.args.slice(1).map(String) : [];
+                    return ns.length === namesNow.length && /nam_a2_spectral/i.test(ns[ns.length - 1] ?? '');
+                  }, 8000);
+                  if (!back) throw new Error('SPECTRAL RECYCLE FAILED — the analyzer may be missing from this chain; re-add NAM_A2_Spectral at the end of the track in Live and report');
+                  log('ADD_FX: spectral back at the end (readback ok)');
+                }
+              }
+            }
+            await restructure({ kind: 'devices', track: t });
+            const after = live.tracks[t].devices.map((d) => d.name);
+            const landed = after.findIndex((n, i) => n !== before[i]);
+            const at = landed < 0 ? after.length - 1 : landed;
+            log(`ADD_FX: "${after[at]}" landed at device index ${at} — confirmed by scan truth`);
+            status(cmd.commandId, 'confirmed');
+          } catch (e) {
+            log(`ADD_FX FAILED: ${e instanceof Error ? e.message : e}`);
+            status(cmd.commandId, 'failed', { reason: e instanceof Error ? e.message : 'add_fx failed' });
+          } finally { restructuring = false; }
+        })();
+        return;
+      }
+      case 'set_device_on': {
+        // __provisional IDEMPOTENT: absolute "Device On" (parameter 0) by
+        // device index within the chain's current scanned list.
+        const track = resolver.resolveChain(cmd.chain);
+        if (track === undefined) return fail('unknown chain');
+        const t = track as number;
+        if (!live.tracks[t]?.devices[cmd.device]) return fail('unknown device index');
+        const v = cmd.on ? 1 : 0;
+        const msg = DOWN.setDeviceParameter.build(t as never, cmd.device as never, 0 as never, v);
+        return confirmed({
+          targetKey: `devon:${cmd.chain}:${cmd.device}`,
+          sendMsgs: [msg as { address: string; args: (number | string)[] }],
+          confirmGet: { address: '/live/device/get/parameter/value', args: [t, cmd.device, 0] },
+          expect: (m) => m.address.endsWith('/parameter/value') && Number(m.args[0]) === t && Number(m.args[1]) === cmd.device && Number(m.args[2]) === 0 && Number(m.args[3]) === v,
+        });
+      }
+      case 'rename_chain': {
+        // __provisional vocabulary (owner-requested 2026-07-23). The tablet
+        // sends the HUMAN label; the hub owns the [TN] marker and re-appends
+        // it (self-healing keeps it intact afterwards). Absolute + idempotent.
+        const track = resolver.resolveChain(cmd.chain);
+        if (track === undefined) return fail('unknown chain');
+        const t = track as number;
+        const tag = resolver.tagFor(cmd.chain)!;
+        const label = cmd.name.replace(/\s*(?:\[\[[^\]]*\]\]|\[T\d+\])\s*/g, ' ').replace(/\s+/g, ' ').trim();
+        if (!label) return fail('empty name');
+        const full = `${label} [${tag}]`;
+        return confirmed({
+          targetKey: `rename_chain:${cmd.chain}`,
+          sendMsgs: [{ address: '/live/track/set/name', args: [t, full] }],
+          confirmGet: { address: '/live/track/get/name', args: [t] },
+          expect: (m) => m.address === '/live/track/get/name' && Number(m.args[0]) === t && String(m.args[1]) === full,
         });
       }
       case 'set_send': {
@@ -917,6 +1490,20 @@ async function main() {
         const ref = resolver.resolveParam({ chain: cmd.chain, device: cmd.device, param: cmd.param });
         if (!ref) return fail('unknown param');
         const [t, d, p] = [ref.track as number, ref.device as number, ref.parameter as number];
+        // TONE-RENAME (owner rule 2026-07-24): changing the amp capture on a
+        // BARE track (nothing beyond the four fixture devices — checked from
+        // scan truth) renames the track after the tone. Customized tracks
+        // (extra devices) keep their names. Marker stays hub-owned; the rename
+        // confirms via the name-listener echo like any other.
+        if (cmd.device === 'amp' && cmd.param === 'Model' && live.tracks[t]?.devices.length === 4) {
+          const tone = readTonesManifest().find((e) => e.index === cmd.value);
+          const tag = resolver.tagFor(cmd.chain);
+          if (tone && tag) {
+            const label = tone.name.replace(/\.nam$/i, '').replace(/[-_]+/g, ' ').replace(/\s+/g, ' ').trim();
+            log(`TONE-RENAME: bare track ${t} -> "${label} [${tag}]" (capture change)`);
+            osc.client.send('/live/track/set/name', [t, `${label} [${tag}]`]);
+          }
+        }
         const msg = DOWN.setDeviceParameter.build(ref.track, ref.device, ref.parameter, cmd.value);
         return confirmed({
           targetKey: `param:${cmd.chain}:${cmd.device}:${cmd.param}`,
@@ -987,9 +1574,138 @@ async function main() {
     }
   }
 
+  /** Curated FX smart defaults (owner decision 2026-07-24). `query` feeds the
+   *  frozen /live/browser/query; intended position is recorded but POSITION
+   *  CONTROL IS UNOBSERVED (probe 10) — v1 loads land where load_item puts
+   *  them, logged honestly. Editing beyond on/off deferred (owner). */
+  const FX_CATALOG: { id: string; label: string; query: string; pos: 'pre' | 'post' }[] = [
+    { id: 'compressor', label: 'Compressor', query: 'Compressor', pos: 'pre' },
+    { id: 'pedal', label: 'Drive', query: 'Pedal', pos: 'pre' },
+    { id: 'delay', label: 'Delay', query: 'Delay', pos: 'post' },
+    { id: 'reverb', label: 'Reverb', query: 'Reverb', pos: 'post' },
+    { id: 'chorus', label: 'Chorus', query: 'Chorus-Ensemble', pos: 'post' },
+  ];
+  const fxUriCache = new Map<string, string>();
+
+  /** models.json, read fresh from disk; tombstones (file:null) skipped. */
+  function readTonesManifest(): { index: number; name: string; file: string }[] {
+    const dir = process.env.MODELS_DIR ?? '/Users/cyrustafti/Aibleton/Aibleton/models';
+    try {
+      const mf = JSON.parse(readFileSync(dir + '/models.json', 'utf8'));
+      return (mf.entries ?? []).filter((e: { file: string | null }) => e.file !== null)
+        .map((e: { index: number; name: string; file: string }) => ({ index: e.index, name: e.name, file: e.file }));
+    } catch { log('tones manifest unreadable — empty list served'); return []; }
+  }
+
+  // Warm the engine's browser index at boot (FINDING 2026-07-24: queries
+  // return nothing until a rescan builds it — Phase 1 always rescanned first;
+  // the index is per-engine-session). Fire-and-forget; idempotent; the engine
+  // logs completion on its side.
+  {
+    const r = DOWN.browserRescan.build();
+    osc.client.send(r.address, r.args as (number | string)[]);
+    log('browser index rescan issued (warms /live/browser/query for the FX panel)');
+  }
+
+  // --- TONE3000 BRIDGE (owner finding 2026-07-24: 7333 was dead because the
+  // bridge is a separate server nobody started). The hub now spawns it at boot
+  // — same machine, stdlib-only python — and logs its lines. BRIDGE=off skips.
+  if (process.env.BRIDGE !== 'off') {
+    const bridgePath = new URL('../../../devgen/tone3000_bridge.py', import.meta.url).pathname;
+    if (existsSync(bridgePath)) {
+      const modelsDir = process.env.MODELS_DIR ?? '/Users/cyrustafti/Aibleton/Aibleton/models';
+      const bridge = spawn('python3', [bridgePath, '--models-dir', modelsDir], { stdio: ['ignore', 'pipe', 'pipe'] });
+      bridge.stdout.on('data', (d: Buffer) => d.toString().split('\n').filter(Boolean).forEach((l) => log(`[bridge] ${l}`)));
+      bridge.stderr.on('data', (d: Buffer) => d.toString().split('\n').filter(Boolean).forEach((l) => log(`[bridge!] ${l}`)));
+      bridge.on('exit', (code) => log(`[bridge] exited (${code}) — TONE3000 browsing down until rig restart (port 7333 already taken is fine if you run it yourself)`));
+      process.on('exit', () => bridge.kill());
+      log('TONE3000 bridge spawned (port 7333; BRIDGE=off to disable)');
+    } else log(`TONE3000 bridge not found at ${bridgePath} — browsing unavailable`);
+  }
+
+  // --- MANIFEST WATCHER (owner rev 2026-07-24: downloads should JUST LAND) ---
+  // The bridge can't do post-download OSC (the rig owns 11001 — the Errno 48
+  // finding). The HUB owns OSC, so the hub watches models.json: on change,
+  // EVERY amp instance gets a Rescan pulse; if a tablet declared browse intent
+  // recently, that chain also auto-selects the newest capture (tone-rename
+  // rule applies via the same bare-track check).
+  let browseIntent: { chain: string; at: number } | null = null;
+  let manifestMtime = 0;
+  const modelsDirW = process.env.MODELS_DIR ?? '/Users/cyrustafti/Aibleton/Aibleton/models';
+  setInterval(async () => {
+    let mt = 0;
+    try { mt = statSync(modelsDirW + '/models.json').mtimeMs; } catch { return; }
+    if (manifestMtime === 0) { manifestMtime = mt; return; } // baseline, not an event
+    if (mt === manifestMtime || restructuring) return;
+    manifestMtime = mt;
+    const entries = readTonesManifest();
+    log(`MANIFEST CHANGED: ${entries.length} live captures — Rescan pulse to every amp`);
+    for (const chainId of resolver.chainIds()) {
+      const ref = resolver.resolveParam({ chain: chainId, device: 'amp', param: 'Rescan' });
+      if (!ref) continue;
+      const on = DOWN.setDeviceParameter.build(ref.track, ref.device, ref.parameter, 1);
+      osc.client.send(on.address, on.args as (number | string)[]);
+      setTimeout(() => {
+        const off = DOWN.setDeviceParameter.build(ref.track, ref.device, ref.parameter, 0);
+        osc.client.send(off.address, off.args as (number | string)[]);
+      }, 400);
+    }
+    if (browseIntent && Date.now() - browseIntent.at < 10 * 60_000 && entries.length > 0) {
+      const newest = entries.reduce((a, b) => (b.index > a.index ? b : a));
+      const chain = browseIntent.chain;
+      const ref = resolver.resolveParam({ chain: chain as never, device: 'amp', param: 'Model' });
+      if (ref) {
+        const t = ref.track as number;
+        log(`MANIFEST: auto-selecting newest capture "${newest.name}" (index ${newest.index}) on ${chain} (browse intent)`);
+        setTimeout(() => {
+          const msg = DOWN.setDeviceParameter.build(ref.track, ref.device, ref.parameter, newest.index);
+          osc.client.send(msg.address, msg.args as (number | string)[]);
+          if (live.tracks[t]?.devices.length === 4) {
+            const tg = resolver.tagFor(chain as never);
+            const label = newest.name.replace(/\.nam$/i, '').replace(/[-_]+/g, ' ').replace(/\s+/g, ' ').trim();
+            if (tg) { log(`TONE-RENAME: bare track ${t} -> "${label} [${tg}]" (auto-select)`); osc.client.send('/live/track/set/name', [t, `${label} [${tg}]`]); }
+          }
+        }, 900); // after the Rescan pulse settles
+      }
+    }
+  }, 2000);
+
   // --- HTTP + WS (same seat as sim/server.ts) --------------------------------
   const http = createServer((req, res) => {
     const path = req.url === '/' || req.url === undefined ? '/index.html' : req.url.split('?')[0];
+    if (path === '/tones.json') {
+      // Amp-picker data (P5-a): manifest read fresh (path pinned in amp.js).
+      res.writeHead(200, { 'content-type': 'application/json', 'cache-control': 'no-store' });
+      return void res.end(JSON.stringify(readTonesManifest()));
+    }
+    if (path.startsWith('/fx.json')) {
+      // FX side-panel data: the chain's FULL scanned device list + each
+      // device's live "Device On" (param 0) value, asked fresh. Served over
+      // HTTP like /tones.json — the frozen mirror shape doesn't move.
+      const chain = new URL(req.url ?? '', 'http://x').searchParams.get('chain');
+      const track = chain ? resolver.resolveChain(chain as never) : undefined;
+      if (track === undefined) { res.writeHead(404); return void res.end('{}'); }
+      (async () => {
+        const t = track as number;
+        const devs = live.tracks[t]?.devices ?? [];
+        const out = [];
+        for (let d = 0; d < devs.length; d++) {
+          const r = await osc.tryAsk('/live/device/get/parameter/value', [t, d, 0]);
+          out.push({ index: d, name: devs[d].name, on: r ? Number(r.args[3]) !== 0 : null });
+        }
+        res.writeHead(200, { 'content-type': 'application/json', 'cache-control': 'no-store' });
+        res.end(JSON.stringify({ devices: out, catalog: FX_CATALOG.map(({ id, label, pos }) => ({ id, label, pos })) }));
+      })().catch(() => { res.writeHead(500); res.end('{}'); });
+      return;
+    }
+    if (path === '/browse-intent') {
+      // The tablet declares WHICH chain the TONE3000 browse is for, so the
+      // manifest watcher can auto-select the fresh download onto it.
+      const chain = new URL(req.url ?? '', 'http://x').searchParams.get('chain');
+      if (chain) { browseIntent = { chain, at: Date.now() }; log(`browse intent: ${chain}`); }
+      res.writeHead(200, { 'content-type': 'application/json', 'cache-control': 'no-store' });
+      return void res.end('{}');
+    }
     const file = TABLET_DIR + path.replace(/^\//, '');
     if (!existsSync(file) || path.includes('..')) return void res.writeHead(404).end('not found');
     const ext = path.slice(path.lastIndexOf('.'));
